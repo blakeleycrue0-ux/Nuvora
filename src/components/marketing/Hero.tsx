@@ -55,11 +55,11 @@ export function Hero() {
             transition={{ duration: 0.6, delay: 0.18, ease: [0.16, 1, 0.3, 1] }}
             className="flex flex-col gap-3 sm:flex-row"
           >
-            <Button href="/dashboard" size="lg" className="group">
+            <Button href="/login" size="lg" className="group">
               Get Started
               <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
             </Button>
-            <Button href="/coach" variant="secondary" size="lg">
+            <Button href="#demo" variant="secondary" size="lg">
               <PlayCircle size={17} />
               See Demo
             </Button>

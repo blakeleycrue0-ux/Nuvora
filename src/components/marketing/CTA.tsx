@@ -19,7 +19,7 @@ export function CTA() {
             Join thousands who replaced their fitness app folder with one experience.
           </p>
           <div className="relative mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Button href="/dashboard" size="lg" className="group">
+            <Button href="/login" size="lg" className="group">
               Get Started Free
               <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
             </Button>

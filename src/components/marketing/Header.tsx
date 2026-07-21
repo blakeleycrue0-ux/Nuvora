@@ -53,10 +53,10 @@ export function MarketingHeader() {
         </nav>
 
         <div className="hidden items-center gap-3 md:flex">
-          <Button href="/coach" variant="ghost" size="sm">
+          <Button href="#demo" variant="ghost" size="sm">
             See Demo
           </Button>
-          <Button href="/dashboard" variant="primary" size="sm">
+          <Button href="/login" variant="primary" size="sm">
             Get Started
           </Button>
         </div>
@@ -89,10 +89,10 @@ export function MarketingHeader() {
               </a>
             ))}
             <div className="mt-2 flex flex-col gap-2 px-1">
-              <Button href="/coach" variant="secondary" size="md" className="w-full">
+              <Button href="#demo" variant="secondary" size="md" className="w-full">
                 See Demo
               </Button>
-              <Button href="/dashboard" variant="primary" size="md" className="w-full">
+              <Button href="/login" variant="primary" size="md" className="w-full">
                 Get Started
               </Button>
             </div>

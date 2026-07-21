@@ -4,9 +4,13 @@ import { useEffect, useRef, useState } from "react";
 import { Sparkles } from "lucide-react";
 import { AppShell } from "@/components/app/AppShell";
 import { ChatComposer } from "@/components/app/ChatComposer";
+import { UpgradeModal } from "@/components/app/UpgradeModal";
+import { useProfile } from "@/components/app/ProfileProvider";
 import { generateCoachReply } from "@/lib/coach-responses";
 import { aiSuggestions } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
+
+const FREE_DAILY_MESSAGE_LIMIT = 5;
 
 interface Message {
   id: string;
@@ -24,16 +28,26 @@ const initialMessages: Message[] = [
 ];
 
 export default function CoachPage() {
+  const { isPro } = useProfile();
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [streamingText, setStreamingText] = useState<string | null>(null);
   const [isThinking, setIsThinking] = useState(false);
+  const [userMessageCount, setUserMessageCount] = useState(0);
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const limitReached = !isPro && userMessageCount >= FREE_DAILY_MESSAGE_LIMIT;
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, streamingText]);
 
   const send = (text: string) => {
+    if (!isPro && userMessageCount >= FREE_DAILY_MESSAGE_LIMIT) {
+      setUpgradeOpen(true);
+      return;
+    }
+    setUserMessageCount((c) => c + 1);
     const userMsg: Message = { id: crypto.randomUUID(), role: "user", content: text };
     setMessages((m) => [...m, userMsg]);
     setIsThinking(true);
@@ -99,13 +113,29 @@ export default function CoachPage() {
 
         <div className="border-t border-border px-4 py-4 sm:px-6 lg:px-10">
           <div className="mx-auto max-w-2xl">
-            <ChatComposer onSend={send} disabled={isThinking || streamingText !== null} />
-            <p className="mt-2 text-center text-[11px] text-text-muted">
-              Nuvora Coach can make mistakes. Verify important health decisions with a professional.
-            </p>
+            {limitReached ? (
+              <button
+                onClick={() => setUpgradeOpen(true)}
+                className="flex w-full items-center justify-center gap-2 rounded-2xl border border-primary/30 bg-primary-soft px-4 py-3 text-[13.5px] font-medium text-primary transition-colors hover:bg-primary/15"
+              >
+                <Sparkles size={15} />
+                You&apos;ve used today&apos;s free messages — upgrade to Pro for unlimited coaching
+              </button>
+            ) : (
+              <>
+                <ChatComposer onSend={send} disabled={isThinking || streamingText !== null} />
+                <p className="mt-2 text-center text-[11px] text-text-muted">
+                  {isPro
+                    ? "Nuvora Coach can make mistakes. Verify important health decisions with a professional."
+                    : `${FREE_DAILY_MESSAGE_LIMIT - userMessageCount} free message${FREE_DAILY_MESSAGE_LIMIT - userMessageCount === 1 ? "" : "s"} left today`}
+                </p>
+              </>
+            )}
           </div>
         </div>
       </div>
+
+      <UpgradeModal open={upgradeOpen} onClose={() => setUpgradeOpen(false)} feature="Unlimited AI Coach" />
     </AppShell>
   );
 }
