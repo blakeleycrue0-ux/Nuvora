@@ -98,7 +98,7 @@ export function Pricing() {
                 </ul>
 
                 <Button
-                  href="/dashboard"
+                  href="/login"
                   variant={plan.highlighted ? "primary" : "secondary"}
                   size="md"
                   className="w-full"

@@ -1,16 +1,25 @@
 "use client";
 
 import { useState } from "react";
-import { Flame, Search, ScanLine, Plus, Sparkles, UtensilsCrossed } from "lucide-react";
+import { Flame, Search, ScanLine, Plus, Sparkles, UtensilsCrossed, Camera, Lock } from "lucide-react";
 import { AppShell } from "@/components/app/AppShell";
 import { PageHeader } from "@/components/app/PageHeader";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Meter } from "@/components/ui/Meter";
+import { Badge } from "@/components/ui/Badge";
 import { ProgressRing } from "@/components/ui/ProgressRing";
 import { Modal } from "@/components/ui/Modal";
-import { today, meals } from "@/lib/mock-data";
+import { useProfile } from "@/components/app/ProfileProvider";
+import { UpgradeModal } from "@/components/app/UpgradeModal";
+import { meals } from "@/lib/mock-data";
+
+const todayLabel = new Date().toLocaleDateString(undefined, {
+  weekday: "long",
+  month: "long",
+  day: "numeric",
+});
 
 const foodResults = [
   { name: "Chicken Breast, grilled", brand: "Generic", calories: 165, serving: "100g" },
@@ -27,29 +36,61 @@ const aiMeals = [
 ];
 
 export default function NutritionPage() {
+  const { profile, isPro } = useProfile();
+  const plan = profile?.plan;
   const [scanOpen, setScanOpen] = useState(false);
+  const [mealScanOpen, setMealScanOpen] = useState(false);
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
+  const [upgradeFeature, setUpgradeFeature] = useState<string | undefined>();
   const [query, setQuery] = useState("");
 
+  const calorieGoal = plan?.calorieGoal ?? 2000;
+  const caloriesConsumed = 0;
+
   const macros = [
-    { label: "Protein", ...today.protein, color: "var(--chart-1)" },
-    { label: "Carbs", ...today.carbs, color: "var(--chart-4)" },
-    { label: "Fat", ...today.fat, color: "var(--chart-5)" },
+    { label: "Protein", value: 0, goal: plan?.proteinGoal ?? 150, color: "var(--chart-1)" },
+    { label: "Carbs", value: 0, goal: plan?.carbsGoal ?? 200, color: "var(--chart-4)" },
+    { label: "Fat", value: 0, goal: plan?.fatGoal ?? 65, color: "var(--chart-5)" },
   ];
 
   const filteredFoods = foodResults.filter((f) =>
     f.name.toLowerCase().includes(query.toLowerCase()),
   );
 
+  const openScan = () => {
+    if (isPro) setScanOpen(true);
+    else {
+      setUpgradeFeature("Barcode scanning");
+      setUpgradeOpen(true);
+    }
+  };
+
+  const openMealScan = () => {
+    if (isPro) setMealScanOpen(true);
+    else {
+      setUpgradeFeature("AI meal photo recognition");
+      setUpgradeOpen(true);
+    }
+  };
+
   return (
     <AppShell>
       <PageHeader
         title="Nutrition"
-        subtitle={today.date}
+        subtitle={todayLabel}
         action={
-          <Button size="sm" variant="secondary" onClick={() => setScanOpen(true)} className="hidden sm:inline-flex">
-            <ScanLine size={15} />
-            Scan Barcode
-          </Button>
+          <div className="hidden items-center gap-2 sm:flex">
+            <Button size="sm" variant="secondary" onClick={openMealScan}>
+              <Camera size={15} />
+              Scan Meal
+              {!isPro && <Lock size={11} className="text-text-muted" />}
+            </Button>
+            <Button size="sm" variant="secondary" onClick={openScan}>
+              <ScanLine size={15} />
+              Scan Barcode
+              {!isPro && <Lock size={11} className="text-text-muted" />}
+            </Button>
+          </div>
         }
       />
 
@@ -61,12 +102,12 @@ export default function NutritionPage() {
               <p className="text-[13px] text-text-secondary">Calories consumed</p>
               <div className="mt-1 flex items-baseline gap-2">
                 <span className="text-[30px] font-semibold tabular-nums leading-none text-text">
-                  {today.calories.consumed.toLocaleString()}
+                  {caloriesConsumed.toLocaleString()}
                 </span>
-                <span className="text-[13px] text-text-muted">/ {today.calories.goal.toLocaleString()} kcal</span>
+                <span className="text-[13px] text-text-muted">/ {calorieGoal.toLocaleString()} kcal</span>
               </div>
             </div>
-            <ProgressRing value={today.calories.consumed} max={today.calories.goal} size={78} strokeWidth={8}>
+            <ProgressRing value={caloriesConsumed} max={calorieGoal} size={78} strokeWidth={8}>
               <Flame size={18} className="text-primary" />
             </ProgressRing>
           </div>
@@ -84,9 +125,13 @@ export default function NutritionPage() {
           </div>
 
           <div className="flex gap-2 sm:hidden">
-            <Button size="sm" variant="secondary" onClick={() => setScanOpen(true)} className="flex-1">
+            <Button size="sm" variant="secondary" onClick={openMealScan} className="flex-1">
+              <Camera size={15} />
+              Scan Meal
+            </Button>
+            <Button size="sm" variant="secondary" onClick={openScan} className="flex-1">
               <ScanLine size={15} />
-              Scan
+              Scan Barcode
             </Button>
           </div>
         </Card>
@@ -180,23 +225,49 @@ export default function NutritionPage() {
       </div>
 
       <Modal open={scanOpen} onClose={() => setScanOpen(false)} title="Scan Barcode">
-        <div className="flex flex-col items-center gap-4">
-          <div className="relative flex aspect-square w-full items-center justify-center rounded-2xl border border-dashed border-border bg-bg">
-            <ScanLine size={32} className="text-text-muted" />
-            {["-top-px -left-px rounded-tl-2xl border-t-2 border-l-2", "-top-px -right-px rounded-tr-2xl border-t-2 border-r-2", "-bottom-px -left-px rounded-bl-2xl border-b-2 border-l-2", "-bottom-px -right-px rounded-br-2xl border-b-2 border-r-2"].map(
-              (pos, i) => (
-                <span key={i} className={`absolute h-6 w-6 border-primary ${pos}`} />
-              ),
-            )}
-          </div>
-          <p className="text-center text-[13px] text-text-secondary">
-            Point your camera at a barcode to instantly log a food item. Barcode scanning is coming soon.
-          </p>
-          <Button variant="secondary" className="w-full" onClick={() => setScanOpen(false)}>
-            Close
-          </Button>
-        </div>
+        <ScanViewfinder icon={ScanLine} />
+        <p className="mt-4 text-center text-[13px] text-text-secondary">
+          Point your camera at a barcode to instantly log a food item. Barcode scanning is coming soon.
+        </p>
+        <Button variant="secondary" className="mt-4 w-full" onClick={() => setScanOpen(false)}>
+          Close
+        </Button>
       </Modal>
+
+      <Modal open={mealScanOpen} onClose={() => setMealScanOpen(false)} title="Scan Meal">
+        <div className="mb-3 flex justify-center">
+          <Badge tone="primary">
+            <Sparkles size={11} />
+            Pro
+          </Badge>
+        </div>
+        <ScanViewfinder icon={Camera} />
+        <p className="mt-4 text-center text-[13px] text-text-secondary">
+          Take a photo of your plate and Nuvora&apos;s AI will estimate calories and macros automatically. Coming soon.
+        </p>
+        <Button variant="secondary" className="mt-4 w-full" onClick={() => setMealScanOpen(false)}>
+          Close
+        </Button>
+      </Modal>
+
+      <UpgradeModal open={upgradeOpen} onClose={() => setUpgradeOpen(false)} feature={upgradeFeature} />
     </AppShell>
+  );
+}
+
+function ScanViewfinder({ icon: Icon }: { icon: typeof ScanLine }) {
+  const corners = [
+    "-top-px -left-px rounded-tl-2xl border-t-2 border-l-2",
+    "-top-px -right-px rounded-tr-2xl border-t-2 border-r-2",
+    "-bottom-px -left-px rounded-bl-2xl border-b-2 border-l-2",
+    "-bottom-px -right-px rounded-br-2xl border-b-2 border-r-2",
+  ];
+  return (
+    <div className="relative flex aspect-square w-full items-center justify-center rounded-2xl border border-dashed border-border bg-bg">
+      <Icon size={32} className="text-text-muted" />
+      {corners.map((pos, i) => (
+        <span key={i} className={`absolute h-6 w-6 border-primary ${pos}`} />
+      ))}
+    </div>
   );
 }

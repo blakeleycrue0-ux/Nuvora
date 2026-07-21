@@ -20,7 +20,7 @@ export function ScreensPreview() {
   const [active, setActive] = useState(0);
 
   return (
-    <section className="py-24 sm:py-32">
+    <section id="demo" className="py-24 sm:py-32">
       <Container>
         <SectionHeading
           eyebrow="Inside Nuvora"

@@ -4,9 +4,12 @@ import { useEffect, useRef, useState } from "react";
 import { Sparkles } from "lucide-react";
 import { AppShell } from "@/components/app/AppShell";
 import { ChatComposer } from "@/components/app/ChatComposer";
-import { generateCoachReply } from "@/lib/coach-responses";
+import { UpgradeModal } from "@/components/app/UpgradeModal";
+import { useProfile } from "@/components/app/ProfileProvider";
 import { aiSuggestions } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
+
+const FREE_DAILY_MESSAGE_LIMIT = 5;
 
 interface Message {
   id: string;
@@ -14,46 +17,66 @@ interface Message {
   content: string;
 }
 
-const initialMessages: Message[] = [
-  {
+function welcomeMessage(firstName?: string): Message {
+  return {
     id: "welcome",
     role: "assistant",
-    content:
-      "Hey Alex! I'm your Nuvora coach — I can build today's workout, adjust your calories, plan meals, or explain your trends. What would you like to tackle first?",
-  },
-];
+    content: `Hey${firstName ? ` ${firstName}` : ""}! I'm your Nuvora coach — I can build today's workout, adjust your calories, plan meals, or explain your trends. What would you like to tackle first?`,
+  };
+}
 
 export default function CoachPage() {
-  const [messages, setMessages] = useState<Message[]>(initialMessages);
+  const { profile, isPro } = useProfile();
+  const [messages, setMessages] = useState<Message[]>([welcomeMessage()]);
   const [streamingText, setStreamingText] = useState<string | null>(null);
   const [isThinking, setIsThinking] = useState(false);
+  const [userMessageCount, setUserMessageCount] = useState(0);
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const limitReached = !isPro && userMessageCount >= FREE_DAILY_MESSAGE_LIMIT;
+  const firstName = profile?.full_name?.split(" ")[0];
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, streamingText]);
 
-  const send = (text: string) => {
+  const send = async (text: string) => {
+    if (!isPro && userMessageCount >= FREE_DAILY_MESSAGE_LIMIT) {
+      setUpgradeOpen(true);
+      return;
+    }
+    setUserMessageCount((c) => c + 1);
     const userMsg: Message = { id: crypto.randomUUID(), role: "user", content: text };
+    const history = messages.map(({ role, content }) => ({ role, content }));
     setMessages((m) => [...m, userMsg]);
     setIsThinking(true);
 
-    const reply = generateCoachReply(text);
+    let reply: string;
+    try {
+      const res = await fetch("/api/coach", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: text, history }),
+      });
+      const data = await res.json();
+      reply = data.reply ?? "Sorry, something went wrong. Try again in a moment.";
+    } catch {
+      reply = "Sorry, something went wrong. Try again in a moment.";
+    }
 
-    setTimeout(() => {
-      setIsThinking(false);
-      let i = 0;
-      setStreamingText("");
-      const interval = setInterval(() => {
-        i += 3;
-        setStreamingText(reply.slice(0, i));
-        if (i >= reply.length) {
-          clearInterval(interval);
-          setMessages((m) => [...m, { id: crypto.randomUUID(), role: "assistant", content: reply }]);
-          setStreamingText(null);
-        }
-      }, 16);
-    }, 650);
+    setIsThinking(false);
+    let i = 0;
+    setStreamingText("");
+    const interval = setInterval(() => {
+      i += 3;
+      setStreamingText(reply.slice(0, i));
+      if (i >= reply.length) {
+        clearInterval(interval);
+        setMessages((m) => [...m, { id: crypto.randomUUID(), role: "assistant", content: reply }]);
+        setStreamingText(null);
+      }
+    }, 16);
   };
 
   return (
@@ -72,7 +95,11 @@ export default function CoachPage() {
         <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-6 sm:px-6 lg:px-10">
           <div className="mx-auto flex max-w-2xl flex-col gap-5">
             {messages.map((m) => (
-              <ChatBubble key={m.id} role={m.role} content={m.content} />
+              <ChatBubble
+                key={m.id}
+                role={m.role}
+                content={m.id === "welcome" ? welcomeMessage(firstName).content : m.content}
+              />
             ))}
 
             {isThinking && (
@@ -99,13 +126,29 @@ export default function CoachPage() {
 
         <div className="border-t border-border px-4 py-4 sm:px-6 lg:px-10">
           <div className="mx-auto max-w-2xl">
-            <ChatComposer onSend={send} disabled={isThinking || streamingText !== null} />
-            <p className="mt-2 text-center text-[11px] text-text-muted">
-              Nuvora Coach can make mistakes. Verify important health decisions with a professional.
-            </p>
+            {limitReached ? (
+              <button
+                onClick={() => setUpgradeOpen(true)}
+                className="flex w-full items-center justify-center gap-2 rounded-2xl border border-primary/30 bg-primary-soft px-4 py-3 text-[13.5px] font-medium text-primary transition-colors hover:bg-primary/15"
+              >
+                <Sparkles size={15} />
+                You&apos;ve used today&apos;s free messages — upgrade to Pro for unlimited coaching
+              </button>
+            ) : (
+              <>
+                <ChatComposer onSend={send} disabled={isThinking || streamingText !== null} />
+                <p className="mt-2 text-center text-[11px] text-text-muted">
+                  {isPro
+                    ? "Nuvora Coach can make mistakes. Verify important health decisions with a professional."
+                    : `${FREE_DAILY_MESSAGE_LIMIT - userMessageCount} free message${FREE_DAILY_MESSAGE_LIMIT - userMessageCount === 1 ? "" : "s"} left today`}
+                </p>
+              </>
+            )}
           </div>
         </div>
       </div>
+
+      <UpgradeModal open={upgradeOpen} onClose={() => setUpgradeOpen(false)} feature="Unlimited AI Coach" />
     </AppShell>
   );
 }
