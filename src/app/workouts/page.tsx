@@ -1,20 +1,17 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Dumbbell, Search, Trophy, Clock, Flame, ChevronRight, Check } from "lucide-react";
+import { Dumbbell, Search, Trophy, ChevronRight, History as HistoryIcon, Sparkles } from "lucide-react";
 import { AppShell } from "@/components/app/AppShell";
 import { PageHeader } from "@/components/app/PageHeader";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Input } from "@/components/ui/Input";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { useProfile } from "@/components/app/ProfileProvider";
 import { cn } from "@/lib/utils";
-import {
-  exerciseLibrary,
-  todayWorkout,
-  personalRecords,
-  workoutHistory,
-} from "@/lib/mock-data";
+import { exerciseLibrary, personalRecords, workoutHistory } from "@/lib/mock-data";
 
 const tabs = ["Today", "Library", "History", "Records"] as const;
 type Tab = (typeof tabs)[number];
@@ -29,10 +26,14 @@ const muscleColors: Record<string, string> = {
 };
 
 export default function WorkoutsPage() {
+  const { profile } = useProfile();
+  const plan = profile?.plan;
+  const split = plan?.weeklyWorkoutSplit ?? [];
+  const todaySplit = split.length ? split[new Date().getDay() % split.length] : null;
+
   const [tab, setTab] = useState<Tab>("Today");
   const [query, setQuery] = useState("");
   const [muscle, setMuscle] = useState<string>("All");
-  const [checked, setChecked] = useState<Record<string, boolean>>({});
 
   const muscles = ["All", ...Array.from(new Set(exerciseLibrary.map((e) => e.muscle)))];
 
@@ -77,59 +78,35 @@ export default function WorkoutsPage() {
         <div className="mt-6">
           {tab === "Today" && (
             <div className="flex flex-col gap-4">
-              <Card className="flex items-center justify-between gap-4 p-5">
+              <Card className="flex flex-col gap-4 p-6">
                 <div className="flex items-center gap-3">
                   <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-primary-soft">
                     <Dumbbell size={19} className="text-primary" />
                   </span>
                   <div>
-                    <h2 className="text-[16px] font-semibold text-text">{todayWorkout.name}</h2>
+                    <h2 className="text-[16px] font-semibold text-text">
+                      {todaySplit ? `Today: ${todaySplit}` : "No plan yet"}
+                    </h2>
                     <p className="text-[12.5px] text-text-secondary">
-                      {todayWorkout.exercises.length} exercises &middot; ~52 min
+                      {split.length ? `Your split: ${split.join(" · ")}` : "Finish onboarding to get a personalized split"}
                     </p>
                   </div>
                 </div>
-                <Button size="sm">Finish</Button>
+                <div className="flex items-center gap-2">
+                  <Sparkles size={13} className="text-text-muted" />
+                  <p className="text-[12px] text-text-secondary">
+                    Ask your coach to build today&apos;s exact sets and reps, or pick exercises from the Library below.
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <Button href="/coach" size="sm" className="flex-1">
+                    Generate today&apos;s workout
+                  </Button>
+                  <Button size="sm" variant="secondary" className="flex-1" onClick={() => setTab("Library")}>
+                    Browse Library
+                  </Button>
+                </div>
               </Card>
-
-              {todayWorkout.exercises.map((exercise) => (
-                <Card key={exercise.name} className="p-5">
-                  <h3 className="text-[14.5px] font-semibold text-text">{exercise.name}</h3>
-                  <div className="mt-4 grid max-w-sm grid-cols-[28px_84px_84px_36px] items-center gap-3 text-[11.5px] font-medium text-text-muted">
-                    <span>Set</span>
-                    <span>Reps</span>
-                    <span>Weight</span>
-                    <span />
-                  </div>
-                  <div className="mt-1 flex max-w-sm flex-col divide-y divide-border">
-                    {exercise.sets.map((set, i) => {
-                      const key = `${exercise.name}-${i}`;
-                      const done = checked[key];
-                      return (
-                        <div
-                          key={key}
-                          className="grid grid-cols-[28px_84px_84px_36px] items-center gap-3 py-2.5"
-                        >
-                          <span className="text-[13px] tabular-nums text-text-secondary">{i + 1}</span>
-                          <span className="text-[13.5px] tabular-nums text-text">{set.reps} reps</span>
-                          <span className="text-[13.5px] tabular-nums text-text">{set.weight} lb</span>
-                          <button
-                            onClick={() => setChecked((c) => ({ ...c, [key]: !c[key] }))}
-                            className={cn(
-                              "flex h-7 w-7 items-center justify-center rounded-full border transition-colors",
-                              done
-                                ? "border-success bg-success-soft text-success"
-                                : "border-border text-transparent hover:border-text-muted",
-                            )}
-                          >
-                            <Check size={14} />
-                          </button>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </Card>
-              ))}
             </div>
           )}
 
@@ -187,50 +164,60 @@ export default function WorkoutsPage() {
           )}
 
           {tab === "History" && (
-            <div className="flex flex-col gap-3">
-              {workoutHistory.map((session) => (
-                <Card key={session.name + session.date} className="flex items-center justify-between gap-4 p-4">
-                  <div className="flex items-center gap-3.5">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-soft">
-                      <Dumbbell size={16} className="text-primary" />
-                    </span>
-                    <div>
-                      <p className="text-[13.5px] font-medium text-text">{session.name}</p>
-                      <p className="text-[12px] text-text-muted">{session.date}</p>
+            <Card>
+              {workoutHistory.length === 0 ? (
+                <EmptyState
+                  icon={HistoryIcon}
+                  title="No workouts logged yet"
+                  description="Finish a session to see your history here."
+                />
+              ) : (
+                <div className="flex flex-col gap-3 p-3">
+                  {workoutHistory.map((session) => (
+                    <div key={session.name + session.date} className="flex items-center justify-between gap-4 rounded-xl p-3">
+                      <div className="flex items-center gap-3.5">
+                        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-soft">
+                          <Dumbbell size={16} className="text-primary" />
+                        </span>
+                        <div>
+                          <p className="text-[13.5px] font-medium text-text">{session.name}</p>
+                          <p className="text-[12px] text-text-muted">{session.date}</p>
+                        </div>
+                      </div>
+                      <ChevronRight size={16} className="text-text-muted" />
                     </div>
-                  </div>
-                  <div className="hidden items-center gap-5 sm:flex">
-                    <div className="flex items-center gap-1.5 text-[12.5px] text-text-secondary">
-                      <Clock size={14} className="text-text-muted" />
-                      {session.duration} min
-                    </div>
-                    <div className="flex items-center gap-1.5 text-[12.5px] text-text-secondary">
-                      <Flame size={14} className="text-text-muted" />
-                      {session.volume.toLocaleString()} lb
-                    </div>
-                  </div>
-                  <ChevronRight size={16} className="text-text-muted" />
-                </Card>
-              ))}
-            </div>
+                  ))}
+                </div>
+              )}
+            </Card>
           )}
 
           {tab === "Records" && (
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              {personalRecords.map((pr) => (
-                <Card key={pr.exercise} className="flex items-center gap-4 p-4">
-                  <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-warning-soft">
-                    <Trophy size={18} className="text-warning" />
-                  </span>
-                  <div>
-                    <p className="text-[13.5px] font-medium text-text">{pr.exercise}</p>
-                    <p className="text-[12.5px] text-text-secondary">
-                      {pr.value} <span className="text-text-muted">&middot; {pr.date}</span>
-                    </p>
-                  </div>
-                </Card>
-              ))}
-            </div>
+            <Card>
+              {personalRecords.length === 0 ? (
+                <EmptyState
+                  icon={Trophy}
+                  title="No personal records yet"
+                  description="Log workouts to start tracking your PRs."
+                />
+              ) : (
+                <div className="grid grid-cols-1 gap-3 p-3 sm:grid-cols-2">
+                  {personalRecords.map((pr) => (
+                    <div key={pr.exercise} className="flex items-center gap-4 rounded-xl p-3">
+                      <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-warning-soft">
+                        <Trophy size={18} className="text-warning" />
+                      </span>
+                      <div>
+                        <p className="text-[13.5px] font-medium text-text">{pr.exercise}</p>
+                        <p className="text-[12.5px] text-text-secondary">
+                          {pr.value} <span className="text-text-muted">&middot; {pr.date}</span>
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Card>
           )}
         </div>
       </div>

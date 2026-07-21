@@ -13,7 +13,13 @@ import { ProgressRing } from "@/components/ui/ProgressRing";
 import { Modal } from "@/components/ui/Modal";
 import { useProfile } from "@/components/app/ProfileProvider";
 import { UpgradeModal } from "@/components/app/UpgradeModal";
-import { today, meals } from "@/lib/mock-data";
+import { meals } from "@/lib/mock-data";
+
+const todayLabel = new Date().toLocaleDateString(undefined, {
+  weekday: "long",
+  month: "long",
+  day: "numeric",
+});
 
 const foodResults = [
   { name: "Chicken Breast, grilled", brand: "Generic", calories: 165, serving: "100g" },
@@ -30,17 +36,21 @@ const aiMeals = [
 ];
 
 export default function NutritionPage() {
-  const { isPro } = useProfile();
+  const { profile, isPro } = useProfile();
+  const plan = profile?.plan;
   const [scanOpen, setScanOpen] = useState(false);
   const [mealScanOpen, setMealScanOpen] = useState(false);
   const [upgradeOpen, setUpgradeOpen] = useState(false);
   const [upgradeFeature, setUpgradeFeature] = useState<string | undefined>();
   const [query, setQuery] = useState("");
 
+  const calorieGoal = plan?.calorieGoal ?? 2000;
+  const caloriesConsumed = 0;
+
   const macros = [
-    { label: "Protein", ...today.protein, color: "var(--chart-1)" },
-    { label: "Carbs", ...today.carbs, color: "var(--chart-4)" },
-    { label: "Fat", ...today.fat, color: "var(--chart-5)" },
+    { label: "Protein", value: 0, goal: plan?.proteinGoal ?? 150, color: "var(--chart-1)" },
+    { label: "Carbs", value: 0, goal: plan?.carbsGoal ?? 200, color: "var(--chart-4)" },
+    { label: "Fat", value: 0, goal: plan?.fatGoal ?? 65, color: "var(--chart-5)" },
   ];
 
   const filteredFoods = foodResults.filter((f) =>
@@ -67,7 +77,7 @@ export default function NutritionPage() {
     <AppShell>
       <PageHeader
         title="Nutrition"
-        subtitle={today.date}
+        subtitle={todayLabel}
         action={
           <div className="hidden items-center gap-2 sm:flex">
             <Button size="sm" variant="secondary" onClick={openMealScan}>
@@ -92,12 +102,12 @@ export default function NutritionPage() {
               <p className="text-[13px] text-text-secondary">Calories consumed</p>
               <div className="mt-1 flex items-baseline gap-2">
                 <span className="text-[30px] font-semibold tabular-nums leading-none text-text">
-                  {today.calories.consumed.toLocaleString()}
+                  {caloriesConsumed.toLocaleString()}
                 </span>
-                <span className="text-[13px] text-text-muted">/ {today.calories.goal.toLocaleString()} kcal</span>
+                <span className="text-[13px] text-text-muted">/ {calorieGoal.toLocaleString()} kcal</span>
               </div>
             </div>
-            <ProgressRing value={today.calories.consumed} max={today.calories.goal} size={78} strokeWidth={8}>
+            <ProgressRing value={caloriesConsumed} max={calorieGoal} size={78} strokeWidth={8}>
               <Flame size={18} className="text-primary" />
             </ProgressRing>
           </div>
