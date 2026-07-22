@@ -1,184 +1,234 @@
 @import "tailwindcss";
 
+/*
+  Momentum design system.
+  Light mode is the default. Dark mode is opt-in via .dark on <html>.
+  Neutral warm-gray surfaces + an indigo→violet→fuchsia accent system.
+*/
+
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 
   /* Surfaces */
-  --color-bg: #0b0b0f;
-  --color-bg-elevated: #101013;
-  --color-card: #17181c;
-  --color-card-hover: #1c1d22;
-  --color-border: #2a2a2f;
-  --color-border-soft: rgba(255, 255, 255, 0.06);
+  --bg: #f6f6f8;
+  --bg-subtle: #eeeef2;
+  --surface: #ffffff;
+  --surface-2: #fbfbfd;
+  --elevated: #ffffff;
+  --border: #e7e7ee;
+  --border-strong: #d9d9e3;
 
   /* Text */
-  --color-text: #ffffff;
-  --color-text-secondary: #a1a1aa;
-  --color-text-muted: #6b6b72;
+  --text: #17171c;
+  --text-secondary: #5b5b6b;
+  --text-muted: #9a9aab;
 
-  /* Brand */
-  --color-primary: #3b82f6;
-  --color-primary-hover: #2563eb;
-  --color-primary-soft: rgba(59, 130, 246, 0.12);
+  /* Brand accent (indigo → violet) */
+  --accent: #6366f1;
+  --accent-2: #8b5cf6;
+  --accent-3: #d946ef;
+  --accent-soft: #eef0ff;
+  --accent-ring: rgba(99, 102, 241, 0.35);
 
   /* Status */
-  --color-success: #22c55e;
-  --color-success-soft: rgba(34, 197, 94, 0.12);
-  --color-danger: #ef4444;
-  --color-danger-soft: rgba(239, 68, 68, 0.12);
-  --color-warning: #f59e0b;
-  --color-warning-soft: rgba(245, 158, 11, 0.12);
+  --success: #10b981;
+  --success-soft: #e7f8f1;
+  --warning: #f59e0b;
+  --warning-soft: #fdf3e2;
+  --danger: #ef4444;
+  --danger-soft: #fdecec;
 
-  /* Chart categorical (validated, brand-blue slot 1) */
-  --chart-1: #3b82f6; /* blue */
-  --chart-2: #199e70; /* aqua */
-  --chart-3: #d55181; /* magenta */
-  --chart-4: #c98500; /* amber */
-  --chart-5: #9085e9; /* violet */
-  --chart-6: #d95926; /* orange */
-  --chart-7: #e66767; /* red */
-  --chart-8: #008300; /* deep green */
+  /* Category / habit accents */
+  --c-indigo: #6366f1;
+  --c-violet: #8b5cf6;
+  --c-fuchsia: #d946ef;
+  --c-rose: #f43f5e;
+  --c-amber: #f59e0b;
+  --c-emerald: #10b981;
+  --c-sky: #0ea5e9;
+  --c-teal: #14b8a6;
 
-  --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px -8px rgba(0, 0, 0, 0.5);
-  --shadow-lift: 0 4px 12px rgba(0, 0, 0, 0.45), 0 16px 40px -12px rgba(0, 0, 0, 0.6);
+  --shadow-sm: 0 1px 2px rgba(17, 17, 28, 0.04), 0 1px 3px rgba(17, 17, 28, 0.06);
+  --shadow-md: 0 2px 4px rgba(17, 17, 28, 0.04), 0 8px 24px -6px rgba(17, 17, 28, 0.12);
+  --shadow-lg: 0 8px 16px -4px rgba(17, 17, 28, 0.1), 0 24px 48px -12px rgba(17, 17, 28, 0.18);
+  --shadow-glow: 0 8px 30px -6px rgba(99, 102, 241, 0.35);
+
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.6);
+}
+
+.dark {
+  color-scheme: dark;
+
+  --bg: #0b0b10;
+  --bg-subtle: #101017;
+  --surface: #15151d;
+  --surface-2: #12121a;
+  --elevated: #191922;
+  --border: #24242f;
+  --border-strong: #2f2f3d;
+
+  --text: #f4f4f7;
+  --text-secondary: #a7a7b8;
+  --text-muted: #6c6c7e;
+
+  --accent: #818cf8;
+  --accent-2: #a78bfa;
+  --accent-3: #e879f9;
+  --accent-soft: rgba(129, 140, 248, 0.12);
+  --accent-ring: rgba(129, 140, 248, 0.45);
+
+  --success: #34d399;
+  --success-soft: rgba(52, 211, 153, 0.12);
+  --warning: #fbbf24;
+  --warning-soft: rgba(251, 191, 36, 0.12);
+  --danger: #f87171;
+  --danger-soft: rgba(248, 113, 113, 0.12);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.4), 0 12px 32px -8px rgba(0, 0, 0, 0.6);
+  --shadow-lg: 0 12px 24px -6px rgba(0, 0, 0, 0.5), 0 32px 64px -16px rgba(0, 0, 0, 0.7);
+  --shadow-glow: 0 8px 40px -6px rgba(129, 140, 248, 0.4);
+
+  --glass-bg: rgba(21, 21, 29, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.08);
 }
 
 @theme inline {
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 
-  --color-bg: var(--color-bg);
-  --color-bg-elevated: var(--color-bg-elevated);
-  --color-card: var(--color-card);
-  --color-card-hover: var(--color-card-hover);
-  --color-border: var(--color-border);
-  --color-border-soft: var(--color-border-soft);
+  --color-bg: var(--bg);
+  --color-bg-subtle: var(--bg-subtle);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-elevated: var(--elevated);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
 
-  --color-text: var(--color-text);
-  --color-text-secondary: var(--color-text-secondary);
-  --color-text-muted: var(--color-text-muted);
+  --color-text: var(--text);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
 
-  --color-primary: var(--color-primary);
-  --color-primary-hover: var(--color-primary-hover);
-  --color-primary-soft: var(--color-primary-soft);
+  --color-accent: var(--accent);
+  --color-accent-2: var(--accent-2);
+  --color-accent-3: var(--accent-3);
+  --color-accent-soft: var(--accent-soft);
 
-  --color-success: var(--color-success);
-  --color-success-soft: var(--color-success-soft);
-  --color-danger: var(--color-danger);
-  --color-danger-soft: var(--color-danger-soft);
-  --color-warning: var(--color-warning);
-  --color-warning-soft: var(--color-warning-soft);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
 
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  --color-chart-6: var(--chart-6);
-  --color-chart-7: var(--chart-7);
-  --color-chart-8: var(--chart-8);
+  --color-c-indigo: var(--c-indigo);
+  --color-c-violet: var(--c-violet);
+  --color-c-fuchsia: var(--c-fuchsia);
+  --color-c-rose: var(--c-rose);
+  --color-c-amber: var(--c-amber);
+  --color-c-emerald: var(--c-emerald);
+  --color-c-sky: var(--c-sky);
+  --color-c-teal: var(--c-teal);
+
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
 
   --animate-fade-up: fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
-  --animate-fade-in: fade-in 0.5s ease both;
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-shimmer: shimmer 2s linear infinite;
+  --animate-pop: pop 0.4s cubic-bezier(0.16, 1, 0.5, 1) both;
 
   @keyframes fade-up {
-    from {
-      opacity: 0;
-      transform: translateY(16px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
   }
-  @keyframes fade-in {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
   }
-}
-
-html {
-  background: var(--color-bg);
-}
-
-body {
-  background: var(--color-bg);
-  color: var(--color-text);
-  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
+  @keyframes shimmer {
+    from { background-position: -200% 0; }
+    to { background-position: 200% 0; }
+  }
+  @keyframes pop {
+    0% { transform: scale(0.8); opacity: 0; }
+    60% { transform: scale(1.05); }
+    100% { transform: scale(1); opacity: 1; }
+  }
 }
 
 * {
-  border-color: var(--color-border);
+  border-color: var(--border);
+}
+
+html {
+  background: var(--bg);
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  transition: background-color 0.4s ease, color 0.3s ease;
 }
 
 ::selection {
-  background: var(--color-primary);
+  background: var(--accent);
   color: white;
 }
 
-/* Thin, unobtrusive scrollbar that matches the dark surface */
-::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  background: var(--color-border);
+  background: var(--border-strong);
   border-radius: 999px;
-  border: 2px solid var(--color-bg);
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--color-text-muted);
+  border: 2px solid var(--bg);
 }
 
+/* Utilities */
 .container-page {
   width: 100%;
   max-width: 1200px;
   margin-inline: auto;
   padding-inline: 1.25rem;
 }
-
 @media (min-width: 640px) {
-  .container-page {
-    padding-inline: 2rem;
-  }
+  .container-page { padding-inline: 2rem; }
 }
 
-.text-balance {
-  text-wrap: balance;
+.text-balance { text-wrap: balance; }
+
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  border: 1px solid var(--glass-border);
 }
 
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
+.accent-gradient {
+  background: linear-gradient(120deg, var(--accent), var(--accent-2) 45%, var(--accent-3));
 }
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+.accent-text {
+  background: linear-gradient(120deg, var(--accent), var(--accent-2) 50%, var(--accent-3));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
-/* Continuous horizontal scroll for the onboarding reviews marquee.
-   The content is duplicated once, so translating by -50% loops seamlessly. */
-@keyframes marquee {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-50%);
-  }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+.hover-lift {
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
 }
-.animate-marquee {
-  animation: marquee 40s linear infinite;
+.hover-lift:hover {
+  transform: translateY(-3px);
 }
+
 @media (prefers-reduced-motion: reduce) {
-  .animate-marquee {
-    animation: none;
-  }
+  * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
 }

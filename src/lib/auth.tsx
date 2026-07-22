@@ -1,0 +1,81 @@
+"use client";
+
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
+
+export interface User {
+  name: string;
+  email: string;
+  provider: "email" | "google" | "apple";
+  avatarColor: string;
+}
+
+interface AuthValue {
+  user: User | null;
+  ready: boolean;
+  signIn: (email: string, name?: string, provider?: User["provider"]) => User;
+  signOut: () => void;
+  updateUser: (patch: Partial<User>) => void;
+}
+
+const AuthContext = createContext<AuthValue | null>(null);
+const KEY = "momentum-user";
+
+const AVATAR_COLORS = ["#6366f1", "#8b5cf6", "#d946ef", "#f43f5e", "#f59e0b", "#10b981", "#0ea5e9"];
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<User | null>(null);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    // Hydrate the signed-in user from localStorage after mount (SSR can't read it).
+    /* eslint-disable react-hooks/set-state-in-effect */
+    try {
+      const raw = localStorage.getItem(KEY);
+      if (raw) setUser(JSON.parse(raw));
+    } catch {}
+    setReady(true);
+    /* eslint-enable react-hooks/set-state-in-effect */
+  }, []);
+
+  const persist = (u: User | null) => {
+    try {
+      if (u) localStorage.setItem(KEY, JSON.stringify(u));
+      else localStorage.removeItem(KEY);
+    } catch {}
+  };
+
+  const signIn = useCallback<AuthValue["signIn"]>((email, name, provider = "email") => {
+    const derivedName = name || email.split("@")[0].replace(/[._-]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+    const u: User = {
+      name: derivedName || "Friend",
+      email,
+      provider,
+      avatarColor: AVATAR_COLORS[Math.floor(Math.random() * AVATAR_COLORS.length)],
+    };
+    setUser(u);
+    persist(u);
+    return u;
+  }, []);
+
+  const signOut = useCallback(() => {
+    setUser(null);
+    persist(null);
+  }, []);
+
+  const updateUser = useCallback<AuthValue["updateUser"]>((patch) => {
+    setUser((prev) => {
+      if (!prev) return prev;
+      const next = { ...prev, ...patch };
+      persist(next);
+      return next;
+    });
+  }, []);
+
+  return <AuthContext.Provider value={{ user, ready, signIn, signOut, updateUser }}>{children}</AuthContext.Provider>;
+}
+
+export function useAuth() {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
+  return ctx;
+}
