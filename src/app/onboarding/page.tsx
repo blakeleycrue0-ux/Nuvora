@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
 import {
   Flame,
@@ -87,7 +86,6 @@ const equipmentOptions: { value: Equipment; label: string; description: string }
 const TOTAL_STEPS = 7;
 
 export default function OnboardingPage() {
-  const router = useRouter();
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Answers>(initialAnswers);
   const [loading, setLoading] = useState(false);
@@ -432,7 +430,14 @@ export default function OnboardingPage() {
                 </div>
               </Card>
 
-              <Button className="mt-8 w-full" size="lg" onClick={() => router.push("/dashboard")}>
+              <Button
+                className="mt-8 w-full"
+                size="lg"
+                onClick={() => {
+                  // Full reload so the app shell re-fetches the freshly saved profile.
+                  window.location.href = "/dashboard";
+                }}
+              >
                 Go to Dashboard
                 <ArrowRight size={16} />
               </Button>
