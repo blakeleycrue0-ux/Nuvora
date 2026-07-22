@@ -61,15 +61,16 @@ export const ACHIEVEMENT_ICONS: Record<string, LucideIcon> = {
   "trending-up": TrendingUp, crown: Crown, layers: Layers, target: Target,
 };
 
+// Refined jewel tones — muted for a luxury feel on near-black surfaces.
 export const HABIT_COLORS: { key: string; value: string }[] = [
-  { key: "c-indigo", value: "#6366f1" },
-  { key: "c-violet", value: "#8b5cf6" },
-  { key: "c-fuchsia", value: "#d946ef" },
-  { key: "c-rose", value: "#f43f5e" },
-  { key: "c-amber", value: "#f59e0b" },
-  { key: "c-emerald", value: "#10b981" },
-  { key: "c-sky", value: "#0ea5e9" },
-  { key: "c-teal", value: "#14b8a6" },
+  { key: "c-indigo", value: "#8a8fd6" },
+  { key: "c-violet", value: "#a893d6" },
+  { key: "c-fuchsia", value: "#cf8fc4" },
+  { key: "c-rose", value: "#d68a95" },
+  { key: "c-amber", value: "#d9b874" },
+  { key: "c-emerald", value: "#86bfa3" },
+  { key: "c-sky", value: "#82aecf" },
+  { key: "c-teal", value: "#7cc0b8" },
 ];
 
 export function colorValue(key: string): string {

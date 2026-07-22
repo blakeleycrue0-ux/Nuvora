@@ -46,7 +46,7 @@ export default function DashLayout({ children }: { children: ReactNode }) {
                 href={item.href}
                 className={cn(
                   "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-[14px] font-medium transition-colors",
-                  active ? "text-white" : "text-text-secondary hover:text-text hover:bg-surface-2",
+                  active ? "text-accent-ink" : "text-text-secondary hover:text-text hover:bg-surface-2",
                 )}
               >
                 {active && (

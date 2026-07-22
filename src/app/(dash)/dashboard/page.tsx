@@ -104,7 +104,7 @@ export default function DashboardPage() {
         <div>
           <p className="text-[13px] font-medium text-text-muted">{prettyDate(today)}</p>
           <h1 className="mt-1 text-[26px] font-semibold tracking-[-0.02em] text-text sm:text-[30px]">
-            {greeting()}, {user?.name?.split(" ")[0] ?? "friend"} 👋
+            {greeting()}, {user?.name?.split(" ")[0] ?? "friend"}
           </h1>
         </div>
         <Button href="/habits" className="w-full sm:w-auto">
@@ -126,7 +126,7 @@ export default function DashboardPage() {
               </Ring>
               <div className="flex-1 text-center sm:text-left">
                 <h2 className="text-[20px] font-semibold text-text">
-                  {progress.total === 0 ? "No habits scheduled today" : progress.pct === 100 ? "Perfect day! 🎉" : progress.pct >= 50 ? "You're on a roll" : "Let's get moving"}
+                  {progress.total === 0 ? "No habits scheduled today" : progress.pct === 100 ? "A perfect day" : progress.pct >= 50 ? "You're on a roll" : "Let's get moving"}
                 </h2>
                 <p className="mt-1.5 text-[14px] leading-relaxed text-text-secondary">
                   {progress.total === 0
@@ -145,35 +145,35 @@ export default function DashboardPage() {
 
         {/* Level / XP card */}
         <motion.div variants={item}>
-          <div className="relative isolate flex h-full flex-col justify-between overflow-hidden rounded-3xl border border-transparent p-6 text-white shadow-[var(--shadow-md)]">
+          <div className="relative isolate flex h-full flex-col justify-between overflow-hidden rounded-3xl border border-transparent p-6 text-accent-ink shadow-[var(--shadow-md)]">
             <div aria-hidden className="absolute inset-0 -z-10 accent-gradient" />
-            <div aria-hidden className="absolute inset-0 -z-10 opacity-30" style={{ background: "radial-gradient(circle at 80% 0%, rgba(255,255,255,0.35), transparent 45%)" }} />
+            <div aria-hidden className="absolute inset-0 -z-10 opacity-25" style={{ background: "radial-gradient(circle at 80% 0%, rgba(255,255,255,0.4), transparent 45%)" }} />
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/20 backdrop-blur">
+                <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[color:var(--accent-ink)]/15 backdrop-blur">
                   <Sparkles size={22} />
                 </span>
                 <div>
-                  <p className="text-[12.5px] font-medium text-white/80">Level {level.level}</p>
+                  <p className="text-[12.5px] font-medium text-accent-ink/70">Level {level.level}</p>
                   <p className="text-[17px] font-bold leading-tight">{level.title}</p>
                 </div>
               </div>
-              <p className="text-[13px] font-semibold text-white/90">{xp} XP</p>
+              <p className="text-[13px] font-semibold text-accent-ink/85">{xp} XP</p>
             </div>
             <div className="mt-6">
-              <div className="flex items-center justify-between text-[12px] font-medium text-white/85">
+              <div className="flex items-center justify-between text-[12px] font-medium text-accent-ink/80">
                 <span>{level.into} / {level.need} XP</span>
                 <span>Level {level.level + 1}</span>
               </div>
-              <div className="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-white/25">
+              <div className="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-[color:var(--accent-ink)]/20">
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{ width: `${level.pct}%` }}
                   transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-                  className="h-full rounded-full bg-white"
+                  className="h-full rounded-full bg-[color:var(--accent-ink)]"
                 />
               </div>
-              <p className="mt-3 text-[12.5px] text-white/80">
+              <p className="mt-3 text-[12.5px] text-accent-ink/70">
                 {level.need - level.into} XP until your next level up.
               </p>
             </div>

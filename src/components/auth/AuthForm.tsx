@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { GoogleIcon, AppleIcon } from "@/components/BrandIcons";
 import { useAuth } from "@/lib/auth";
+import { isOnboarded } from "@/lib/momentum/onboarding";
 
 type Mode = "login" | "signup";
 
@@ -31,7 +32,8 @@ export function AuthForm({ mode }: { mode: Mode }) {
       const finalEmail =
         provider === "google" ? email || "you@gmail.com" : provider === "apple" ? email || "you@icloud.com" : email;
       signIn(finalEmail, mode === "signup" ? name : undefined, provider);
-      router.push("/dashboard");
+      // First-time users go through onboarding; returning users land in the app.
+      router.push(isOnboarded() ? "/dashboard" : "/onboarding");
     }, 700);
   };
 

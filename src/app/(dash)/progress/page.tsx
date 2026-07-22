@@ -114,7 +114,7 @@ export default function ProgressPage() {
             <button
               key={r}
               onClick={() => setRange(r)}
-              className={cn("relative rounded-lg px-3 py-1.5 text-[13px] font-medium capitalize transition-colors", range === r ? "text-white" : "text-text-secondary hover:text-text")}
+              className={cn("relative rounded-lg px-3 py-1.5 text-[13px] font-medium capitalize transition-colors", range === r ? "text-accent-ink" : "text-text-secondary hover:text-text")}
             >
               {range === r && <motion.span layoutId="range-pill" className="absolute inset-0 rounded-lg accent-gradient" transition={{ type: "spring", stiffness: 400, damping: 32 }} />}
               <span className="relative z-10">{r}</span>
@@ -204,7 +204,7 @@ export default function ProgressPage() {
         {/* Level card */}
         <Panel title="Experience" subtitle={`Level ${level.level} · ${level.title}`}>
           <div className="flex flex-col items-center py-3">
-            <div className="relative flex h-[110px] w-[110px] items-center justify-center rounded-full accent-gradient text-white shadow-[var(--shadow-glow)]">
+            <div className="relative flex h-[110px] w-[110px] items-center justify-center rounded-full accent-gradient text-accent-ink shadow-[var(--shadow-glow)]">
               <div className="text-center">
                 <p className="text-[30px] font-bold leading-none">{level.level}</p>
                 <p className="text-[10px] uppercase tracking-wider opacity-90">Level</p>

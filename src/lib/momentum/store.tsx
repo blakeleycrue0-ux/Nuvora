@@ -2,11 +2,11 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { Habit, Completions, MomentumData } from "./types";
-import { buildSeed } from "./seed";
 import { getCount, isComplete, key, xpForCompletion } from "./stats";
 import { todayISO } from "./date";
 
 const STORAGE_KEY = "momentum-data-v1";
+const EMPTY_DATA: MomentumData = { habits: [], completions: {}, xp: 0, version: 1 };
 
 interface StoreValue {
   ready: boolean;
@@ -40,19 +40,14 @@ export function HabitStoreProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (loaded.current) return;
     loaded.current = true;
-    // Hydrate persisted data (or seed) from localStorage after mount — SSR can't read it.
+    // Hydrate persisted data from localStorage after mount — SSR can't read it.
+    // Brand-new users start completely empty (no demo data).
     /* eslint-disable react-hooks/set-state-in-effect */
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        setData(JSON.parse(raw));
-      } else {
-        const seed = buildSeed();
-        setData(seed);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(seed));
-      }
+      if (raw) setData(JSON.parse(raw));
     } catch {
-      setData(buildSeed());
+      setData(EMPTY_DATA);
     }
     setReady(true);
     /* eslint-enable react-hooks/set-state-in-effect */
@@ -153,8 +148,7 @@ export function HabitStoreProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const resetAll = useCallback(() => {
-    const seed = buildSeed();
-    setData(seed);
+    setData(EMPTY_DATA);
   }, []);
 
   const importData = useCallback<StoreValue["importData"]>((incoming) => {
