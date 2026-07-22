@@ -1,12 +1,15 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import type { User } from "@supabase/supabase-js";
-import { createClient } from "@/lib/supabase/client";
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 import type { Profile } from "@/lib/types";
 
+interface MinimalUser {
+  id: string;
+  email: string | null;
+}
+
 interface ProfileContextValue {
-  user: User | null;
+  user: MinimalUser | null;
   profile: Profile | null;
   loading: boolean;
   isPro: boolean;
@@ -22,35 +25,37 @@ const ProfileContext = createContext<ProfileContextValue>({
 });
 
 export function ProfileProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<MinimalUser | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const load = async () => {
-    const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    setUser(user);
-
-    if (user) {
-      const { data } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
-      setProfile((data as Profile) ?? null);
-    } else {
+  // Read the profile through the server (/api/me). The server always has the
+  // session cookie and env vars at runtime, so this avoids every client-side
+  // Supabase/RLS/cookie edge case — it's the same read that works in the app's
+  // API routes and proxy.
+  const load = useCallback(async () => {
+    try {
+      const res = await fetch("/api/me", { cache: "no-store" });
+      const data = await res.json();
+      if (data?.authenticated) {
+        setUser({ id: data.userId, email: data.email ?? null });
+        setProfile((data.profile as Profile) ?? null);
+      } else {
+        setUser(null);
+        setProfile(null);
+      }
+    } catch {
+      setUser(null);
       setProfile(null);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
-  };
+  }, []);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- initial async fetch on mount, state set only after awaiting Supabase
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- async fetch, state set only after awaiting
     load();
-    const supabase = createClient();
-    const { data: sub } = supabase.auth.onAuthStateChange(() => {
-      load();
-    });
-    return () => sub.subscription.unsubscribe();
-  }, []);
+  }, [load]);
 
   return (
     <ProfileContext.Provider
