@@ -48,7 +48,7 @@ export default function OnboardingPage() {
   const [step, setStep] = useState(0);
   const [name, setName] = useState("");
   const [icon, setIcon] = useState("sparkles");
-  const [color, setColor] = useState<HabitColor>("c-amber");
+  const [color, setColor] = useState<HabitColor>("c-emerald");
   const [category, setCategory] = useState("Personal");
   const [everyDay, setEveryDay] = useState(true);
   const [difficulty, setDifficulty] = useState<Difficulty>("easy");
