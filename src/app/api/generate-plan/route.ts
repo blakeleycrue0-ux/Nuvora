@@ -46,9 +46,13 @@ export async function POST(request: Request) {
 
   const plan = await generatePlan(body);
 
-  const { error } = await supabase
-    .from("profiles")
-    .update({
+  // Upsert (not update) so onboarding still works even if the new-user trigger
+  // never created a profile row for this account.
+  const { error } = await supabase.from("profiles").upsert(
+    {
+      id: user.id,
+      full_name: user.user_metadata?.full_name ?? user.user_metadata?.name ?? null,
+      avatar_url: user.user_metadata?.avatar_url ?? null,
       goal: body.goal,
       sex: body.sex,
       birth_year: body.birthYear,
@@ -61,11 +65,15 @@ export async function POST(request: Request) {
       equipment: body.equipment,
       plan,
       onboarding_completed: true,
-    })
-    .eq("id", user.id);
+    },
+    { onConflict: "id" },
+  );
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(
+      { error: `Could not save your profile: ${error.message}` },
+      { status: 500 },
+    );
   }
 
   return NextResponse.json({ plan });

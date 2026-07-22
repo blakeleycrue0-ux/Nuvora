@@ -37,14 +37,16 @@ export async function generatePlan(input: PlanInput): Promise<GeneratedPlan> {
   }
 
   try {
-    const client = new Anthropic();
+    // Netlify functions cut off around 10s. Cap the model call well under that
+    // (no thinking, low effort, short timeout, no retries) so a slow response
+    // falls back to the instant calculator instead of failing the whole request.
+    const client = new Anthropic({ timeout: 8000, maxRetries: 0 });
     const age = new Date().getFullYear() - input.birthYear;
 
     const response = await client.messages.create({
       model: "claude-opus-4-8",
       max_tokens: 1024,
-      thinking: { type: "adaptive" },
-      output_config: { format: { type: "json_schema", schema: PLAN_SCHEMA } },
+      output_config: { effort: "low", format: { type: "json_schema", schema: PLAN_SCHEMA } },
       messages: [
         {
           role: "user",

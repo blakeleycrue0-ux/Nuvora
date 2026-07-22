@@ -163,3 +163,22 @@ body {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* Continuous horizontal scroll for the onboarding reviews marquee.
+   The content is duplicated once, so translating by -50% loops seamlessly. */
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+.animate-marquee {
+  animation: marquee 40s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee {
+    animation: none;
+  }
+}
