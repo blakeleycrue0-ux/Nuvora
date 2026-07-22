@@ -126,7 +126,7 @@ export default function ProgressPage() {
       {/* KPI row */}
       <div className="mt-7 grid grid-cols-2 gap-4 lg:grid-cols-4">
         <Kpi icon={Percent} label="Success rate" value={`${rangeTotals.rate}%`} tint="var(--c-emerald)" sub={`${rangeTotals.done} of ${rangeTotals.scheduled} scheduled`} />
-        <Kpi icon={Flame} label="Best current streak" value={stats.bestCurrentStreak} tint="var(--c-amber)" sub="days in a row" />
+        <Kpi icon={Flame} label="Best current streak" value={stats.bestCurrentStreak} tint="var(--accent)" sub="days in a row" />
         <Kpi icon={Trophy} label="Longest streak ever" value={stats.bestLongestStreak} tint="var(--c-fuchsia)" sub="all-time record" />
         <Kpi icon={Target} label="Total completions" value={stats.totalCompletions} tint="var(--c-indigo)" sub="lifetime" />
       </div>
@@ -257,7 +257,7 @@ export default function ProgressPage() {
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
           {achievements.map((a) => {
             const Icon = ACHIEVEMENT_ICONS[a.icon] ?? Award;
-            const tierColor = { bronze: "#cd7f32", silver: "#9ca3af", gold: "#f59e0b", diamond: "#22d3ee" }[a.tier];
+            const tierColor = { bronze: "#94a3b0", silver: "#c0cad4", gold: "#45c68e", diamond: "#67b0e0" }[a.tier];
             return (
               <div key={a.id} className={cn("flex flex-col items-center gap-2 rounded-2xl border p-4 text-center transition-all", a.earned ? "border-border bg-surface-2 hover:-translate-y-0.5 hover:shadow-[var(--shadow-sm)]" : "border-dashed border-border")}>
                 <span className={cn("flex h-12 w-12 items-center justify-center rounded-full", !a.earned && "opacity-40 grayscale")} style={{ background: `color-mix(in oklab, ${tierColor} 18%, transparent)`, color: tierColor }}>

@@ -7,108 +7,109 @@
 */
 
 /*
-  Luxury palette. Dark is the default (near-black surfaces + champagne gold).
-  A warm ivory light mode is available as an opt-in via .light-forced when we
-  ever need it, but the app ships black-first.
+  Modern palette drawn from the logo: near-black (cool navy-charcoal) + white,
+  with the logo's mint green as the single accent. Dark is the default; a clean
+  white light mode is an opt-in via the `.light` class.
 */
 
 :root {
   color-scheme: dark;
 
-  /* Surfaces — near-black, warm charcoal */
-  --bg: #060607;
-  --bg-subtle: #0d0d0f;
-  --surface: #111113;
-  --surface-2: #0c0c0e;
-  --elevated: #17171a;
-  --border: #201f22;
-  --border-strong: #2c2b2f;
+  /* Surfaces — near-black with a cool navy undertone (logo charcoal) */
+  --bg: #0a0d11;
+  --bg-subtle: #0e1217;
+  --surface: #12161c;
+  --surface-2: #0e1217;
+  --elevated: #171c23;
+  --border: #212832;
+  --border-strong: #2d3540;
 
-  /* Text — warm ivory */
-  --text: #f3f1ea;
-  --text-secondary: #a29e93;
-  --text-muted: #6a6760;
+  /* Text — cool white */
+  --text: #eef2f5;
+  --text-secondary: #97a2ae;
+  --text-muted: #5e6975;
 
-  /* Brand accent — champagne gold */
-  --accent: #cbab6d;
-  --accent-2: #ddc389;
-  --accent-3: #b8934e;
-  --accent-soft: rgba(203, 171, 109, 0.12);
-  --accent-ring: rgba(203, 171, 109, 0.40);
-  --accent-ink: #17130a; /* text/icons on top of a gold fill */
+  /* Brand accent — logo mint green */
+  --accent: #45c68e;
+  --accent-2: #52c795;
+  --accent-3: #5ec99a;
+  --accent-soft: rgba(69, 198, 142, 0.13);
+  --accent-ring: rgba(69, 198, 142, 0.38);
+  --accent-ink: #07130d; /* text/icons on top of a green fill (mint is light) */
 
   /* Status */
-  --success: #7bb39a;
-  --success-soft: rgba(123, 179, 154, 0.13);
-  --warning: #d9b874;
-  --warning-soft: rgba(217, 184, 116, 0.13);
-  --danger: #d98a80;
-  --danger-soft: rgba(217, 138, 128, 0.13);
+  --success: #45c68e;
+  --success-soft: rgba(69, 198, 142, 0.13);
+  --warning: #e0b45c;
+  --warning-soft: rgba(224, 180, 92, 0.13);
+  --danger: #e57a72;
+  --danger-soft: rgba(229, 122, 114, 0.13);
 
-  /* Category / habit accents — muted jewel tones */
-  --c-indigo: #8a8fd6;
-  --c-violet: #a893d6;
-  --c-fuchsia: #cf8fc4;
-  --c-rose: #d68a95;
-  --c-amber: #d9b874;
-  --c-emerald: #86bfa3;
-  --c-sky: #82aecf;
-  --c-teal: #7cc0b8;
+  /* Category / habit accents — cool, modern tones */
+  --c-indigo: #7f8ce0;
+  --c-violet: #a58ce0;
+  --c-fuchsia: #cf8fca;
+  --c-rose: #e58a97;
+  --c-amber: #e0b45c;
+  --c-emerald: #45c68e;
+  --c-sky: #67b0e0;
+  --c-teal: #4fc3b8;
 
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
   --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.5), 0 14px 34px -10px rgba(0, 0, 0, 0.7);
   --shadow-lg: 0 14px 28px -8px rgba(0, 0, 0, 0.6), 0 36px 70px -18px rgba(0, 0, 0, 0.8);
-  --shadow-glow: 0 10px 40px -8px rgba(203, 171, 109, 0.28);
+  --shadow-glow: 0 10px 40px -8px rgba(69, 198, 142, 0.28);
 
-  --glass-bg: rgba(17, 17, 19, 0.7);
+  --glass-bg: rgba(18, 22, 28, 0.7);
   --glass-border: rgba(255, 255, 255, 0.06);
 }
 
 .light {
   color-scheme: light;
 
-  /* Surfaces — warm ivory paper */
-  --bg: #f4f2ec;
-  --bg-subtle: #eae7dd;
-  --surface: #fbfaf6;
-  --surface-2: #f2f0e9;
+  /* Surfaces — clean white */
+  --bg: #ffffff;
+  --bg-subtle: #f1f3f6;
+  --surface: #ffffff;
+  --surface-2: #f6f8fa;
   --elevated: #ffffff;
-  --border: #e3dfd3;
-  --border-strong: #d4cfc1;
+  --border: #e6e9ee;
+  --border-strong: #d5dae1;
 
-  --text: #1a1712;
-  --text-secondary: #5c574c;
-  --text-muted: #96917f;
+  --text: #10151b;
+  --text-secondary: #566069;
+  --text-muted: #949ea9;
 
-  --accent: #96742f;
-  --accent-2: #b28f45;
-  --accent-3: #7c5f24;
-  --accent-soft: #f1e9d6;
-  --accent-ring: rgba(150, 116, 47, 0.30);
-  --accent-ink: #fbf9f3;
+  /* Deeper green for contrast on white; white ink on green fills */
+  --accent: #17a06a;
+  --accent-2: #1faa72;
+  --accent-3: #2bb57d;
+  --accent-soft: #e6f6ee;
+  --accent-ring: rgba(23, 160, 106, 0.26);
+  --accent-ink: #ffffff;
 
-  --success: #4f8d72;
-  --success-soft: #e4efe8;
-  --warning: #a9812f;
-  --warning-soft: #f4ecd8;
-  --danger: #b4544a;
-  --danger-soft: #f6e6e3;
+  --success: #17a06a;
+  --success-soft: #e6f6ee;
+  --warning: #b07d1e;
+  --warning-soft: #f6efdb;
+  --danger: #c0483d;
+  --danger-soft: #f7e7e5;
 
-  --c-indigo: #5d61b0;
-  --c-violet: #7e5fb0;
-  --c-fuchsia: #a9569c;
-  --c-rose: #b45563;
-  --c-amber: #a9812f;
-  --c-emerald: #4f8d72;
-  --c-sky: #4a7ba0;
-  --c-teal: #3f9088;
+  --c-indigo: #545fc0;
+  --c-violet: #7c5cc0;
+  --c-fuchsia: #a1509a;
+  --c-rose: #b4505f;
+  --c-amber: #a97e28;
+  --c-emerald: #178a5f;
+  --c-sky: #3f7cae;
+  --c-teal: #2f9088;
 
-  --shadow-sm: 0 1px 2px rgba(40, 33, 20, 0.05), 0 1px 3px rgba(40, 33, 20, 0.06);
-  --shadow-md: 0 2px 4px rgba(40, 33, 20, 0.05), 0 8px 24px -6px rgba(40, 33, 20, 0.12);
-  --shadow-lg: 0 8px 16px -4px rgba(40, 33, 20, 0.1), 0 24px 48px -12px rgba(40, 33, 20, 0.16);
-  --shadow-glow: 0 8px 30px -6px rgba(150, 116, 47, 0.28);
+  --shadow-sm: 0 1px 2px rgba(16, 21, 27, 0.05), 0 1px 3px rgba(16, 21, 27, 0.06);
+  --shadow-md: 0 2px 4px rgba(16, 21, 27, 0.05), 0 8px 24px -6px rgba(16, 21, 27, 0.12);
+  --shadow-lg: 0 8px 16px -4px rgba(16, 21, 27, 0.1), 0 24px 48px -12px rgba(16, 21, 27, 0.16);
+  --shadow-glow: 0 8px 30px -6px rgba(23, 160, 106, 0.24);
 
-  --glass-bg: rgba(251, 250, 246, 0.7);
+  --glass-bg: rgba(255, 255, 255, 0.7);
   --glass-border: rgba(255, 255, 255, 0.6);
 }
 

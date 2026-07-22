@@ -134,9 +134,9 @@ export default function DashboardPage() {
                     : `${progress.completed} of ${progress.total} habits completed. ${progress.total - progress.completed > 0 ? `${progress.total - progress.completed} to go — you've got this.` : "Every single one — incredible."}`}
                 </p>
                 <div className="mt-5 grid grid-cols-3 gap-3">
-                  <MiniStat icon={Flame} label="Best streak" value={stats.bestCurrentStreak} tint="var(--c-amber)" />
-                  <MiniStat icon={Trophy} label="Longest" value={stats.bestLongestStreak} tint="var(--c-fuchsia)" />
-                  <MiniStat icon={Target} label="Active" value={stats.activeCount} tint="var(--c-indigo)" />
+                  <MiniStat icon={Flame} label="Best streak" value={stats.bestCurrentStreak} tint="var(--accent)" />
+                  <MiniStat icon={Trophy} label="Longest" value={stats.bestLongestStreak} tint="var(--c-violet)" />
+                  <MiniStat icon={Target} label="Active" value={stats.activeCount} tint="var(--c-sky)" />
                 </div>
               </div>
             </div>
@@ -345,7 +345,7 @@ function Panel({ title, subtitle, action, children }: { title: string; subtitle?
 
 function AchievementBadge({ a }: { a: ReturnType<typeof computeAchievements>[number] }) {
   const Icon = ACHIEVEMENT_ICONS[a.icon] ?? Award;
-  const tierColor = { bronze: "#cd7f32", silver: "#9ca3af", gold: "#f59e0b", diamond: "#22d3ee" }[a.tier];
+  const tierColor = { bronze: "#94a3b0", silver: "#c0cad4", gold: "#45c68e", diamond: "#67b0e0" }[a.tier];
   return (
     <div className={cn("flex flex-col items-center rounded-2xl border p-3 text-center transition-colors", a.earned ? "border-border bg-surface-2" : "border-dashed border-border")}>
       <span
