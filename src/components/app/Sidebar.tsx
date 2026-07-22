@@ -46,10 +46,13 @@ export function Sidebar() {
       </nav>
 
       <div className="flex flex-col gap-1 border-t border-border pt-4">
-        <button className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-[14px] font-medium text-text-secondary transition-colors hover:bg-white/[0.04] hover:text-text">
+        <Link
+          href="/onboarding"
+          className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-[14px] font-medium text-text-secondary transition-colors hover:bg-white/[0.04] hover:text-text"
+        >
           <Settings size={17} />
-          Settings
-        </button>
+          Edit my info
+        </Link>
         <form action={signOut}>
           <button
             type="submit"

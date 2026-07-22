@@ -1,6 +1,6 @@
 "use client";
 
-import { Flame, Droplets, Footprints, Scale, Beef, Dumbbell, ArrowRight, Sparkles, CalendarClock } from "lucide-react";
+import { Flame, Droplets, Footprints, Scale, Beef, Dumbbell, ArrowRight, Sparkles, CalendarClock, Wand2 } from "lucide-react";
 import { AppShell } from "@/components/app/AppShell";
 import { PageHeader } from "@/components/app/PageHeader";
 import { Card } from "@/components/ui/Card";
@@ -39,6 +39,10 @@ export default function DashboardPage() {
   const currentWeight = profile?.current_weight_kg;
   const targetWeight = profile?.target_weight_kg;
 
+  // If we have a profile but the personalized numbers are missing, the setup
+  // didn't save fully — nudge them to finish it (data saves on completion).
+  const setupIncomplete = !!profile && (!plan || !currentWeight);
+
   return (
     <AppShell>
       <PageHeader
@@ -50,6 +54,28 @@ export default function DashboardPage() {
           </Button>
         }
       />
+
+      {setupIncomplete && (
+        <div className="px-4 pb-4 sm:px-6 lg:px-10">
+          <Card className="flex flex-col gap-4 border-primary/30 bg-gradient-to-b from-primary-soft to-card p-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/20">
+                <Wand2 size={18} className="text-primary" />
+              </span>
+              <div>
+                <p className="text-[14px] font-semibold text-text">Finish setting up your plan</p>
+                <p className="text-[12.5px] text-text-secondary">
+                  Your personalized calories, macros and weight goal aren&apos;t saved yet.
+                </p>
+              </div>
+            </div>
+            <Button href="/onboarding" size="sm" className="shrink-0">
+              Complete setup
+              <ArrowRight size={15} />
+            </Button>
+          </Card>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 gap-4 px-4 sm:px-6 lg:grid-cols-3 lg:px-10">
         {/* Today's calories — hero card */}
