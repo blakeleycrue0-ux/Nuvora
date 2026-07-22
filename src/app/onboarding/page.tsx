@@ -18,6 +18,8 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Card } from "@/components/ui/Card";
 import { Meter } from "@/components/ui/Meter";
+import { WeightGoalInsight } from "@/components/onboarding/WeightGoalInsight";
+import { ReviewsMarquee } from "@/components/onboarding/ReviewsMarquee";
 import { cn } from "@/lib/utils";
 import type {
   ActivityLevel,
@@ -139,7 +141,10 @@ export default function OnboardingPage() {
           equipment: answers.equipment,
         }),
       });
-      if (!res.ok) throw new Error("Could not generate your plan. Please try again.");
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error || "Could not generate your plan. Please try again.");
+      }
       const data = await res.json();
       setPlan(data.plan);
       setStep(TOTAL_STEPS);
@@ -149,6 +154,16 @@ export default function OnboardingPage() {
       setLoading(false);
     }
   };
+
+  const currentKgNum = Number(answers.currentWeightKg);
+  const targetKgNum = Number(answers.targetWeightKg);
+  const showWeightInsight =
+    !!answers.currentWeightKg &&
+    !!answers.targetWeightKg &&
+    currentKgNum > 20 &&
+    currentKgNum < 400 &&
+    targetKgNum > 20 &&
+    targetKgNum < 400;
 
   const progress = plan ? 100 : (step / TOTAL_STEPS) * 100;
 
@@ -167,7 +182,7 @@ export default function OnboardingPage() {
         <Meter value={progress} max={100} />
       </div>
 
-      <div className="w-full max-w-lg">
+      <div className="w-full max-w-lg flex-1">
         <AnimatePresence mode="wait">
           {!plan ? (
             <motion.div
@@ -251,6 +266,9 @@ export default function OnboardingPage() {
                       />
                     </Field>
                   </div>
+                  {showWeightInsight && (
+                    <WeightGoalInsight currentKg={currentKgNum} targetKg={targetKgNum} />
+                  )}
                 </StepShell>
               )}
 
@@ -422,6 +440,15 @@ export default function OnboardingPage() {
           )}
         </AnimatePresence>
       </div>
+
+      {!plan && (
+        <div className="mt-12 w-full max-w-3xl">
+          <p className="mb-4 text-center text-[12px] font-medium uppercase tracking-wide text-text-muted">
+            Loved by 12,000+ people building healthier habits
+          </p>
+          <ReviewsMarquee />
+        </div>
+      )}
     </div>
   );
 }
