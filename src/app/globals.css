@@ -6,92 +6,110 @@
   Neutral warm-gray surfaces + an indigo→violet→fuchsia accent system.
 */
 
+/*
+  Luxury palette. Dark is the default (near-black surfaces + champagne gold).
+  A warm ivory light mode is available as an opt-in via .light-forced when we
+  ever need it, but the app ships black-first.
+*/
+
 :root {
-  color-scheme: light;
-
-  /* Surfaces */
-  --bg: #f6f6f8;
-  --bg-subtle: #eeeef2;
-  --surface: #ffffff;
-  --surface-2: #fbfbfd;
-  --elevated: #ffffff;
-  --border: #e7e7ee;
-  --border-strong: #d9d9e3;
-
-  /* Text */
-  --text: #17171c;
-  --text-secondary: #5b5b6b;
-  --text-muted: #9a9aab;
-
-  /* Brand accent (indigo → violet) */
-  --accent: #6366f1;
-  --accent-2: #8b5cf6;
-  --accent-3: #d946ef;
-  --accent-soft: #eef0ff;
-  --accent-ring: rgba(99, 102, 241, 0.35);
-
-  /* Status */
-  --success: #10b981;
-  --success-soft: #e7f8f1;
-  --warning: #f59e0b;
-  --warning-soft: #fdf3e2;
-  --danger: #ef4444;
-  --danger-soft: #fdecec;
-
-  /* Category / habit accents */
-  --c-indigo: #6366f1;
-  --c-violet: #8b5cf6;
-  --c-fuchsia: #d946ef;
-  --c-rose: #f43f5e;
-  --c-amber: #f59e0b;
-  --c-emerald: #10b981;
-  --c-sky: #0ea5e9;
-  --c-teal: #14b8a6;
-
-  --shadow-sm: 0 1px 2px rgba(17, 17, 28, 0.04), 0 1px 3px rgba(17, 17, 28, 0.06);
-  --shadow-md: 0 2px 4px rgba(17, 17, 28, 0.04), 0 8px 24px -6px rgba(17, 17, 28, 0.12);
-  --shadow-lg: 0 8px 16px -4px rgba(17, 17, 28, 0.1), 0 24px 48px -12px rgba(17, 17, 28, 0.18);
-  --shadow-glow: 0 8px 30px -6px rgba(99, 102, 241, 0.35);
-
-  --glass-bg: rgba(255, 255, 255, 0.7);
-  --glass-border: rgba(255, 255, 255, 0.6);
-}
-
-.dark {
   color-scheme: dark;
 
-  --bg: #0b0b10;
-  --bg-subtle: #101017;
-  --surface: #15151d;
-  --surface-2: #12121a;
-  --elevated: #191922;
-  --border: #24242f;
-  --border-strong: #2f2f3d;
+  /* Surfaces — near-black, warm charcoal */
+  --bg: #060607;
+  --bg-subtle: #0d0d0f;
+  --surface: #111113;
+  --surface-2: #0c0c0e;
+  --elevated: #17171a;
+  --border: #201f22;
+  --border-strong: #2c2b2f;
 
-  --text: #f4f4f7;
-  --text-secondary: #a7a7b8;
-  --text-muted: #6c6c7e;
+  /* Text — warm ivory */
+  --text: #f3f1ea;
+  --text-secondary: #a29e93;
+  --text-muted: #6a6760;
 
-  --accent: #818cf8;
-  --accent-2: #a78bfa;
-  --accent-3: #e879f9;
-  --accent-soft: rgba(129, 140, 248, 0.12);
-  --accent-ring: rgba(129, 140, 248, 0.45);
+  /* Brand accent — champagne gold */
+  --accent: #cbab6d;
+  --accent-2: #ddc389;
+  --accent-3: #b8934e;
+  --accent-soft: rgba(203, 171, 109, 0.12);
+  --accent-ring: rgba(203, 171, 109, 0.40);
+  --accent-ink: #17130a; /* text/icons on top of a gold fill */
 
-  --success: #34d399;
-  --success-soft: rgba(52, 211, 153, 0.12);
-  --warning: #fbbf24;
-  --warning-soft: rgba(251, 191, 36, 0.12);
-  --danger: #f87171;
-  --danger-soft: rgba(248, 113, 113, 0.12);
+  /* Status */
+  --success: #7bb39a;
+  --success-soft: rgba(123, 179, 154, 0.13);
+  --warning: #d9b874;
+  --warning-soft: rgba(217, 184, 116, 0.13);
+  --danger: #d98a80;
+  --danger-soft: rgba(217, 138, 128, 0.13);
 
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
-  --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.4), 0 12px 32px -8px rgba(0, 0, 0, 0.6);
-  --shadow-lg: 0 12px 24px -6px rgba(0, 0, 0, 0.5), 0 32px 64px -16px rgba(0, 0, 0, 0.7);
-  --shadow-glow: 0 8px 40px -6px rgba(129, 140, 248, 0.4);
+  /* Category / habit accents — muted jewel tones */
+  --c-indigo: #8a8fd6;
+  --c-violet: #a893d6;
+  --c-fuchsia: #cf8fc4;
+  --c-rose: #d68a95;
+  --c-amber: #d9b874;
+  --c-emerald: #86bfa3;
+  --c-sky: #82aecf;
+  --c-teal: #7cc0b8;
 
-  --glass-bg: rgba(21, 21, 29, 0.7);
-  --glass-border: rgba(255, 255, 255, 0.08);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.5), 0 14px 34px -10px rgba(0, 0, 0, 0.7);
+  --shadow-lg: 0 14px 28px -8px rgba(0, 0, 0, 0.6), 0 36px 70px -18px rgba(0, 0, 0, 0.8);
+  --shadow-glow: 0 10px 40px -8px rgba(203, 171, 109, 0.28);
+
+  --glass-bg: rgba(17, 17, 19, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.06);
+}
+
+.light {
+  color-scheme: light;
+
+  /* Surfaces — warm ivory paper */
+  --bg: #f4f2ec;
+  --bg-subtle: #eae7dd;
+  --surface: #fbfaf6;
+  --surface-2: #f2f0e9;
+  --elevated: #ffffff;
+  --border: #e3dfd3;
+  --border-strong: #d4cfc1;
+
+  --text: #1a1712;
+  --text-secondary: #5c574c;
+  --text-muted: #96917f;
+
+  --accent: #96742f;
+  --accent-2: #b28f45;
+  --accent-3: #7c5f24;
+  --accent-soft: #f1e9d6;
+  --accent-ring: rgba(150, 116, 47, 0.30);
+  --accent-ink: #fbf9f3;
+
+  --success: #4f8d72;
+  --success-soft: #e4efe8;
+  --warning: #a9812f;
+  --warning-soft: #f4ecd8;
+  --danger: #b4544a;
+  --danger-soft: #f6e6e3;
+
+  --c-indigo: #5d61b0;
+  --c-violet: #7e5fb0;
+  --c-fuchsia: #a9569c;
+  --c-rose: #b45563;
+  --c-amber: #a9812f;
+  --c-emerald: #4f8d72;
+  --c-sky: #4a7ba0;
+  --c-teal: #3f9088;
+
+  --shadow-sm: 0 1px 2px rgba(40, 33, 20, 0.05), 0 1px 3px rgba(40, 33, 20, 0.06);
+  --shadow-md: 0 2px 4px rgba(40, 33, 20, 0.05), 0 8px 24px -6px rgba(40, 33, 20, 0.12);
+  --shadow-lg: 0 8px 16px -4px rgba(40, 33, 20, 0.1), 0 24px 48px -12px rgba(40, 33, 20, 0.16);
+  --shadow-glow: 0 8px 30px -6px rgba(150, 116, 47, 0.28);
+
+  --glass-bg: rgba(251, 250, 246, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.6);
 }
 
 @theme inline {
@@ -114,6 +132,7 @@
   --color-accent-2: var(--accent-2);
   --color-accent-3: var(--accent-3);
   --color-accent-soft: var(--accent-soft);
+  --color-accent-ink: var(--accent-ink);
 
   --color-success: var(--success);
   --color-success-soft: var(--success-soft);
@@ -178,7 +197,7 @@ body {
 
 ::selection {
   background: var(--accent);
-  color: white;
+  color: var(--accent-ink);
 }
 
 ::-webkit-scrollbar { width: 10px; height: 10px; }

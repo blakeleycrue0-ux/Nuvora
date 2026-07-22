@@ -20,7 +20,7 @@ interface AuthValue {
 const AuthContext = createContext<AuthValue | null>(null);
 const KEY = "momentum-user";
 
-const AVATAR_COLORS = ["#6366f1", "#8b5cf6", "#d946ef", "#f43f5e", "#f59e0b", "#10b981", "#0ea5e9"];
+const AVATAR_COLORS = ["#cbab6d", "#b8934e", "#a893d6", "#86bfa3", "#82aecf", "#d68a95", "#7cc0b8"];
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);

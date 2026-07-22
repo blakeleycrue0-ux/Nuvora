@@ -96,7 +96,7 @@ export function HabitFormModal({
                 onClick={() => setIcon(k)}
                 className={cn(
                   "flex aspect-square items-center justify-center rounded-lg transition-colors",
-                  icon === k ? "text-white" : "text-text-secondary hover:bg-surface",
+                  icon === k ? "text-accent-ink" : "text-text-secondary hover:bg-surface",
                 )}
                 style={icon === k ? { background: colorVal } : undefined}
               >
@@ -130,7 +130,7 @@ export function HabitFormModal({
                 onClick={() => setCategory(cat)}
                 className={cn(
                   "rounded-full border px-3 py-1.5 text-[12.5px] font-medium transition-colors",
-                  category === cat ? "border-transparent text-white accent-gradient" : "border-border text-text-secondary hover:text-text",
+                  category === cat ? "border-transparent text-accent-ink accent-gradient" : "border-border text-text-secondary hover:text-text",
                 )}
               >
                 {cat}
@@ -165,7 +165,7 @@ export function HabitFormModal({
                     onClick={() => setWeeklyDays((prev) => (active ? prev.filter((x) => x !== i) : [...prev, i]))}
                     className={cn(
                       "flex h-9 flex-1 items-center justify-center rounded-lg border text-[12px] font-semibold transition-colors",
-                      active ? "border-transparent text-white accent-gradient" : "border-border text-text-secondary",
+                      active ? "border-transparent text-accent-ink accent-gradient" : "border-border text-text-secondary",
                     )}
                   >
                     {d}

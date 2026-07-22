@@ -18,13 +18,13 @@ export const metadata: Metadata = {
   },
 };
 
-// Apply the saved theme before first paint to avoid a flash.
+// Dark is the default; only add the `.light` class if the user opted into light.
+// Runs before first paint to avoid a flash.
 const themeScript = `
 (function() {
   try {
-    var t = localStorage.getItem('momentum-theme');
-    if (t === 'dark' || (t === null && window.matchMedia('(prefers-color-scheme: dark)').matches && false)) {
-      document.documentElement.classList.add('dark');
+    if (localStorage.getItem('momentum-theme') === 'light') {
+      document.documentElement.classList.add('light');
     }
   } catch (e) {}
 })();

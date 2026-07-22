@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
-import { Check } from "lucide-react";
+import { Check, Flame } from "lucide-react";
 import type { Habit } from "@/lib/momentum/types";
 import { useHabits } from "@/lib/momentum/store";
 import { currentStreak, getCount } from "@/lib/momentum/stats";
@@ -45,8 +45,8 @@ export function HabitRow({ habit, date = todayISO() }: { habit: Habit; date?: st
         <div className="mt-0.5 flex items-center gap-2 text-[11.5px] text-text-muted">
           <span>{habit.category}</span>
           {streak > 0 && (
-            <span className="inline-flex items-center gap-0.5 font-medium" style={{ color }}>
-              🔥 {streak}
+            <span className="inline-flex items-center gap-1 font-medium" style={{ color }}>
+              <Flame size={12} /> {streak}
             </span>
           )}
           {habit.targetPerDay > 1 && (
@@ -75,7 +75,7 @@ export function HabitRow({ habit, date = todayISO() }: { habit: Habit; date?: st
         aria-label={done ? "Mark incomplete" : "Complete"}
         className={cn(
           "flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 transition-all",
-          done ? "border-transparent text-white" : "border-border-strong text-transparent hover:border-[color:var(--accent)]",
+          done ? "border-transparent text-accent-ink" : "border-border-strong text-transparent hover:border-[color:var(--accent)]",
         )}
         style={done ? { background: color, borderColor: color } : undefined}
       >

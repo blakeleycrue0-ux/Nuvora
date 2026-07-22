@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import {
   Plus, Search, MoreHorizontal, Pencil, Copy, Archive, ArchiveRestore, Trash2,
-  Flame, ListChecks, Target,
+  Flame, ListChecks, Target, Check,
 } from "lucide-react";
 import type { Habit } from "@/lib/momentum/types";
 import { useHabits } from "@/lib/momentum/store";
@@ -76,7 +76,7 @@ export default function HabitsPage() {
               onClick={() => setFilter(f)}
               className={cn(
                 "relative rounded-lg px-3.5 py-1.5 text-[13px] font-medium capitalize transition-colors",
-                filter === f ? "text-white" : "text-text-secondary hover:text-text",
+                filter === f ? "text-accent-ink" : "text-text-secondary hover:text-text",
               )}
             >
               {filter === f && <motion.span layoutId="habit-filter" className="absolute inset-0 rounded-lg accent-gradient" transition={{ type: "spring", stiffness: 400, damping: 32 }} />}
@@ -207,11 +207,11 @@ function HabitCard({ habit, today, onEdit }: { habit: Habit; today: string; onEd
           onClick={() => incrementCompletion(habit.id, today, 1)}
           className={cn(
             "mt-4 inline-flex h-9 items-center justify-center gap-1.5 rounded-xl text-[13px] font-medium transition-all active:scale-[0.98]",
-            done ? "text-white" : "border border-border text-text-secondary hover:border-border-strong hover:text-text",
+            done ? "text-accent-ink" : "border border-border text-text-secondary hover:border-border-strong hover:text-text",
           )}
           style={done ? { background: color } : undefined}
         >
-          {done ? "✓ Done today" : "Mark complete"}
+          {done ? <><Check size={15} strokeWidth={2.6} /> Done today</> : "Mark complete"}
         </button>
       )}
 
