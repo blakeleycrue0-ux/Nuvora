@@ -2,7 +2,11 @@
 // no backend required. Needs a public OAuth Client ID in NEXT_PUBLIC_GOOGLE_CLIENT_ID.
 // If it isn't set, googleConfigured is false and the app falls back to a local sign-in.
 
-const CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+// The Google OAuth Client ID is public (not a secret), so it's safe to ship in
+// the bundle. An env var can still override it per-deploy if needed.
+const CLIENT_ID =
+  process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ||
+  "484648915015-7qsssv9tjqpaujmt297l8shvdbgh82mr.apps.googleusercontent.com";
 
 export const googleConfigured = Boolean(CLIENT_ID);
 
