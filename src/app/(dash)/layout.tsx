@@ -9,6 +9,7 @@ import { Wordmark } from "@/components/Wordmark";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Avatar } from "@/components/app/Avatar";
 import { navItems } from "@/components/app/nav";
+import { ReminderScheduler } from "@/components/ReminderScheduler";
 import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 
@@ -31,6 +32,7 @@ export default function DashLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex min-h-screen bg-bg">
+      <ReminderScheduler />
       {/* Desktop sidebar */}
       <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-border bg-surface/50 px-4 py-6 lg:flex">
         <div className="px-2">
