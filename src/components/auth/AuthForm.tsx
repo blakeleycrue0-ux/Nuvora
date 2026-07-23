@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
@@ -10,14 +10,13 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { GoogleIcon } from "@/components/BrandIcons";
 import { useAuth } from "@/lib/auth";
-import { isOnboarded } from "@/lib/momentum/onboarding";
-import { googleConfigured, signInWithGoogle } from "@/lib/google";
+import { supabase } from "@/lib/supabase";
 
 type Mode = "login" | "signup";
 
 export function AuthForm({ mode }: { mode: Mode }) {
   const router = useRouter();
-  const { signIn } = useAuth();
+  const { user, ready, signInWithEmail, signUpWithEmail, signInWithGoogle } = useAuth();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -26,32 +25,49 @@ export function AuthForm({ mode }: { mode: Mode }) {
   const [reset, setReset] = useState(false);
   const [resetSent, setResetSent] = useState(false);
   const [error, setError] = useState("");
+  const [info, setInfo] = useState("");
 
-  const finish = () => {
-    // First-time users go through onboarding; returning users land in the app.
-    router.push(isOnboarded() ? "/dashboard" : "/onboarding");
-  };
+  // If a session appears (e.g. returning from the Google redirect), go in.
+  useEffect(() => {
+    if (ready && user) router.replace("/dashboard");
+  }, [ready, user, router]);
 
   const go = async (provider: "email" | "google") => {
     setError("");
+    setInfo("");
     setPending(provider);
-    try {
-      if (provider === "google") {
-        // Real Google sign-in (client-side, no backend).
-        const profile = await signInWithGoogle();
-        signIn(profile.email, profile.name, "google", profile.picture);
-        finish();
-        return;
+    if (provider === "google") {
+      const res = await signInWithGoogle();
+      if (!res.ok) {
+        setPending(null);
+        setError(res.error || "Couldn't start Google sign-in.");
       }
-      // Email sign-in — persists locally with your real name and data.
-      await new Promise((r) => setTimeout(r, 500));
-      signIn(email, mode === "signup" ? name : undefined, "email");
-      finish();
-    } catch (e) {
-      setPending(null);
-      if (e instanceof Error && e.message === "cancelled") return; // user closed the popup
-      setError("Couldn't sign in with Google. Please try again.");
+      return; // browser redirects to Google
     }
+    // Email / password
+    const res =
+      mode === "signup"
+        ? await signUpWithEmail(email, password, name)
+        : await signInWithEmail(email, password);
+    if (!res.ok) {
+      setPending(null);
+      setError(res.error || "Something went wrong. Please try again.");
+      return;
+    }
+    if (res.needsConfirmation) {
+      setPending(null);
+      setInfo("Check your email to confirm your account, then sign in.");
+      return;
+    }
+    router.push(mode === "signup" ? "/onboarding" : "/dashboard");
+  };
+
+  const sendReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: typeof window !== "undefined" ? `${window.location.origin}/login` : undefined,
+    });
+    setResetSent(true);
   };
 
   if (reset) {
@@ -79,7 +95,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
               key="reset"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              onSubmit={(e) => { e.preventDefault(); setResetSent(true); }}
+              onSubmit={sendReset}
               className="flex flex-col gap-4"
             >
               <div className="text-center">
@@ -114,23 +130,24 @@ export function AuthForm({ mode }: { mode: Mode }) {
           {error}
         </div>
       )}
-
-      {googleConfigured && (
-        <>
-          <div className="flex flex-col gap-3">
-            <Button variant="secondary" size="lg" className="w-full" onClick={() => go("google")} disabled={!!pending}>
-              {pending === "google" ? <Loader2 size={17} className="animate-spin" /> : <GoogleIcon size={17} />}
-              Continue with Google
-            </Button>
-          </div>
-
-          <div className="my-5 flex items-center gap-3">
-            <div className="h-px flex-1 bg-border" />
-            <span className="text-[11.5px] font-medium text-text-muted">or</span>
-            <div className="h-px flex-1 bg-border" />
-          </div>
-        </>
+      {info && (
+        <div className="mb-4 rounded-xl border border-accent/40 bg-accent-soft px-3.5 py-2.5 text-[13px] text-accent">
+          {info}
+        </div>
       )}
+
+      <div className="flex flex-col gap-3">
+        <Button variant="secondary" size="lg" className="w-full" onClick={() => go("google")} disabled={!!pending}>
+          {pending === "google" ? <Loader2 size={17} className="animate-spin" /> : <GoogleIcon size={17} />}
+          Continue with Google
+        </Button>
+      </div>
+
+      <div className="my-5 flex items-center gap-3">
+        <div className="h-px flex-1 bg-border" />
+        <span className="text-[11.5px] font-medium text-text-muted">or</span>
+        <div className="h-px flex-1 bg-border" />
+      </div>
 
       <form
         onSubmit={(e) => { e.preventDefault(); go("email"); }}
