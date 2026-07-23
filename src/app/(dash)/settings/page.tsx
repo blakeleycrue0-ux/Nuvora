@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "motion/react";
 import {
   User as UserIcon, Palette, Bell, Shield, Download, Upload, Trash2, Keyboard,
@@ -16,6 +16,9 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Toggle } from "@/components/ui/Toggle";
 import { Modal } from "@/components/ui/Modal";
+import {
+  notifSupported, notifPermission, requestNotif, remindersEnabled, setReminders, showNotif,
+} from "@/lib/notifications";
 import { cn } from "@/lib/utils";
 
 const SHORTCUTS = [
@@ -36,8 +39,40 @@ export default function SettingsPage() {
 
   const [name, setName] = useState(user?.name ?? "");
   const [savedName, setSavedName] = useState(false);
-  const [notif, setNotif] = useState({ reminders: true, streaks: true, weekly: false, achievements: true });
+  const [notif, setNotif] = useState({ streaks: true, weekly: false, achievements: true });
+  const [remindersOn, setRemindersOn] = useState(false);
+  const [notifState, setNotifState] = useState<string>("default");
   const [analytics, setAnalytics] = useState(false);
+
+  useEffect(() => {
+    // Read notification state after mount (not available during SSR).
+    /* eslint-disable react-hooks/set-state-in-effect */
+    setRemindersOn(remindersEnabled() && notifPermission() === "granted");
+    setNotifState(String(notifPermission()));
+    /* eslint-enable react-hooks/set-state-in-effect */
+  }, []);
+
+  const toggleReminders = async (on: boolean) => {
+    if (!on) {
+      setReminders(false);
+      setRemindersOn(false);
+      return;
+    }
+    if (!notifSupported()) {
+      setNotifState("unsupported");
+      return;
+    }
+    const perm = await requestNotif();
+    setNotifState(perm);
+    if (perm === "granted") {
+      setReminders(true);
+      setRemindersOn(true);
+      void showNotif("Momentum", { body: "Reminders are on. We'll nudge you at each habit's time.", icon: "/icon-192.png" });
+    } else {
+      setReminders(false);
+      setRemindersOn(false);
+    }
+  };
   const [confirmReset, setConfirmReset] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [importError, setImportError] = useState("");
@@ -134,7 +169,25 @@ export default function SettingsPage() {
 
       {/* Notifications */}
       <Section icon={Bell} title="Notifications" desc="Choose what Momentum reminds you about.">
-        <ToggleRow label="Habit reminders" hint="Get nudged at each habit's reminder time." checked={notif.reminders} onChange={(v) => setNotif((n) => ({ ...n, reminders: v }))} />
+        <ToggleRow
+          label="Habit reminders"
+          hint={
+            notifState === "denied"
+              ? "Notifications are blocked — enable them for this site in your browser settings."
+              : notifState === "unsupported"
+                ? "This browser doesn't support notifications."
+                : "Get nudged at each habit's reminder time while the app is open."
+          }
+          checked={remindersOn}
+          onChange={toggleReminders}
+        />
+        {remindersOn && (
+          <div className="-mt-2 flex justify-end">
+            <Button variant="secondary" size="sm" onClick={() => showNotif("Momentum", { body: "This is a test reminder.", icon: "/icon-192.png" })}>
+              <Bell size={14} /> Send a test
+            </Button>
+          </div>
+        )}
         <ToggleRow label="Streak alerts" hint="Warn me before I break a streak." checked={notif.streaks} onChange={(v) => setNotif((n) => ({ ...n, streaks: v }))} />
         <ToggleRow label="Achievement unlocks" hint="Celebrate when I earn a new badge." checked={notif.achievements} onChange={(v) => setNotif((n) => ({ ...n, achievements: v }))} />
         <ToggleRow label="Weekly summary" hint="A recap of my week every Sunday." checked={notif.weekly} onChange={(v) => setNotif((n) => ({ ...n, weekly: v }))} />
@@ -151,7 +204,7 @@ export default function SettingsPage() {
           </div>
         </Row>
         {importError && <p className="text-[12.5px] text-danger">{importError}</p>}
-        <Row label="Reset data" hint="Restore the demo habits and sample history.">
+        <Row label="Reset data" hint="Delete all your habits and history and start fresh.">
           <Button variant="secondary" size="sm" onClick={() => setConfirmReset(true)}><RotateCcw size={15} /> Reset</Button>
         </Row>
       </Section>
@@ -196,7 +249,7 @@ export default function SettingsPage() {
       </p>
 
       {/* Reset modal */}
-      <Modal open={confirmReset} onClose={() => setConfirmReset(false)} title="Reset all data?" subtitle="This replaces your habits and history with the demo data. This can't be undone.">
+      <Modal open={confirmReset} onClose={() => setConfirmReset(false)} title="Reset all data?" subtitle="This permanently deletes all your habits and history. This can't be undone.">
         <div className="flex gap-3">
           <Button variant="ghost" className="flex-1" onClick={() => setConfirmReset(false)}>Cancel</Button>
           <Button variant="danger" className="flex-1" onClick={() => { resetAll(); setConfirmReset(false); }}>Reset everything</Button>
