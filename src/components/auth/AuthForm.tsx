@@ -8,7 +8,7 @@ import { Mail, Lock, ArrowRight, Loader2, User as UserIcon, CheckCircle2, Eye, E
 import { Wordmark } from "@/components/Wordmark";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { GoogleIcon, AppleIcon } from "@/components/BrandIcons";
+import { GoogleIcon } from "@/components/BrandIcons";
 import { useAuth } from "@/lib/auth";
 import { isOnboarded } from "@/lib/momentum/onboarding";
 import { googleConfigured, signInWithGoogle } from "@/lib/google";
@@ -22,7 +22,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
-  const [pending, setPending] = useState<null | "email" | "google" | "apple">(null);
+  const [pending, setPending] = useState<null | "email" | "google">(null);
   const [reset, setReset] = useState(false);
   const [resetSent, setResetSent] = useState(false);
   const [error, setError] = useState("");
@@ -32,22 +32,20 @@ export function AuthForm({ mode }: { mode: Mode }) {
     router.push(isOnboarded() ? "/dashboard" : "/onboarding");
   };
 
-  const go = async (provider: "email" | "google" | "apple") => {
+  const go = async (provider: "email" | "google") => {
     setError("");
     setPending(provider);
     try {
-      if (provider === "google" && googleConfigured) {
+      if (provider === "google") {
         // Real Google sign-in (client-side, no backend).
         const profile = await signInWithGoogle();
         signIn(profile.email, profile.name, "google", profile.picture);
         finish();
         return;
       }
-      // Local sign-in (email, or Google/Apple fallback when not configured).
-      await new Promise((r) => setTimeout(r, 700));
-      const finalEmail =
-        provider === "google" ? email || "you@gmail.com" : provider === "apple" ? email || "you@icloud.com" : email;
-      signIn(finalEmail, mode === "signup" ? name : undefined, provider);
+      // Email sign-in — persists locally with your real name and data.
+      await new Promise((r) => setTimeout(r, 500));
+      signIn(email, mode === "signup" ? name : undefined, "email");
       finish();
     } catch (e) {
       setPending(null);
@@ -117,22 +115,22 @@ export function AuthForm({ mode }: { mode: Mode }) {
         </div>
       )}
 
-      <div className="flex flex-col gap-3">
-        <Button variant="secondary" size="lg" className="w-full" onClick={() => go("google")} disabled={!!pending}>
-          {pending === "google" ? <Loader2 size={17} className="animate-spin" /> : <GoogleIcon size={17} />}
-          Continue with Google
-        </Button>
-        <Button variant="secondary" size="lg" className="w-full" onClick={() => go("apple")} disabled={!!pending}>
-          {pending === "apple" ? <Loader2 size={17} className="animate-spin" /> : <AppleIcon size={17} />}
-          Continue with Apple
-        </Button>
-      </div>
+      {googleConfigured && (
+        <>
+          <div className="flex flex-col gap-3">
+            <Button variant="secondary" size="lg" className="w-full" onClick={() => go("google")} disabled={!!pending}>
+              {pending === "google" ? <Loader2 size={17} className="animate-spin" /> : <GoogleIcon size={17} />}
+              Continue with Google
+            </Button>
+          </div>
 
-      <div className="my-5 flex items-center gap-3">
-        <div className="h-px flex-1 bg-border" />
-        <span className="text-[11.5px] font-medium text-text-muted">or</span>
-        <div className="h-px flex-1 bg-border" />
-      </div>
+          <div className="my-5 flex items-center gap-3">
+            <div className="h-px flex-1 bg-border" />
+            <span className="text-[11.5px] font-medium text-text-muted">or</span>
+            <div className="h-px flex-1 bg-border" />
+          </div>
+        </>
+      )}
 
       <form
         onSubmit={(e) => { e.preventDefault(); go("email"); }}
