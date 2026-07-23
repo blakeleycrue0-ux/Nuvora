@@ -7,12 +7,13 @@ export interface User {
   email: string;
   provider: "email" | "google" | "apple";
   avatarColor: string;
+  avatar?: string; // profile photo URL (e.g. from Google)
 }
 
 interface AuthValue {
   user: User | null;
   ready: boolean;
-  signIn: (email: string, name?: string, provider?: User["provider"]) => User;
+  signIn: (email: string, name?: string, provider?: User["provider"], avatar?: string) => User;
   signOut: () => void;
   updateUser: (patch: Partial<User>) => void;
 }
@@ -44,13 +45,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch {}
   };
 
-  const signIn = useCallback<AuthValue["signIn"]>((email, name, provider = "email") => {
+  const signIn = useCallback<AuthValue["signIn"]>((email, name, provider = "email", avatar) => {
     const derivedName = name || email.split("@")[0].replace(/[._-]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
     const u: User = {
       name: derivedName || "Friend",
       email,
       provider,
       avatarColor: AVATAR_COLORS[Math.floor(Math.random() * AVATAR_COLORS.length)],
+      avatar,
     };
     setUser(u);
     persist(u);

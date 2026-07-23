@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/Input";
 import { GoogleIcon, AppleIcon } from "@/components/BrandIcons";
 import { useAuth } from "@/lib/auth";
 import { isOnboarded } from "@/lib/momentum/onboarding";
+import { googleConfigured, signInWithGoogle } from "@/lib/google";
 
 type Mode = "login" | "signup";
 
@@ -24,17 +25,35 @@ export function AuthForm({ mode }: { mode: Mode }) {
   const [pending, setPending] = useState<null | "email" | "google" | "apple">(null);
   const [reset, setReset] = useState(false);
   const [resetSent, setResetSent] = useState(false);
+  const [error, setError] = useState("");
 
-  const go = (provider: "email" | "google" | "apple") => {
+  const finish = () => {
+    // First-time users go through onboarding; returning users land in the app.
+    router.push(isOnboarded() ? "/dashboard" : "/onboarding");
+  };
+
+  const go = async (provider: "email" | "google" | "apple") => {
+    setError("");
     setPending(provider);
-    // Simulated auth latency for polished loading state, then persist locally.
-    setTimeout(() => {
+    try {
+      if (provider === "google" && googleConfigured) {
+        // Real Google sign-in (client-side, no backend).
+        const profile = await signInWithGoogle();
+        signIn(profile.email, profile.name, "google", profile.picture);
+        finish();
+        return;
+      }
+      // Local sign-in (email, or Google/Apple fallback when not configured).
+      await new Promise((r) => setTimeout(r, 700));
       const finalEmail =
         provider === "google" ? email || "you@gmail.com" : provider === "apple" ? email || "you@icloud.com" : email;
       signIn(finalEmail, mode === "signup" ? name : undefined, provider);
-      // First-time users go through onboarding; returning users land in the app.
-      router.push(isOnboarded() ? "/dashboard" : "/onboarding");
-    }, 700);
+      finish();
+    } catch (e) {
+      setPending(null);
+      if (e instanceof Error && e.message === "cancelled") return; // user closed the popup
+      setError("Couldn't sign in with Google. Please try again.");
+    }
   };
 
   if (reset) {
@@ -91,6 +110,12 @@ export function AuthForm({ mode }: { mode: Mode }) {
           {mode === "signup" ? "Start building unstoppable momentum." : "Sign in to keep your streak alive."}
         </p>
       </div>
+
+      {error && (
+        <div className="mb-4 rounded-xl border border-danger/40 bg-danger-soft px-3.5 py-2.5 text-[13px] text-danger">
+          {error}
+        </div>
+      )}
 
       <div className="flex flex-col gap-3">
         <Button variant="secondary" size="lg" className="w-full" onClick={() => go("google")} disabled={!!pending}>
