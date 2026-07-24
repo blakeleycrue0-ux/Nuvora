@@ -13,6 +13,8 @@ export const metadata: Metadata = {
     "The most beautiful way to build habits. Streaks, heatmaps, analytics, XP and gorgeous dashboards — designed to make consistency feel effortless.",
   metadataBase: new URL("https://nuvora0.netlify.app"),
   applicationName: "Momentum",
+  keywords: ["habit tracker", "habits", "streaks", "productivity", "routine", "momentum"],
+  alternates: { canonical: "/" },
   appleWebApp: {
     capable: true,
     title: "Momentum",
@@ -22,6 +24,13 @@ export const metadata: Metadata = {
     title: "Momentum — Build habits that actually stick",
     description: "Streaks, heatmaps, analytics and XP in the most beautiful habit tracker ever made.",
     type: "website",
+    siteName: "Momentum",
+    url: "/",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Momentum — Build habits that actually stick",
+    description: "Streaks, heatmaps, analytics and XP in the most beautiful habit tracker ever made.",
   },
 };
 
