@@ -19,6 +19,7 @@ import { Modal } from "@/components/ui/Modal";
 import {
   notifSupported, notifPermission, requestNotif, remindersEnabled, setReminders, showNotif,
 } from "@/lib/notifications";
+import { subscribeToPush, unsubscribeFromPush } from "@/lib/push";
 import { cn } from "@/lib/utils";
 
 const SHORTCUTS = [
@@ -56,6 +57,7 @@ export default function SettingsPage() {
     if (!on) {
       setReminders(false);
       setRemindersOn(false);
+      void unsubscribeFromPush();
       return;
     }
     if (!notifSupported()) {
@@ -67,6 +69,8 @@ export default function SettingsPage() {
     if (perm === "granted") {
       setReminders(true);
       setRemindersOn(true);
+      // Subscribe this device for push so reminders arrive even when closed.
+      if (user?.id) void subscribeToPush(user.id);
       void showNotif("Momentum", { body: "Reminders are on. We'll nudge you at each habit's time.", icon: "/icon-192.png" });
     } else {
       setReminders(false);
