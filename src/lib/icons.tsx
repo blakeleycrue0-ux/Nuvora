@@ -59,6 +59,11 @@ export function HabitIcon({ name, size = 18, className, style }: { name: string;
 export const ACHIEVEMENT_ICONS: Record<string, LucideIcon> = {
   footprints: Footprints, zap: Zap, medal: Medal, flame: Flame, trophy: Trophy,
   "trending-up": TrendingUp, crown: Crown, layers: Layers, target: Target,
+  sparkles: Sparkles, heart: Heart, "heart-pulse": HeartPulse, dumbbell: Dumbbell,
+  "book-open": BookOpen, brain: Brain, "graduation-cap": GraduationCap, bed: Bed,
+  droplets: Droplets, wallet: Wallet, palette: Palette, coffee: Coffee,
+  sunrise: Sunrise, mountain: Mountain, "list-checks": ListChecks, repeat: Repeat,
+  "notebook-pen": NotebookPen, leaf: Leaf,
 };
 
 // Cool, modern habit tones that sit well on near-black surfaces.
