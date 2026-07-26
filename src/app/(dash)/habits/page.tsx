@@ -8,9 +8,10 @@ import {
 } from "lucide-react";
 import type { Habit } from "@/lib/momentum/types";
 import { useHabits } from "@/lib/momentum/store";
-import { currentStreak, longestStreak, completionRate, isScheduled, isComplete } from "@/lib/momentum/stats";
+import { currentStreak, longestStreak, completionRate, isScheduled, isComplete, getCount, DIFFICULTY_XP } from "@/lib/momentum/stats";
 import { todayISO } from "@/lib/momentum/date";
 import { HabitFormModal } from "@/components/habits/HabitFormModal";
+import { useCelebration } from "@/components/Celebration";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { HabitIcon, colorValue } from "@/lib/icons";
@@ -125,6 +126,7 @@ export default function HabitsPage() {
 
 function HabitCard({ habit, today, onEdit }: { habit: Habit; today: string; onEdit: () => void }) {
   const { completions, deleteHabit, archiveHabit, duplicateHabit, incrementCompletion } = useHabits();
+  const { celebrateXP } = useCelebration();
   const [menu, setMenu] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const color = colorValue(habit.color);
@@ -204,7 +206,12 @@ function HabitCard({ habit, today, onEdit }: { habit: Habit; today: string; onEd
 
       {!habit.archived && scheduledToday && (
         <button
-          onClick={() => incrementCompletion(habit.id, today, 1)}
+          onClick={(e) => {
+            const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
+            const willAdd = getCount(completions, habit.id, today) < habit.targetPerDay;
+            incrementCompletion(habit.id, today, 1);
+            if (willAdd) celebrateXP(DIFFICULTY_XP[habit.difficulty], r.left + r.width / 2, r.top);
+          }}
           className={cn(
             "mt-4 inline-flex h-9 items-center justify-center gap-1.5 rounded-xl text-[13px] font-medium transition-all active:scale-[0.98]",
             done ? "text-accent-ink" : "border border-border text-text-secondary hover:border-border-strong hover:text-text",
