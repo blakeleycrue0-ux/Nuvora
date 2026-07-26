@@ -1,90 +1,158 @@
-// Supabase Edge Function: AI habit verification with Claude vision.
-// Receives a photo + habit name, asks Claude whether the habit looks done,
-// and returns { approved, reason }. Secret required: ANTHROPIC_API_KEY.
 const CORS = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: CORS });
+  }
 
   try {
+    console.log("Verification request received");
+
     const apiKey = Deno.env.get("ANTHROPIC_API_KEY");
+
     if (!apiKey) {
-      return json({ error: "Verification is not configured yet." }, 500);
+      return json(
+        {
+          error:
+            "ANTHROPIC_API_KEY is missing from Supabase Edge Function Secrets.",
+        },
+        500,
+      );
     }
 
-    const { habitName, imageBase64, mediaType } = await req.json();
-    if (!habitName || !imageBase64) {
-      return json({ error: "Missing habit or image." }, 400);
+    const body = await req.json();
+
+    const habitName = body.habitName;
+    const imageBase64 = body.imageBase64;
+    const mediaType = body.mediaType || "image/jpeg";
+
+    if (!habitName) {
+      return json({ error: "habitName is missing." }, 400);
     }
 
-    const prompt =
-      `You are verifying whether a person has genuinely completed a personal habit, ` +
-      `from a photo they just took. The habit is: "${habitName}".\n\n` +
-      `Look at the image and decide if it reasonably shows this habit being done or its ` +
-      `clear result. Be encouraging but honest — reject only if the photo clearly does NOT ` +
-      `relate to the habit, is blank/black, or is obviously unrelated.\n\n` +
-      `Reply with ONLY a compact JSON object, no markdown, in this exact shape:\n` +
-      `{"approved": true|false, "reason": "one short friendly sentence"}`;
+    if (!imageBase64) {
+      return json({ error: "imageBase64 is missing." }, 400);
+    }
 
-    const resp = await fetch("https://api.anthropic.com/v1/messages", {
+    console.log("Calling Claude Vision...");
+
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
-        "content-type": "application/json",
         "x-api-key": apiKey,
         "anthropic-version": "2023-06-01",
+        "content-type": "application/json",
       },
       body: JSON.stringify({
-        model: "claude-3-5-sonnet-latest",
+        model: "claude-3-5-sonnet-20241022",
         max_tokens: 200,
         messages: [
           {
             role: "user",
             content: [
-              { type: "image", source: { type: "base64", media_type: mediaType || "image/jpeg", data: imageBase64 } },
-              { type: "text", text: prompt },
+              {
+                type: "image",
+                source: {
+                  type: "base64",
+                  media_type: mediaType,
+                  data: imageBase64,
+                },
+              },
+              {
+                type: "text",
+                text: `You are verifying whether a person completed the habit "${habitName}".
+
+Look at the photo.
+
+Approve only if the image genuinely shows the completed habit or its obvious result.
+
+Reject if the image is blank, unrelated, too dark, or clearly doesn't show the habit.
+
+Reply ONLY with valid JSON:
+
+{
+  "approved": true,
+  "reason": "Looks great!"
+}`,
+              },
             ],
           },
         ],
       }),
     });
-    if (!resp.ok) {
-  const t = await resp.text();
-  console.error("Anthropic Error:", t);
-  return json({
-    error: t
-  }, resp.status);
-}
 
-    
+    const raw = await response.text();
 
-    const data = await resp.json();
-    const text: string = data?.content?.[0]?.text ?? "";
-    const match = text.match(/\{[\s\S]*\}/);
-    let approved = false;
-    let reason = "Couldn't read the result. Try again.";
-    if (match) {
-      try {
-        const parsed = JSON.parse(match[0]);
-        approved = Boolean(parsed.approved);
-        reason = String(parsed.reason || (approved ? "Looks good!" : "That doesn't look right — try again."));
-      } catch {
-        /* keep defaults */
-      }
+    console.log("Claude response:");
+    console.log(raw);
+
+    if (!response.ok) {
+      return json(
+        {
+          error: "Anthropic API Error",
+          status: response.status,
+          details: raw,
+        },
+        response.status,
+      );
     }
 
-    return json({ approved, reason });
-  } catch (e) {
-    return json({ error: (e as Error).message || "Unexpected error" }, 500);
+    let approved = false;
+    let reason = "Couldn't verify.";
+
+    try {
+      const data = JSON.parse(raw);
+
+      const text = data.content?.[0]?.text ?? "";
+
+      const match = text.match(/\{[\s\S]*\}/);
+
+      if (match) {
+        const result = JSON.parse(match[0]);
+
+        approved = result.approved === true;
+        reason = result.reason ?? reason;
+      } else {
+        reason = text;
+      }
+    } catch (err) {
+      console.error(err);
+      return json(
+        {
+          error: "Failed parsing Claude response.",
+          raw,
+        },
+        500,
+      );
+    }
+
+    return json({
+      approved,
+      reason,
+    });
+  } catch (err) {
+    console.error(err);
+
+    return json(
+      {
+        error: err instanceof Error ? err.message : String(err),
+      },
+      500,
+    );
   }
 });
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...CORS, "Content-Type": "application/json" },
+    headers: {
+      ...CORS,
+      "Content-Type": "application/json",
+    },
   });
 }
