@@ -250,7 +250,8 @@ export default function SettingsPage() {
       </div>
 
       <div className="mt-8 flex flex-col items-center gap-2">
-        <div className="flex gap-5 text-[12.5px]">
+        <div className="flex flex-wrap justify-center gap-5 text-[12.5px]">
+          <Link href="/verifications" className="text-text-secondary transition-colors hover:text-text">AI Verifications</Link>
           <Link href="/privacy" className="text-text-secondary transition-colors hover:text-text">Privacy Policy</Link>
           <Link href="/terms" className="text-text-secondary transition-colors hover:text-text">Terms of Service</Link>
         </div>

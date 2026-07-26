@@ -7,6 +7,7 @@ import { useHabits } from "@/lib/momentum/store";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { Input, Textarea } from "@/components/ui/Input";
+import { Toggle } from "@/components/ui/Toggle";
 import { HabitIcon, ICON_KEYS, HABIT_COLORS } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 
@@ -36,6 +37,7 @@ export function HabitFormModal({
   const [difficulty, setDifficulty] = useState<Difficulty>(editing?.difficulty ?? "medium");
   const [reminder, setReminder] = useState(editing?.reminder ?? "");
   const [tags, setTags] = useState((editing?.tags ?? []).join(", "));
+  const [verify, setVerify] = useState(editing?.verify ?? false);
 
   const [freqType, setFreqType] = useState<FreqType>(editing?.frequency.type ?? "daily");
   const [weeklyDays, setWeeklyDays] = useState<number[]>(
@@ -67,6 +69,7 @@ export function HabitFormModal({
       difficulty,
       reminder: reminder || undefined,
       tags: tags.split(",").map((t) => t.trim()).filter(Boolean),
+      verify,
     };
     if (editing) updateHabit(editing.id, payload);
     else addHabit(payload);
@@ -212,6 +215,16 @@ export function HabitFormModal({
         <Field label="Tags (comma separated)">
           <Input placeholder="morning, health" value={tags} onChange={(e) => setTags(e.target.value)} />
         </Field>
+
+        <div className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-surface-2 p-3.5">
+          <div className="min-w-0">
+            <p className="text-[13.5px] font-semibold text-text">Verify with a photo (AI)</p>
+            <p className="mt-0.5 text-[12px] leading-relaxed text-text-muted">
+              To complete, snap a photo and let AI confirm it&apos;s really done.
+            </p>
+          </div>
+          <Toggle checked={verify} onChange={setVerify} label="AI photo verification" />
+        </div>
 
         <Field label="Notes (optional)">
           <Textarea placeholder="Why does this habit matter to you?" value={notes} onChange={(e) => setNotes(e.target.value)} />
