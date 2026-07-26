@@ -201,6 +201,12 @@ export function AuthForm({ mode }: { mode: Mode }) {
           {mode === "signup" ? "Sign in" : "Create one"}
         </Link>
       </p>
+
+      <p className="mt-4 text-center text-[11.5px] leading-relaxed text-text-muted">
+        By continuing you agree to our{" "}
+        <Link href="/terms" className="underline hover:text-text-secondary">Terms</Link> and{" "}
+        <Link href="/privacy" className="underline hover:text-text-secondary">Privacy Policy</Link>.
+      </p>
     </Shell>
   );
 }

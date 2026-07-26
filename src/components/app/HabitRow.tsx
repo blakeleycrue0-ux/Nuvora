@@ -4,15 +4,17 @@ import { motion } from "motion/react";
 import { Check, Flame } from "lucide-react";
 import type { Habit } from "@/lib/momentum/types";
 import { useHabits } from "@/lib/momentum/store";
-import { currentStreak, getCount } from "@/lib/momentum/stats";
+import { currentStreak, getCount, DIFFICULTY_XP } from "@/lib/momentum/stats";
 import { todayISO } from "@/lib/momentum/date";
 import { HabitIcon, colorValue } from "@/lib/icons";
 import { useConfetti } from "@/components/Confetti";
+import { useCelebration } from "@/components/Celebration";
 import { cn } from "@/lib/utils";
 
 export function HabitRow({ habit, date = todayISO() }: { habit: Habit; date?: string }) {
   const { completions, incrementCompletion } = useHabits();
   const { fire } = useConfetti();
+  const { celebrateXP } = useCelebration();
   const count = getCount(completions, habit.id, date);
   const done = count >= habit.targetPerDay;
   const streak = currentStreak(habit, completions);
@@ -20,8 +22,12 @@ export function HabitRow({ habit, date = todayISO() }: { habit: Habit; date?: st
 
   const onTap = (e: React.MouseEvent) => {
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const willAdd = count < habit.targetPerDay; // tapping adds (vs toggles/wraps off)
     const didComplete = incrementCompletion(habit.id, date, 1);
-    if (didComplete) fire(rect.left + rect.width / 2, rect.top + rect.height / 2);
+    if (willAdd) celebrateXP(DIFFICULTY_XP[habit.difficulty], cx, cy);
+    if (didComplete) fire(cx, cy);
   };
 
   return (

@@ -7,6 +7,7 @@ import {
   Sun, Moon, Check, LogOut, RotateCcw, Sparkles,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useAuth } from "@/lib/auth";
 import { useTheme } from "@/lib/theme";
 import { useHabits } from "@/lib/momentum/store";
@@ -248,9 +249,15 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      <p className="mt-8 text-center text-[12px] text-text-muted">
-        Momentum · {habits.length} habits tracked · {xp} XP earned
-      </p>
+      <div className="mt-8 flex flex-col items-center gap-2">
+        <div className="flex gap-5 text-[12.5px]">
+          <Link href="/privacy" className="text-text-secondary transition-colors hover:text-text">Privacy Policy</Link>
+          <Link href="/terms" className="text-text-secondary transition-colors hover:text-text">Terms of Service</Link>
+        </div>
+        <p className="text-center text-[12px] text-text-muted">
+          Momentum · {habits.length} habits tracked · {xp} XP earned
+        </p>
+      </div>
 
       {/* Reset modal */}
       <Modal open={confirmReset} onClose={() => setConfirmReset(false)} title="Reset all data?" subtitle="This permanently deletes all your habits and history. This can't be undone.">
