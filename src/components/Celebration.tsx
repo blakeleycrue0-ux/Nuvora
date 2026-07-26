@@ -2,9 +2,46 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { Award, Sparkles } from "lucide-react";
+import { Award, Sparkles, ChevronsUp } from "lucide-react";
 import { ACHIEVEMENT_ICONS } from "@/lib/icons";
 import { useConfetti } from "@/components/Confetti";
+
+// --- Sound & haptics ---------------------------------------------------------
+let audioCtx: AudioContext | null = null;
+function playTones(freqs: number[], duration = 0.45, type: OscillatorType = "sine", gain = 0.06) {
+  if (typeof window === "undefined") return;
+  try {
+    const Ctor = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!Ctor) return;
+    audioCtx = audioCtx ?? new Ctor();
+    const ctx = audioCtx;
+    if (ctx.state === "suspended") void ctx.resume();
+    freqs.forEach((f, i) => {
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.type = type;
+      o.frequency.value = f;
+      const t0 = ctx.currentTime + i * 0.09;
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(gain, t0 + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + duration);
+      o.connect(g);
+      g.connect(ctx.destination);
+      o.start(t0);
+      o.stop(t0 + duration + 0.02);
+    });
+  } catch {
+    /* audio unavailable */
+  }
+}
+
+function haptic(pattern: number | number[]) {
+  try {
+    navigator.vibrate?.(pattern); // no-op on iOS Safari; works on Android/native
+  } catch {
+    /* ignore */
+  }
+}
 
 export interface CelebAchievement {
   id: string;
@@ -17,11 +54,13 @@ export interface CelebAchievement {
 interface CelebrationValue {
   celebrateXP: (amount: number, x?: number, y?: number) => void;
   celebrateAchievement: (a: CelebAchievement) => void;
+  celebrateLevelUp: (level: number, title: string) => void;
 }
 
 const CelebrationContext = createContext<CelebrationValue>({
   celebrateXP: () => {},
   celebrateAchievement: () => {},
+  celebrateLevelUp: () => {},
 });
 
 const TIER_COLORS: Record<string, string> = {
@@ -37,6 +76,7 @@ export function CelebrationProvider({ children }: { children: ReactNode }) {
   const { fire } = useConfetti();
   const [pops, setPops] = useState<{ id: number; amount: number; x: number; y: number }[]>([]);
   const [queue, setQueue] = useState<CelebAchievement[]>([]);
+  const [levelUp, setLevelUp] = useState<{ level: number; title: string } | null>(null);
   const current = queue[0] ?? null;
 
   const celebrateXP = useCallback((amount: number, x?: number, y?: number) => {
@@ -45,6 +85,8 @@ export function CelebrationProvider({ children }: { children: ReactNode }) {
     const px = x ?? window.innerWidth / 2;
     const py = y ?? window.innerHeight / 2;
     setPops((p) => [...p, { id, amount, x: px, y: py }]);
+    playTones([680], 0.16, "triangle", 0.045);
+    haptic(12);
     window.setTimeout(() => setPops((p) => p.filter((o) => o.id !== id)), 1200);
   }, []);
 
@@ -52,12 +94,18 @@ export function CelebrationProvider({ children }: { children: ReactNode }) {
     setQueue((q) => [...q, a]);
   }, []);
 
-  // Confetti bursts when an achievement modal appears.
+  const celebrateLevelUp = useCallback((level: number, title: string) => {
+    setLevelUp({ level, title });
+  }, []);
+
+  // Confetti + chime when an achievement modal appears.
   useEffect(() => {
     if (!current || typeof window === "undefined") return;
     const cx = window.innerWidth / 2;
     const cy = window.innerHeight * 0.4;
     fire(cx, cy);
+    playTones([523.25, 659.25, 783.99], 0.5, "sine", 0.06);
+    haptic([20, 40, 30]);
     const t1 = window.setTimeout(() => fire(cx - 90, cy + 20), 220);
     const t2 = window.setTimeout(() => fire(cx + 90, cy + 20), 460);
     const auto = window.setTimeout(() => setQueue((q) => q.slice(1)), 4500);
@@ -68,7 +116,30 @@ export function CelebrationProvider({ children }: { children: ReactNode }) {
     };
   }, [current, fire]);
 
-  const value = useMemo(() => ({ celebrateXP, celebrateAchievement }), [celebrateXP, celebrateAchievement]);
+  // Big celebration when the user levels up.
+  useEffect(() => {
+    if (!levelUp || typeof window === "undefined") return;
+    const cx = window.innerWidth / 2;
+    const cy = window.innerHeight * 0.42;
+    fire(cx, cy);
+    playTones([523.25, 659.25, 783.99, 1046.5], 0.6, "sine", 0.07);
+    haptic([30, 50, 30, 50, 70]);
+    const t1 = window.setTimeout(() => fire(cx - 110, cy), 200);
+    const t2 = window.setTimeout(() => fire(cx + 110, cy), 400);
+    const t3 = window.setTimeout(() => fire(cx, cy - 30), 650);
+    const auto = window.setTimeout(() => setLevelUp(null), 4800);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+      clearTimeout(auto);
+    };
+  }, [levelUp, fire]);
+
+  const value = useMemo(
+    () => ({ celebrateXP, celebrateAchievement, celebrateLevelUp }),
+    [celebrateXP, celebrateAchievement, celebrateLevelUp],
+  );
 
   return (
     <CelebrationContext.Provider value={value}>
@@ -98,7 +169,73 @@ export function CelebrationProvider({ children }: { children: ReactNode }) {
       <AnimatePresence>
         {current && <AchievementCard key={current.id} a={current} onClose={() => setQueue((q) => q.slice(1))} />}
       </AnimatePresence>
+
+      {/* Level-up overlay */}
+      <AnimatePresence>
+        {levelUp && <LevelUpCard key={levelUp.level} level={levelUp.level} title={levelUp.title} onClose={() => setLevelUp(null)} />}
+      </AnimatePresence>
     </CelebrationContext.Provider>
+  );
+}
+
+function LevelUpCard({ level, title, onClose }: { level: number; title: string; onClose: () => void }) {
+  return (
+    <motion.div
+      className="fixed inset-0 z-[130] flex items-center justify-center p-6"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      onClick={onClose}
+    >
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-md" />
+      {/* radiating light beams */}
+      <motion.div
+        aria-hidden
+        className="pointer-events-none absolute h-[520px] w-[520px] rounded-full"
+        style={{ background: "conic-gradient(from 0deg, transparent, color-mix(in oklab, var(--accent) 40%, transparent), transparent, color-mix(in oklab, var(--accent) 40%, transparent), transparent)" }}
+        initial={{ opacity: 0, rotate: 0, scale: 0.6 }}
+        animate={{ opacity: 0.5, rotate: 360, scale: 1 }}
+        transition={{ opacity: { duration: 0.5 }, rotate: { duration: 12, repeat: Infinity, ease: "linear" }, scale: { duration: 0.6 } }}
+      />
+      <motion.div
+        onClick={(e) => e.stopPropagation()}
+        initial={{ scale: 0.7, y: 24, opacity: 0 }}
+        animate={{ scale: 1, y: 0, opacity: 1 }}
+        exit={{ scale: 0.9, opacity: 0 }}
+        transition={{ type: "spring", stiffness: 240, damping: 18 }}
+        className="relative flex flex-col items-center text-center"
+      >
+        <motion.p
+          initial={{ letterSpacing: "0.05em", opacity: 0, y: 10 }}
+          animate={{ letterSpacing: "0.35em", opacity: 1, y: 0 }}
+          transition={{ delay: 0.15, duration: 0.6 }}
+          className="text-[13px] font-bold uppercase text-accent"
+        >
+          Level Up
+        </motion.p>
+
+        <motion.div
+          initial={{ scale: 0.4, rotate: -20 }}
+          animate={{ scale: 1, rotate: 0 }}
+          transition={{ type: "spring", stiffness: 200, damping: 12, delay: 0.1 }}
+          className="relative mt-4 flex h-40 w-40 items-center justify-center"
+        >
+          <motion.span aria-hidden className="absolute inset-0 rounded-full accent-gradient opacity-30 blur-2xl"
+            animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 2, repeat: Infinity }} />
+          <div className="relative flex h-36 w-36 flex-col items-center justify-center rounded-full accent-gradient text-accent-ink shadow-[var(--shadow-glow)]">
+            <ChevronsUp size={22} className="mb-1 opacity-80" />
+            <span className="text-[46px] font-bold leading-none">{level}</span>
+          </div>
+        </motion.div>
+
+        <h2 className="mt-6 text-[26px] font-semibold tracking-[-0.02em] text-white">{title}</h2>
+        <p className="mt-1 text-[14px] text-white/70">You reached level {level}</p>
+
+        <button onClick={onClose} className="mt-7 inline-flex h-11 items-center justify-center rounded-xl bg-white px-8 text-[14px] font-semibold text-black transition-transform hover:scale-[1.03]">
+          Continue
+        </button>
+      </motion.div>
+    </motion.div>
   );
 }
 
