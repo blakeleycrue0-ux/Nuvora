@@ -4,13 +4,14 @@ import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import {
   Plus, Search, MoreHorizontal, Pencil, Copy, Archive, ArchiveRestore, Trash2,
-  Flame, ListChecks, Target, Check,
+  Flame, ListChecks, Target, Check, Camera,
 } from "lucide-react";
 import type { Habit } from "@/lib/momentum/types";
 import { useHabits } from "@/lib/momentum/store";
 import { currentStreak, longestStreak, completionRate, isScheduled, isComplete, getCount, DIFFICULTY_XP } from "@/lib/momentum/stats";
 import { todayISO } from "@/lib/momentum/date";
 import { HabitFormModal } from "@/components/habits/HabitFormModal";
+import { VerifyModal } from "@/components/verify/VerifyModal";
 import { useCelebration } from "@/components/Celebration";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -129,6 +130,7 @@ function HabitCard({ habit, today, onEdit }: { habit: Habit; today: string; onEd
   const { celebrateXP } = useCelebration();
   const [menu, setMenu] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [verifyOpen, setVerifyOpen] = useState(false);
   const color = colorValue(habit.color);
   const streak = currentStreak(habit, completions);
   const longest = longestStreak(habit, completions);
@@ -207,6 +209,10 @@ function HabitCard({ habit, today, onEdit }: { habit: Habit; today: string; onEd
       {!habit.archived && scheduledToday && (
         <button
           onClick={(e) => {
+            if (habit.verify && !done) {
+              setVerifyOpen(true);
+              return;
+            }
             const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
             const willAdd = getCount(completions, habit.id, today) < habit.targetPerDay;
             incrementCompletion(habit.id, today, 1);
@@ -218,9 +224,26 @@ function HabitCard({ habit, today, onEdit }: { habit: Habit; today: string; onEd
           )}
           style={done ? { background: color } : undefined}
         >
-          {done ? <><Check size={15} strokeWidth={2.6} /> Done today</> : "Mark complete"}
+          {done ? (
+            <><Check size={15} strokeWidth={2.6} /> Done today</>
+          ) : habit.verify ? (
+            <><Camera size={15} /> Verify with photo</>
+          ) : (
+            "Mark complete"
+          )}
         </button>
       )}
+
+      <VerifyModal
+        open={verifyOpen}
+        habit={habit}
+        date={today}
+        onClose={() => setVerifyOpen(false)}
+        onApproved={() => {
+          incrementCompletion(habit.id, today, 1);
+          celebrateXP(DIFFICULTY_XP[habit.difficulty], window.innerWidth / 2, window.innerHeight * 0.5);
+        }}
+      />
 
       {/* Delete confirmation */}
       <AnimatePresence>

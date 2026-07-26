@@ -42,6 +42,7 @@ interface HabitRow {
   archived: boolean;
   order: number;
   created_at: string;
+  verify: boolean | null;
 }
 
 function rowToHabit(r: HabitRow): Habit {
@@ -60,6 +61,7 @@ function rowToHabit(r: HabitRow): Habit {
     archived: r.archived,
     order: r.order,
     createdAt: r.created_at,
+    verify: r.verify ?? false,
   };
 }
 
@@ -80,6 +82,7 @@ function habitToRow(h: Habit, userId: string) {
     archived: h.archived,
     order: h.order,
     created_at: h.createdAt,
+    verify: h.verify ?? false,
   };
 }
 
@@ -185,6 +188,7 @@ export function HabitStoreProvider({ children }: { children: ReactNode }) {
     if (patch.tags !== undefined) row.tags = patch.tags;
     if (patch.archived !== undefined) row.archived = patch.archived;
     if (patch.order !== undefined) row.order = patch.order;
+    if (patch.verify !== undefined) row.verify = patch.verify;
     if (Object.keys(row).length) track(supabase.from("habits").update(row).eq("id", id));
   }, [track]);
 

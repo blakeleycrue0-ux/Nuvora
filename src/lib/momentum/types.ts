@@ -31,6 +31,19 @@ export interface Habit {
   createdAt: string; // ISO date
   archived: boolean;
   order: number;
+  verify?: boolean; // require an AI photo check to complete
+}
+
+export interface Verification {
+  id: string;
+  habitId: string;
+  habitName: string;
+  date: string;
+  approved: boolean;
+  explanation: string;
+  xpEarned: number;
+  imagePath: string | null;
+  createdAt: string;
 }
 
 // Completions are stored as a flat map: `${habitId}|${date}` -> count
