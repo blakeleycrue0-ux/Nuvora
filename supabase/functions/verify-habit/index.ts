@@ -51,11 +51,15 @@ Deno.serve(async (req) => {
         ],
       }),
     });
-
     if (!resp.ok) {
-      const t = await resp.text();
-      return json({ error: `AI request failed: ${resp.status} ${t.slice(0, 200)}` }, 502);
-    }
+  const t = await resp.text();
+  console.error("Anthropic Error:", t);
+  return json({
+    error: t
+  }, resp.status);
+}
+
+    
 
     const data = await resp.json();
     const text: string = data?.content?.[0]?.text ?? "";
