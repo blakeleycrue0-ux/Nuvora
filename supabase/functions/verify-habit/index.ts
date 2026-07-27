@@ -8,6 +8,9 @@
 // - Hard timeout, input validation, size limit, structured stage logging.
 //
 // Secrets: ANTHROPIC_API_KEY (required). Optional: AI_PROVIDER, AI_MODEL.
+// Default model: claude-sonnet-5 (current vision model). Override via AI_MODEL,
+// e.g. claude-haiku-4-5 for lower cost. Do NOT use retired dated snapshots
+// like claude-3-5-sonnet-20241022 — the API returns 404.
 
 const CORS: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
@@ -128,7 +131,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
     const providerName = Deno.env.get("AI_PROVIDER") ?? "anthropic";
     const apiKey = Deno.env.get("ANTHROPIC_API_KEY") ?? "";
-    const model = Deno.env.get("AI_MODEL") ?? "claude-3-5-sonnet-20241022";
+    const model = Deno.env.get("AI_MODEL") ?? "claude-sonnet-5";
     if (!apiKey) return respond({ ok: false, error: "Server is missing the ANTHROPIC_API_KEY secret." });
 
     let body: { habitName?: unknown; imageBase64?: unknown; mediaType?: unknown };
