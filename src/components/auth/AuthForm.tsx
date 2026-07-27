@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { GoogleIcon } from "@/components/BrandIcons";
 import { useAuth } from "@/lib/auth";
+import { isOnboarded } from "@/lib/momentum/onboarding";
 import { supabase } from "@/lib/supabase";
 
 type Mode = "login" | "signup";
@@ -27,9 +28,13 @@ export function AuthForm({ mode }: { mode: Mode }) {
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
 
-  // If a session appears (e.g. returning from the Google redirect), go in.
+  // If a session appears (e.g. returning from the Google redirect or after
+  // email sign-up/in), route by onboarding state: new accounts go through the
+  // guided onboarding, returning users go straight to the dashboard.
   useEffect(() => {
-    if (ready && user) router.replace("/dashboard");
+    if (ready && user) {
+      router.replace(user.onboarded || isOnboarded() ? "/dashboard" : "/onboarding");
+    }
   }, [ready, user, router]);
 
   const go = async (provider: "email" | "google") => {
@@ -59,7 +64,8 @@ export function AuthForm({ mode }: { mode: Mode }) {
       setInfo("Check your email to confirm your account, then sign in.");
       return;
     }
-    router.push(mode === "signup" ? "/onboarding" : "/dashboard");
+    // Navigation is handled by the effect above once the session appears —
+    // it routes new users to onboarding and returning users to the dashboard.
   };
 
   const sendReset = async (e: React.FormEvent) => {

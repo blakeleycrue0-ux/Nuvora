@@ -11,6 +11,7 @@ export interface User {
   provider: string;
   avatarColor: string;
   avatar?: string; // profile photo URL (e.g. from Google)
+  onboarded: boolean; // completed first-run onboarding (stored per-user in Supabase)
 }
 
 export interface AuthResult {
@@ -27,6 +28,7 @@ interface AuthValue {
   signInWithGoogle: () => Promise<AuthResult>;
   signOut: () => Promise<void>;
   updateUser: (patch: Partial<Pick<User, "name">>) => Promise<void>;
+  markOnboarded: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthValue | null>(null);
@@ -53,6 +55,7 @@ function toUser(su: SupaUser): User {
     provider: su.app_metadata?.provider || "email",
     avatarColor: colorFor(su.id || email),
     avatar: meta.avatar_url || meta.picture || undefined,
+    onboarded: meta.onboarded === true,
   };
 }
 
@@ -117,9 +120,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const markOnboarded = useCallback<AuthValue["markOnboarded"]>(async () => {
+    const { data, error } = await supabase.auth.updateUser({ data: { onboarded: true } });
+    if (!error && data.user) setUser(toUser(data.user));
+  }, []);
+
   const value = useMemo<AuthValue>(
-    () => ({ user, ready, signInWithEmail, signUpWithEmail, signInWithGoogle, signOut, updateUser }),
-    [user, ready, signInWithEmail, signUpWithEmail, signInWithGoogle, signOut, updateUser],
+    () => ({ user, ready, signInWithEmail, signUpWithEmail, signInWithGoogle, signOut, updateUser, markOnboarded }),
+    [user, ready, signInWithEmail, signUpWithEmail, signInWithGoogle, signOut, updateUser, markOnboarded],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
