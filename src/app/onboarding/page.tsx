@@ -134,7 +134,7 @@ export default function OnboardingPage() {
         style={{ background: "radial-gradient(circle, var(--accent), transparent 65%)" }} />
 
       {showChrome && (
-        <header className="relative z-10 px-5 pt-5 sm:px-8">
+        <header className="relative z-10 px-5 pt-[calc(env(safe-area-inset-top)+1.25rem)] sm:px-8">
           <div className="flex items-center justify-between">
             <Wordmark href={null} />
             <button onClick={skip} className="text-[13px] font-medium text-text-muted transition-colors hover:text-text">
