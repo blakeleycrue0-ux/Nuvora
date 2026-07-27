@@ -11,10 +11,10 @@ export function Logo({ size = 24, className }: { size?: number; className?: stri
       className={className}
       aria-hidden="true"
     >
-      <g transform="translate(50 50) skewX(-12) translate(-50 -50)">
-        <rect x="34" y="25" width="42" height="12.5" rx="6.25" fill="currentColor" />
-        <rect x="27" y="43.75" width="50" height="12.5" rx="6.25" fill="var(--accent-3)" />
-        <rect x="37" y="62.5" width="30" height="12.5" rx="6.25" fill="currentColor" />
+      <g transform="translate(50 50) skewX(-11) translate(-50 -50)">
+        <rect x="36" y="24" width="48" height="13" rx="6.5" fill="currentColor" />
+        <rect x="28" y="43" width="47" height="13" rx="6.5" fill="var(--accent-3)" />
+        <rect x="17" y="62" width="32" height="13" rx="6.5" fill="currentColor" />
       </g>
     </svg>
   );
