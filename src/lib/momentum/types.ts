@@ -40,6 +40,7 @@ export interface Verification {
   habitName: string;
   date: string;
   approved: boolean;
+  confidence: number;
   explanation: string;
   xpEarned: number;
   imagePath: string | null;

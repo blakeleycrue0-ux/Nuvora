@@ -3,6 +3,7 @@ import type { Verification } from "@/lib/momentum/types";
 
 export interface VerifyResult {
   approved: boolean;
+  confidence: number;
   reason: string;
   imagePath: string | null;
 }
@@ -25,8 +26,22 @@ export async function compressImage(source: Blob, maxDim = 1024, quality = 0.72)
   return { blob, base64 };
 }
 
+interface VerifyResponse {
+  ok?: boolean;
+  approved?: boolean;
+  confidence?: number;
+  reason?: string;
+  error?: string;
+}
+
 // Full flow: upload the photo (best-effort) and ask the AI to verify it.
+// The Edge Function always replies 200 with a structured body; we surface its
+// real error message when something goes wrong.
 export async function runVerification(habitId: string, habitName: string, source: Blob): Promise<VerifyResult> {
+  if (typeof navigator !== "undefined" && navigator.onLine === false) {
+    throw new Error("You're offline. Reconnect to verify this habit.");
+  }
+
   const { blob, base64 } = await compressImage(source);
 
   // Best-effort photo upload for history — never blocks verification.
@@ -46,13 +61,35 @@ export async function runVerification(habitId: string, habitName: string, source
     /* history photo is optional */
   }
 
-  const { data, error } = await supabase.functions.invoke("verify-habit", {
+  const { data, error } = await supabase.functions.invoke<VerifyResponse>("verify-habit", {
     body: { habitName, imageBase64: base64, mediaType: "image/jpeg" },
   });
-  if (error) throw new Error(error.message || "Verification failed");
-  if (data?.error) throw new Error(data.error);
 
-  return { approved: Boolean(data?.approved), reason: String(data?.reason || ""), imagePath };
+  // If a non-2xx still slips through, try to read the real message from the body.
+  if (error) {
+    let detail = "";
+    try {
+      const ctx = (error as { context?: Response }).context;
+      if (ctx && typeof ctx.json === "function") {
+        const j = (await ctx.json()) as VerifyResponse;
+        detail = j?.error ?? "";
+      }
+    } catch {
+      /* ignore */
+    }
+    throw new Error(detail || error.message || "Verification failed. Please try again.");
+  }
+
+  if (!data || data.ok === false || data.error) {
+    throw new Error(data?.error || "Verification failed. Please try again.");
+  }
+
+  return {
+    approved: Boolean(data.approved),
+    confidence: Math.round(Number(data.confidence) || 0),
+    reason: String(data.reason || ""),
+    imagePath,
+  };
 }
 
 export async function recordVerification(v: {
@@ -60,6 +97,7 @@ export async function recordVerification(v: {
   habitName: string;
   date: string;
   approved: boolean;
+  confidence: number;
   explanation: string;
   xpEarned: number;
   imagePath: string | null;
@@ -73,6 +111,7 @@ export async function recordVerification(v: {
     habit_name: v.habitName,
     date: v.date,
     approved: v.approved,
+    confidence: v.confidence,
     explanation: v.explanation,
     xp_earned: v.xpEarned,
     image_path: v.imagePath,
@@ -85,6 +124,7 @@ interface VerificationRow {
   habit_name: string;
   date: string;
   approved: boolean;
+  confidence: number | null;
   explanation: string;
   xp_earned: number;
   image_path: string | null;
@@ -104,6 +144,7 @@ export async function listVerifications(limit = 50): Promise<Verification[]> {
     habitName: r.habit_name,
     date: r.date,
     approved: r.approved,
+    confidence: r.confidence ?? 0,
     explanation: r.explanation,
     xpEarned: r.xp_earned,
     imagePath: r.image_path,

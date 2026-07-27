@@ -80,6 +80,7 @@ export function VerifyModal({
           habitName: habit.name,
           date,
           approved: result.approved,
+          confidence: result.confidence,
           explanation: result.reason,
           xpEarned: xp,
           imagePath: result.imagePath,
@@ -156,6 +157,7 @@ export function VerifyModal({
             {/* Live camera */}
             <video
               ref={videoRef}
+              autoPlay
               playsInline
               muted
               className={phase === "camera" && camReady ? "h-full w-full object-cover" : "hidden"}
