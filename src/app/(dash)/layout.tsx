@@ -13,6 +13,7 @@ import { ReminderScheduler } from "@/components/ReminderScheduler";
 import { AchievementWatcher } from "@/components/AchievementWatcher";
 import { LevelWatcher } from "@/components/LevelWatcher";
 import { useAuth } from "@/lib/auth";
+import { isOnboarded } from "@/lib/momentum/onboarding";
 import { cn } from "@/lib/utils";
 
 export default function DashLayout({ children }: { children: ReactNode }) {
@@ -21,10 +22,16 @@ export default function DashLayout({ children }: { children: ReactNode }) {
   const { user, ready, signOut } = useAuth();
 
   useEffect(() => {
-    if (ready && !user) router.replace("/login");
+    if (!ready) return;
+    if (!user) {
+      router.replace("/login");
+    } else if (!user.onboarded && !isOnboarded()) {
+      // New account that hasn't completed onboarding → send them through it.
+      router.replace("/onboarding");
+    }
   }, [ready, user, router]);
 
-  if (!ready || !user) {
+  if (!ready || !user || (!user.onboarded && !isOnboarded())) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-bg">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-accent" />

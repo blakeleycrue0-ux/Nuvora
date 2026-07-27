@@ -27,7 +27,7 @@ const LAST_INPUT = 11; // last interactive step before success
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const { user, ready } = useAuth();
+  const { user, ready, markOnboarded } = useAuth();
   const { addHabit } = useHabits();
 
   const [step, setStep] = useState(0);
@@ -73,7 +73,8 @@ export default function OnboardingPage() {
   const back = () => setStep((s) => Math.max(s - 1, 0));
 
   const skip = () => {
-    setOnboarded(true);
+    setOnboarded(true); // local cache — prevents the dashboard gate from bouncing back
+    void markOnboarded(); // persist per-user in Supabase (cross-device)
     router.replace("/dashboard");
   };
 
@@ -109,10 +110,11 @@ export default function OnboardingPage() {
       if (user && pushSupported()) void subscribeToPush(user.id).catch(() => {});
     }
 
-    setOnboarded(true);
+    setOnboarded(true); // local cache
+    void markOnboarded(); // persist per-user in Supabase (cross-device)
     setStep(12); // success animation
     window.setTimeout(() => router.replace("/dashboard"), 2400);
-  }, [creating, chosenGoals, addHabit, remindersOn, reminderTime, user, router]);
+  }, [creating, chosenGoals, addHabit, remindersOn, reminderTime, user, router, markOnboarded]);
 
   if (!ready || !user) {
     return (
