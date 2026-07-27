@@ -86,8 +86,9 @@ export default function VerificationsPage() {
                   </span>
                 </div>
                 <p className="mt-1 line-clamp-2 text-[12.5px] leading-relaxed text-text-secondary">{v.explanation}</p>
-                <div className="mt-1.5 flex items-center gap-2 text-[11.5px] text-text-muted">
+                <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11.5px] text-text-muted">
                   <span>{prettyDate(v.date)}</span>
+                  {v.confidence > 0 && <span>· {v.confidence}% sure</span>}
                   {v.approved && v.xpEarned > 0 && (
                     <span className="inline-flex items-center gap-0.5 text-accent">
                       <Sparkles size={11} /> +{v.xpEarned} XP
