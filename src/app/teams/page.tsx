@@ -10,6 +10,9 @@ export const metadata: Metadata = {
     description:
       "Hábitos que ganan partidos. La herramienta para entrenadores y clubes que quieren jugadoras más disciplinadas, unidas y motivadas.",
   },
+  // "Secret" page: reachable by direct link (to share with clubs) but not
+  // indexed by search engines and not listed in the sitemap.
+  robots: { index: false, follow: false },
 };
 
 export default function TeamsPage() {
