@@ -115,6 +115,7 @@ export default function TeamPage() {
                     <span className="flex h-11 w-11 items-center justify-center rounded-xl" style={{ background: `color-mix(in oklab, ${val} 15%, transparent)`, color: val }}><HabitIcon name={h.icon} size={19} /></span>
                     <div className="flex-1">
                       <p className="text-[14.5px] font-semibold">{h.name}</p>
+                      {h.description && <p className="text-[11.5px] leading-snug text-text-muted">{h.description}</p>}
                       {h.verify && !done && <p className="flex items-center gap-1 text-[11.5px] text-accent"><Camera size={11} /> Verificar con foto</p>}
                     </div>
                     <span className={cn("flex h-8 w-8 items-center justify-center rounded-full transition-colors", done ? "accent-gradient text-accent-ink" : "border-2 border-border-strong")}>{done && <Check size={16} strokeWidth={3} />}</span>
