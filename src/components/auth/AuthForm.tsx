@@ -32,9 +32,14 @@ export function AuthForm({ mode }: { mode: Mode }) {
   // email sign-up/in), route by onboarding state: new accounts go through the
   // guided onboarding, returning users go straight to the dashboard.
   useEffect(() => {
-    if (ready && user) {
-      router.replace(user.onboarded || isOnboarded() ? "/dashboard" : "/onboarding");
-    }
+    if (!ready || !user) return;
+    // Someone following a team invite link who had to sign in first.
+    let pendingJoin: string | null = null;
+    try { pendingJoin = localStorage.getItem("momentum-pending-join"); } catch {}
+    if (pendingJoin) { router.replace(`/join?code=${pendingJoin}`); return; }
+    if (!user.accountType) router.replace("/welcome"); // choose personal vs coach
+    else if (user.accountType === "coach") router.replace("/coach");
+    else router.replace(user.onboarded || isOnboarded() ? "/dashboard" : "/onboarding");
   }, [ready, user, router]);
 
   const go = async (provider: "email" | "google") => {
