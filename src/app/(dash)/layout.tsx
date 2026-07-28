@@ -25,13 +25,17 @@ export default function DashLayout({ children }: { children: ReactNode }) {
     if (!ready) return;
     if (!user) {
       router.replace("/login");
+    } else if (!user.accountType) {
+      router.replace("/welcome"); // hasn't chosen personal vs coach yet
+    } else if (user.accountType === "coach") {
+      router.replace("/coach"); // coaches use the separate coach app
     } else if (!user.onboarded && !isOnboarded()) {
-      // New account that hasn't completed onboarding → send them through it.
+      // New personal account that hasn't completed onboarding → send them through it.
       router.replace("/onboarding");
     }
   }, [ready, user, router]);
 
-  if (!ready || !user || (!user.onboarded && !isOnboarded())) {
+  if (!ready || !user || user.accountType === "coach" || !user.accountType || (!user.onboarded && !isOnboarded())) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-bg">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-accent" />

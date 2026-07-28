@@ -12,7 +12,10 @@ export interface User {
   avatarColor: string;
   avatar?: string; // profile photo URL (e.g. from Google)
   onboarded: boolean; // completed first-run onboarding (stored per-user in Supabase)
+  accountType: AccountType; // "personal" | "coach" | null (not chosen yet)
 }
+
+export type AccountType = "personal" | "coach" | null;
 
 export interface AuthResult {
   ok: boolean;
@@ -29,6 +32,7 @@ interface AuthValue {
   signOut: () => Promise<void>;
   updateUser: (patch: Partial<Pick<User, "name">>) => Promise<void>;
   markOnboarded: () => Promise<void>;
+  setAccountType: (t: Exclude<AccountType, null>) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthValue | null>(null);
@@ -56,6 +60,7 @@ function toUser(su: SupaUser): User {
     avatarColor: colorFor(su.id || email),
     avatar: meta.avatar_url || meta.picture || undefined,
     onboarded: meta.onboarded === true,
+    accountType: meta.account_type === "coach" ? "coach" : meta.account_type === "personal" ? "personal" : null,
   };
 }
 
@@ -125,9 +130,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!error && data.user) setUser(toUser(data.user));
   }, []);
 
+  const setAccountType = useCallback<AuthValue["setAccountType"]>(async (t) => {
+    const { data, error } = await supabase.auth.updateUser({ data: { account_type: t } });
+    if (!error && data.user) setUser(toUser(data.user));
+  }, []);
+
   const value = useMemo<AuthValue>(
-    () => ({ user, ready, signInWithEmail, signUpWithEmail, signInWithGoogle, signOut, updateUser, markOnboarded }),
-    [user, ready, signInWithEmail, signUpWithEmail, signInWithGoogle, signOut, updateUser, markOnboarded],
+    () => ({ user, ready, signInWithEmail, signUpWithEmail, signInWithGoogle, signOut, updateUser, markOnboarded, setAccountType }),
+    [user, ready, signInWithEmail, signUpWithEmail, signInWithGoogle, signOut, updateUser, markOnboarded, setAccountType],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
