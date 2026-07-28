@@ -236,7 +236,7 @@ export function VerifyModal({
               </div>
             )}
             {phase === "analyzing" && (
-              <p className="text-center text-[12.5px] text-text-muted">Momentum is checking your photo with AI…</p>
+              <p className="text-center text-[12.5px] text-text-muted">Fenom is checking your photo with AI…</p>
             )}
           </div>
 

@@ -8,28 +8,28 @@ const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Momentum — Build habits that actually stick",
+  title: "Fenom — Build habits that actually stick",
   description:
     "The most beautiful way to build habits. Streaks, heatmaps, analytics, XP and gorgeous dashboards — designed to make consistency feel effortless.",
   metadataBase: new URL("https://nuvora0.netlify.app"),
-  applicationName: "Momentum",
+  applicationName: "Fenom",
   keywords: ["habit tracker", "habits", "streaks", "productivity", "routine", "momentum"],
   alternates: { canonical: "/" },
   appleWebApp: {
     capable: true,
-    title: "Momentum",
+    title: "Fenom",
     statusBarStyle: "black-translucent",
   },
   openGraph: {
-    title: "Momentum — Build habits that actually stick",
+    title: "Fenom — Build habits that actually stick",
     description: "Streaks, heatmaps, analytics and XP in the most beautiful habit tracker ever made.",
     type: "website",
-    siteName: "Momentum",
+    siteName: "Fenom",
     url: "/",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Momentum — Build habits that actually stick",
+    title: "Fenom — Build habits that actually stick",
     description: "Streaks, heatmaps, analytics and XP in the most beautiful habit tracker ever made.",
   },
 };

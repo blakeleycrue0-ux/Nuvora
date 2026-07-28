@@ -71,7 +71,7 @@ Deno.serve(async () => {
       if (comp && comp.count >= h.target_per_day) continue;
 
       const payload = JSON.stringify({
-        title: "Momentum",
+        title: "Fenom",
         body: `Time for “${h.name}”`,
         url: "/dashboard",
         tag: `habit-${h.id}-${localDate}`,

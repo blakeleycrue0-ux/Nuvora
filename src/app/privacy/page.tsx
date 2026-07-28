@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { LegalShell } from "@/components/LegalShell";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy — Momentum",
-  description: "How Momentum collects, uses, and protects your data.",
+  title: "Privacy Policy — Fenom",
+  description: "How Fenom collects, uses, and protects your data.",
   alternates: { canonical: "/privacy" },
 };
 
@@ -13,14 +13,14 @@ export default function PrivacyPage() {
   return (
     <LegalShell title="Privacy Policy" updated="July 24, 2026">
       <p>
-        This Privacy Policy explains how <strong>Momentum</strong> (&ldquo;we&rdquo;, &ldquo;the app&rdquo;)
-        handles your information. By using Momentum you agree to this policy. If you do not agree,
+        This Privacy Policy explains how <strong>Fenom</strong> (&ldquo;we&rdquo;, &ldquo;the app&rdquo;)
+        handles your information. By using Fenom you agree to this policy. If you do not agree,
         please don&apos;t use the app.
       </p>
 
       <h2>Who we are</h2>
       <p>
-        Momentum is a personal habit-tracking application. For any privacy question you can contact us
+        Fenom is a personal habit-tracking application. For any privacy question you can contact us
         at <a href={`mailto:${CONTACT}`}>{CONTACT}</a>.
       </p>
 
@@ -70,7 +70,7 @@ export default function PrivacyPage() {
       <p>We keep your data for as long as your account exists. When you delete your account, your data is removed.</p>
 
       <h2>Children</h2>
-      <p>Momentum is not directed at children under 13 (or the minimum age in your country), and we do not knowingly collect their data.</p>
+      <p>Fenom is not directed at children under 13 (or the minimum age in your country), and we do not knowingly collect their data.</p>
 
       <h2>Changes to this policy</h2>
       <p>We may update this policy from time to time. We will update the &ldquo;last updated&rdquo; date above when we do.</p>

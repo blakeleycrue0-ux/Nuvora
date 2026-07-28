@@ -49,12 +49,12 @@ export async function subscribeToPush(userId: string): Promise<boolean> {
       { onConflict: "endpoint" },
     );
     if (error) {
-      console.error("Momentum · push subscribe save failed:", error);
+      console.error("Fenom · push subscribe save failed:", error);
       return false;
     }
     return true;
   } catch (e) {
-    console.error("Momentum · push subscribe failed:", e);
+    console.error("Fenom · push subscribe failed:", e);
     return false;
   }
 }

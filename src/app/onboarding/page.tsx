@@ -160,10 +160,10 @@ export default function OnboardingPage() {
             {step === 0 && (
               <Step key="welcome">
                 <Emblem icon={Sparkles} />
-                <Title className="mt-7">Welcome to Momentum, {firstName}.</Title>
+                <Title className="mt-7">Welcome to Fenom, {firstName}.</Title>
                 <Lead>
                   Great lives are built on small, repeated actions. In the next minute we&apos;ll
-                  tailor Momentum around what you want to change.
+                  tailor Fenom around what you want to change.
                 </Lead>
                 <Nav>
                   <span />
@@ -345,12 +345,12 @@ export default function OnboardingPage() {
                 <Emblem icon={HeartPulse} />
                 <Title className="mt-7">A quick note on wellbeing</Title>
                 <Lead>
-                  Momentum helps you build routines — it is not medical, mental-health, or fitness advice.
+                  Fenom helps you build routines — it is not medical, mental-health, or fitness advice.
                   Listen to your body, go at your own pace, and consult a professional for health decisions.
                   If you ever feel unwell, please stop and seek help.
                 </Lead>
                 <div className="mt-6 rounded-2xl border border-border bg-surface p-4 text-[13px] leading-relaxed text-text-secondary">
-                  By continuing you acknowledge that Momentum is a habit-tracking tool for general wellbeing,
+                  By continuing you acknowledge that Fenom is a habit-tracking tool for general wellbeing,
                   not a substitute for professional care.
                 </div>
                 <NavBack onBack={back} onNext={next} nextLabel="I understand" />
@@ -409,7 +409,7 @@ export default function OnboardingPage() {
             {step === 10 && (
               <Step key="pro">
                 <Emblem icon={Crown} />
-                <Title className="mt-7">Unlock Momentum Pro</Title>
+                <Title className="mt-7">Unlock Fenom Pro</Title>
                 <Lead>Everything you need to make it stick. Start free — cancel anytime.</Lead>
                 <div className="mt-7 rounded-3xl border border-accent/40 bg-surface p-5 shadow-[var(--shadow-glow)]">
                   <div className="flex items-center gap-2">

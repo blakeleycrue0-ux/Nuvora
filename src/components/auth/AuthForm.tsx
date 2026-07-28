@@ -207,7 +207,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
       </form>
 
       <p className="mt-6 text-center text-[13px] text-text-secondary">
-        {mode === "signup" ? "Already have an account? " : "New to Momentum? "}
+        {mode === "signup" ? "Already have an account? " : "New to Fenom? "}
         <Link href={mode === "signup" ? "/login" : "/signup"} className="font-semibold text-accent hover:underline">
           {mode === "signup" ? "Sign in" : "Create one"}
         </Link>
