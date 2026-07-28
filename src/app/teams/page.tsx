@@ -2,13 +2,13 @@ import type { Metadata } from "next";
 import { TeamsLanding } from "./TeamsLanding";
 
 export const metadata: Metadata = {
-  title: "Momentum para Equipos — hábitos que ganan partidos",
+  title: "Momentum para equipos — los hábitos que marcan la diferencia",
   description:
-    "La disciplina fuera del campo, medible. Momentum para Equipos ayuda a entrenadores y clubes a construir hábitos ganadores en sus jugadoras: verificación por foto con IA, rachas, liguilla del equipo y privacidad real. Gratis para empezar.",
+    "La app de hábitos para tu equipo. Para cualquier deporte, edad y nivel: descanso, nutrición, trabajo individual y mentalidad, con verificación por foto (IA), rachas, clasificación del grupo y privacidad real. Gratis para empezar.",
   openGraph: {
-    title: "Momentum para Equipos",
+    title: "Momentum para equipos",
     description:
-      "Hábitos que ganan partidos. La herramienta para entrenadores y clubes que quieren jugadoras más disciplinadas, unidas y motivadas.",
+      "Lo que se hace entre entrenamientos también cuenta. La herramienta para clubes y entrenadores que quieren un equipo más constante y unido — cualquier deporte, cualquier edad.",
   },
   // "Secret" page: reachable by direct link (to share with clubs) but not
   // indexed by search engines and not listed in the sitemap.
