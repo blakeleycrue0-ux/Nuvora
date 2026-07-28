@@ -46,7 +46,7 @@ export function ReminderScheduler() {
       if (delay < 0 || delay > 24 * 60 * 60 * 1000) continue;
 
       const id = window.setTimeout(() => {
-        void showNotif("Momentum", {
+        void showNotif("Fenom", {
           body: `Time for “${h.name}”`,
           tag: `habit-${h.id}-${today}`,
           icon: "/icon-192.png",

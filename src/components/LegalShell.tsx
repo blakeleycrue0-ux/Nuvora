@@ -34,7 +34,7 @@ export function LegalShell({
 
       <footer className="border-t border-border">
         <div className="container-page flex flex-wrap items-center justify-between gap-3 py-6 text-[13px] text-text-muted">
-          <span>© {new Date().getFullYear()} Momentum</span>
+          <span>© {new Date().getFullYear()} Fenom</span>
           <div className="flex gap-5">
             <Link href="/privacy" className="transition-colors hover:text-text">Privacy</Link>
             <Link href="/terms" className="transition-colors hover:text-text">Terms</Link>

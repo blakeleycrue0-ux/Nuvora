@@ -9,12 +9,12 @@ export function Wordmark({ className, href = "/", size = "md" }: { className?: s
   const inner = (
     <span className={cn("inline-flex items-center gap-2 select-none text-text", className)}>
       <Logo size={mark[size]} />
-      <span className={cn("font-semibold tracking-[-0.02em]", text[size])}>Momentum</span>
+      <span className={cn("font-semibold tracking-[-0.02em]", text[size])}>Fenom</span>
     </span>
   );
   if (href === null) return inner;
   return (
-    <Link href={href} aria-label="Momentum home" className="inline-flex">
+    <Link href={href} aria-label="Fenom home" className="inline-flex">
       {inner}
     </Link>
   );

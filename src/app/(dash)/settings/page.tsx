@@ -72,7 +72,7 @@ export default function SettingsPage() {
       setRemindersOn(true);
       // Subscribe this device for push so reminders arrive even when closed.
       if (user?.id) void subscribeToPush(user.id);
-      void showNotif("Momentum", { body: "Reminders are on. We'll nudge you at each habit's time.", icon: "/icon-192.png" });
+      void showNotif("Fenom", { body: "Reminders are on. We'll nudge you at each habit's time.", icon: "/icon-192.png" });
     } else {
       setReminders(false);
       setRemindersOn(false);
@@ -114,7 +114,7 @@ export default function SettingsPage() {
         importData(parsed);
         setImportError("");
       } catch {
-        setImportError("That file couldn't be read as a Momentum backup.");
+        setImportError("That file couldn't be read as a Fenom backup.");
       }
     };
     reader.readAsText(file);
@@ -159,7 +159,7 @@ export default function SettingsPage() {
       </Section>
 
       {/* Appearance */}
-      <Section icon={Palette} title="Appearance" desc="Customize how Momentum looks.">
+      <Section icon={Palette} title="Appearance" desc="Customize how Fenom looks.">
         <Row label="Theme" hint="Switch between light and dark mode.">
           <div className="inline-flex rounded-xl border border-border bg-surface-2 p-1">
             <button onClick={() => theme === "dark" && toggle()} className={cn("flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[13px] font-medium transition-colors", theme === "light" ? "bg-surface text-text shadow-[var(--shadow-sm)]" : "text-text-muted hover:text-text")}>
@@ -173,7 +173,7 @@ export default function SettingsPage() {
       </Section>
 
       {/* Notifications */}
-      <Section icon={Bell} title="Notifications" desc="Choose what Momentum reminds you about.">
+      <Section icon={Bell} title="Notifications" desc="Choose what Fenom reminds you about.">
         <ToggleRow
           label="Habit reminders"
           hint={
@@ -188,7 +188,7 @@ export default function SettingsPage() {
         />
         {remindersOn && (
           <div className="-mt-2 flex justify-end">
-            <Button variant="secondary" size="sm" onClick={() => showNotif("Momentum", { body: "This is a test reminder.", icon: "/icon-192.png" })}>
+            <Button variant="secondary" size="sm" onClick={() => showNotif("Fenom", { body: "This is a test reminder.", icon: "/icon-192.png" })}>
               <Bell size={14} /> Send a test
             </Button>
           </div>
@@ -200,7 +200,7 @@ export default function SettingsPage() {
 
       {/* Privacy & data */}
       <Section icon={Shield} title="Privacy & data" desc="Your data lives privately in this browser.">
-        <ToggleRow label="Anonymous analytics" hint="Help improve Momentum with usage stats." checked={analytics} onChange={setAnalytics} />
+        <ToggleRow label="Anonymous analytics" hint="Help improve Fenom with usage stats." checked={analytics} onChange={setAnalytics} />
         <Row label="Backup" hint="Export or import all your habits and history.">
           <div className="flex flex-wrap gap-2">
             <Button variant="secondary" size="sm" onClick={doExport}><Download size={15} /> Export</Button>
@@ -215,7 +215,7 @@ export default function SettingsPage() {
       </Section>
 
       {/* Keyboard shortcuts */}
-      <Section icon={Keyboard} title="Keyboard shortcuts" desc="Move faster around Momentum.">
+      <Section icon={Keyboard} title="Keyboard shortcuts" desc="Move faster around Fenom.">
         <div className="grid gap-2 sm:grid-cols-2">
           {SHORTCUTS.map((s) => (
             <div key={s.label} className="flex items-center justify-between rounded-xl border border-border bg-surface-2 px-3.5 py-2.5">
@@ -256,7 +256,7 @@ export default function SettingsPage() {
           <Link href="/terms" className="text-text-secondary transition-colors hover:text-text">Terms of Service</Link>
         </div>
         <p className="text-center text-[12px] text-text-muted">
-          Momentum · {habits.length} habits tracked · {xp} XP earned
+          Fenom · {habits.length} habits tracked · {xp} XP earned
         </p>
       </div>
 

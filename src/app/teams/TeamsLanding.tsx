@@ -22,7 +22,7 @@ const COPY = {
     hero: {
       badge: "La app de hábitos para tu equipo",
       h1a: "Lo que se hace ", h1grad: "entre entrenamientos", h1b: " también cuenta.",
-      p: "Descanso, nutrición, trabajo individual, mentalidad. Momentum convierte los hábitos que deciden un partido en algo que tu equipo cumple cada día — y que tú puedes ver. Para cualquier deporte, edad y nivel.",
+      p: "Descanso, nutrición, trabajo individual, mentalidad. Fenom convierte los hábitos que deciden un partido en algo que tu equipo cumple cada día — y que tú puedes ver. Para cualquier deporte, edad y nivel.",
       cta1: "Crear un grupo gratis", cta2: "Ver la app",
       fine: "Gratis para empezar · Sin descargas · Funciona en cualquier móvil",
       chipAI: "Verificado con IA", chipStreak: "Racha de 16 días", chipRank: "2º del equipo",
@@ -31,7 +31,7 @@ const COPY = {
       { l: "miembros por grupo, gratis" }, { l: "al día para registrar" },
       { l: "más constancia si es compartido" }, { l: "privado: nadie ve las fotos" },
     ],
-    showcase: { eyebrow: "El panel de quien entrena", title: "Todo tu equipo, de un vistazo", sub: "Quién cumple, quién necesita un empujón, las rachas y la clasificación. Sin perseguir a nadie.", window: "Momentum · Panel del equipo" },
+    showcase: { eyebrow: "El panel de quien entrena", title: "Todo tu equipo, de un vistazo", sub: "Quién cumple, quién necesita un empujón, las rachas y la clasificación. Sin perseguir a nadie.", window: "Fenom · Panel del equipo" },
     demo: {
       today: "Hoy · Sub-16", members: "6 miembros · hábitos del día", nophotos: "Sin fotos",
       member: "Miembro", streak: "Racha", standings: "Clasificación", week: "Esta semana",
@@ -120,7 +120,7 @@ const COPY = {
     cta: {
       title: "Dale a tu equipo la ventaja de la constancia.",
       p: "Crea tu grupo gratis en dos minutos, o escríbenos para montar un piloto con tu club esta temporada.",
-      cta1: "Empezar gratis", cta2: "Escribir sobre un piloto", subject: "Piloto%20Momentum%20para%20mi%20equipo",
+      cta1: "Empezar gratis", cta2: "Escribir sobre un piloto", subject: "Piloto%20Fenom%20para%20mi%20equipo",
     },
     footer: { privacy: "Privacidad", terms: "Términos", login: "Entrar" },
   },
@@ -130,7 +130,7 @@ const COPY = {
     hero: {
       badge: "The habit app for your team",
       h1a: "What happens ", h1grad: "between training", h1b: " counts too.",
-      p: "Rest, nutrition, individual work, mindset. Momentum turns the habits that decide a game into something your team does every day — and that you can see. For any sport, age and level.",
+      p: "Rest, nutrition, individual work, mindset. Fenom turns the habits that decide a game into something your team does every day — and that you can see. For any sport, age and level.",
       cta1: "Create a group free", cta2: "See the app",
       fine: "Free to start · No downloads · Works on any phone",
       chipAI: "AI-verified", chipStreak: "16-day streak", chipRank: "2nd on the team",
@@ -139,7 +139,7 @@ const COPY = {
       { l: "members per group, free" }, { l: "a day to check in" },
       { l: "more consistency when shared" }, { l: "private: nobody sees the photos" },
     ],
-    showcase: { eyebrow: "The coach's dashboard", title: "Your whole team, at a glance", sub: "Who's on track, who needs a nudge, streaks and standings. Without chasing anyone.", window: "Momentum · Team dashboard" },
+    showcase: { eyebrow: "The coach's dashboard", title: "Your whole team, at a glance", sub: "Who's on track, who needs a nudge, streaks and standings. Without chasing anyone.", window: "Fenom · Team dashboard" },
     demo: {
       today: "Today · U-16", members: "6 members · today's habits", nophotos: "No photos",
       member: "Member", streak: "Streak", standings: "Standings", week: "This week",
@@ -228,7 +228,7 @@ const COPY = {
     cta: {
       title: "Give your team the edge of consistency.",
       p: "Create your group free in two minutes, or write to us to set up a pilot with your club this season.",
-      cta1: "Start free", cta2: "Ask about a pilot", subject: "Momentum%20pilot%20for%20my%20team",
+      cta1: "Start free", cta2: "Ask about a pilot", subject: "Fenom%20pilot%20for%20my%20team",
     },
     footer: { privacy: "Privacy", terms: "Terms", login: "Log in" },
   },
@@ -677,7 +677,7 @@ function Footer() {
           <Link href="/terms" className="hover:text-text">{c.footer.terms}</Link>
           <Link href="/login" className="hover:text-text">{c.footer.login}</Link>
         </div>
-        <p className="text-[12px] text-text-muted">© {new Date().getFullYear()} Momentum</p>
+        <p className="text-[12px] text-text-muted">© {new Date().getFullYear()} Fenom</p>
       </div>
     </footer>
   );

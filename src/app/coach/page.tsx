@@ -171,7 +171,7 @@ function Dashboard({ groups, active, setActive, onNewGroup, reload, coachName }:
   const inviteUrl = typeof window !== "undefined" ? `${window.location.origin}/join?code=${group.inviteCode}` : "";
   const copy = async () => { try { await navigator.clipboard.writeText(inviteUrl); setCopied(true); setTimeout(() => setCopied(false), 1500); } catch {} };
   const share = async () => {
-    if (navigator.share) { try { await navigator.share({ title: "Únete a mi equipo en Momentum", text: `Código: ${group.inviteCode}`, url: inviteUrl }); } catch {} }
+    if (navigator.share) { try { await navigator.share({ title: "Únete a mi equipo en Fenom", text: `Código: ${group.inviteCode}`, url: inviteUrl }); } catch {} }
     else copy();
   };
 

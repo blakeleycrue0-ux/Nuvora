@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Momentum",
-    short_name: "Momentum",
+    name: "Fenom",
+    short_name: "Fenom",
     description: "Build habits that actually stick.",
     start_url: "/dashboard",
     display: "standalone",

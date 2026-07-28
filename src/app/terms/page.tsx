@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { LegalShell } from "@/components/LegalShell";
 
 export const metadata: Metadata = {
-  title: "Terms of Service — Momentum",
-  description: "The terms for using Momentum.",
+  title: "Terms of Service — Fenom",
+  description: "The terms for using Fenom.",
   alternates: { canonical: "/terms" },
 };
 
@@ -13,13 +13,13 @@ export default function TermsPage() {
   return (
     <LegalShell title="Terms of Service" updated="July 24, 2026">
       <p>
-        These Terms govern your use of <strong>Momentum</strong> (&ldquo;the app&rdquo;). By creating an
+        These Terms govern your use of <strong>Fenom</strong> (&ldquo;the app&rdquo;). By creating an
         account or using the app, you agree to these Terms.
       </p>
 
       <h2>The service</h2>
       <p>
-        Momentum is a habit-tracking app that lets you create habits, track completions, build streaks,
+        Fenom is a habit-tracking app that lets you create habits, track completions, build streaks,
         earn XP, and optionally receive reminders. The service is provided &ldquo;as is&rdquo; and may
         change or be discontinued at any time.
       </p>
@@ -41,11 +41,11 @@ export default function TermsPage() {
       </p>
 
       <h2>Intellectual property</h2>
-      <p>The Momentum name, design, and software are owned by us. These Terms don&apos;t give you rights to our branding or code.</p>
+      <p>The Fenom name, design, and software are owned by us. These Terms don&apos;t give you rights to our branding or code.</p>
 
       <h2>Disclaimer</h2>
       <p>
-        The app is provided without warranties of any kind. Momentum is a productivity tool and does not
+        The app is provided without warranties of any kind. Fenom is a productivity tool and does not
         provide medical, psychological, or professional advice. We don&apos;t guarantee the service will be
         uninterrupted or error-free.
       </p>

@@ -58,7 +58,7 @@ export default function WelcomePage() {
         <div className="w-full max-w-2xl">
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="text-center">
             <h1 className="text-balance text-[30px] font-semibold leading-tight tracking-[-0.02em] text-text sm:text-[38px]">
-              ¿Cómo vas a usar Momentum{firstName ? `, ${firstName}` : ""}?
+              ¿Cómo vas a usar Fenom{firstName ? `, ${firstName}` : ""}?
             </h1>
             <p className="mx-auto mt-3 max-w-md text-[15px] leading-relaxed text-text-secondary">
               Elige tu tipo de cuenta. Podrás cambiarlo más adelante.
