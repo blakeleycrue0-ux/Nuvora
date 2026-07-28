@@ -4,13 +4,14 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
 import {
-  Users, Plus, Check, X, Flame, Trophy, Copy, LogOut, Share2, ArrowRight, ShieldCheck, Loader2,
+  Users, Plus, Check, X, Flame, Trophy, Copy, LogOut, Share2, ArrowRight, ShieldCheck, Loader2, Camera,
 } from "lucide-react";
 import { Wordmark } from "@/components/Wordmark";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { Toggle } from "@/components/ui/Toggle";
 import { useAuth } from "@/lib/auth";
-import { HabitIcon, colorValue } from "@/lib/icons";
+import { HabitIcon, colorValue, HABIT_COLORS } from "@/lib/icons";
 import { todayISO, lastNDays } from "@/lib/momentum/date";
 import {
   createGroup, myOwnedGroups, groupHabits, groupMembers, groupCompletions,
@@ -79,19 +80,22 @@ export default function CoachPage() {
 
 /* ---------------- create group ---------------- */
 
+const MAX_HABITS = 5;
+
 function CreateGroup({ onCreated, coachName }: { onCreated: () => Promise<void>; coachName: string }) {
   const [name, setName] = useState("");
-  const [picked, setPicked] = useState<string[]>(SUGGESTED.slice(0, 5).map((h) => h.name));
+  const [chosen, setChosen] = useState<NewHabit[]>(SUGGESTED.slice(0, 4));
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
 
-  const toggle = (n: string) => setPicked((p) => (p.includes(n) ? p.filter((x) => x !== n) : p.length >= 5 ? p : [...p, n]));
+  const has = (n: string) => chosen.some((h) => h.name.toLowerCase() === n.toLowerCase());
+  const add = (h: NewHabit) => setChosen((c) => (c.length >= MAX_HABITS || has(h.name) ? c : [...c, h]));
+  const remove = (n: string) => setChosen((c) => c.filter((h) => h.name !== n));
 
   const create = async () => {
     setErr(""); setBusy(true);
     try {
-      const habits = SUGGESTED.filter((h) => picked.includes(h.name));
-      await createGroup(name || `Equipo de ${coachName.split(" ")[0]}`, habits);
+      await createGroup(name || `Equipo de ${coachName.split(" ")[0]}`, chosen);
       await onCreated();
     } catch (e) { setErr((e as Error).message); setBusy(false); }
   };
@@ -102,33 +106,124 @@ function CreateGroup({ onCreated, coachName }: { onCreated: () => Promise<void>;
         <span className="flex h-16 w-16 items-center justify-center rounded-3xl accent-gradient text-accent-ink shadow-[var(--shadow-glow)]"><Users size={30} /></span>
       </div>
       <h1 className="mt-6 text-center text-[26px] font-semibold tracking-[-0.02em] sm:text-[30px]">Crea tu primer grupo</h1>
-      <p className="mx-auto mt-2 max-w-md text-center text-[14.5px] leading-relaxed text-text-secondary">Ponle nombre y elige hasta 5 hábitos. Luego invitas a tu equipo con un código.</p>
+      <p className="mx-auto mt-2 max-w-md text-center text-[14.5px] leading-relaxed text-text-secondary">Ponle nombre y define hasta {MAX_HABITS} hábitos. Puedes usar sugerencias o crear los tuyos.</p>
 
       <div className="mt-7 rounded-3xl border border-border bg-surface p-6">
         <label className="text-[12.5px] font-semibold text-text-secondary">Nombre del grupo</label>
         <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Ej. Alevín A, Primer equipo…" className="mt-2" autoFocus />
 
-        <p className="mt-6 text-[12.5px] font-semibold text-text-secondary">Hábitos ({picked.length}/5)</p>
-        <div className="mt-2.5 grid gap-2 sm:grid-cols-2">
-          {SUGGESTED.map((h) => {
-            const on = picked.includes(h.name); const val = colorValue(h.color);
+        <div className="mt-6 flex items-center justify-between">
+          <p className="text-[12.5px] font-semibold text-text-secondary">Hábitos ({chosen.length}/{MAX_HABITS})</p>
+        </div>
+
+        {/* Chosen habits */}
+        <div className="mt-2.5 space-y-2">
+          {chosen.length === 0 && <p className="rounded-2xl border border-dashed border-border p-4 text-center text-[13px] text-text-muted">Añade hábitos abajo o crea uno propio.</p>}
+          {chosen.map((h) => {
+            const val = colorValue(h.color);
             return (
-              <button key={h.name} onClick={() => toggle(h.name)}
-                className={cn("flex items-center gap-3 rounded-2xl border p-3 text-left transition-all", on ? "border-accent bg-accent-soft" : "border-border hover:border-border-strong")}>
+              <div key={h.name} className="flex items-center gap-3 rounded-2xl border border-border bg-surface-2 p-3">
                 <span className="flex h-9 w-9 items-center justify-center rounded-xl" style={{ background: `color-mix(in oklab, ${val} 16%, transparent)`, color: val }}><HabitIcon name={h.icon} size={17} /></span>
-                <span className="flex-1 text-[13.5px] font-medium">{h.name}</span>
-                {h.verify && <span className="text-[10.5px] font-semibold text-accent">IA</span>}
-                {on && <Check size={16} className="text-accent" />}
-              </button>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-[13.5px] font-medium">{h.name}</p>
+                  {h.description && <p className="truncate text-[11.5px] text-text-muted">{h.description}</p>}
+                </div>
+                {h.verify && <span className="inline-flex items-center gap-0.5 text-[10.5px] font-semibold text-accent"><Camera size={11} /> IA</span>}
+                <button onClick={() => remove(h.name)} aria-label="Quitar" className="flex h-7 w-7 items-center justify-center rounded-lg text-text-muted hover:bg-surface hover:text-danger"><X size={15} /></button>
+              </div>
             );
           })}
         </div>
+
+        {/* Custom habit builder */}
+        <CustomHabitForm disabled={chosen.length >= MAX_HABITS} onAdd={add} />
+
+        {/* Suggestions */}
+        {chosen.length < MAX_HABITS && (
+          <div className="mt-5">
+            <p className="text-[12px] font-semibold text-text-muted">Sugerencias</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {SUGGESTED.filter((h) => !has(h.name)).map((h) => (
+                <button key={h.name} onClick={() => add(h)} className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-[12.5px] text-text-secondary hover:border-border-strong hover:text-text">
+                  <HabitIcon name={h.icon} size={13} style={{ color: colorValue(h.color) }} /> {h.name} <Plus size={12} />
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {err && <p className="mt-4 text-[13px] text-danger">{err}</p>}
-        <Button size="lg" onClick={create} disabled={busy} className="mt-6 w-full group">
+        <Button size="lg" onClick={create} disabled={busy || chosen.length === 0} className="mt-6 w-full group">
           {busy ? <Loader2 size={17} className="animate-spin" /> : <>Crear grupo <ArrowRight size={17} className="transition-transform group-hover:translate-x-0.5" /></>}
         </Button>
       </div>
     </motion.div>
+  );
+}
+
+const CUSTOM_ICONS = ["sparkles", "dumbbell", "bed", "glass-water", "salad", "book-open", "brain", "heart", "waves", "footprints", "target", "flame", "sunrise", "leaf", "music", "notebook-pen"];
+
+function CustomHabitForm({ onAdd, disabled }: { onAdd: (h: NewHabit) => void; disabled: boolean }) {
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState("");
+  const [desc, setDesc] = useState("");
+  const [icon, setIcon] = useState("sparkles");
+  const [color, setColor] = useState("c-emerald");
+  const [verify, setVerify] = useState(false);
+
+  const submit = () => {
+    if (!name.trim()) return;
+    onAdd({ name: name.trim(), description: desc.trim() || undefined, icon, color, verify });
+    setName(""); setDesc(""); setIcon("sparkles"); setColor("c-emerald"); setVerify(false); setOpen(false);
+  };
+
+  if (!open) {
+    return (
+      <button onClick={() => setOpen(true)} disabled={disabled}
+        className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-border-strong p-3 text-[13.5px] font-semibold text-accent transition-colors hover:bg-accent-soft disabled:opacity-40">
+        <Plus size={16} /> Crear hábito propio
+      </button>
+    );
+  }
+
+  const val = colorValue(color);
+  return (
+    <div className="mt-3 rounded-2xl border border-accent/40 bg-accent-soft/40 p-4">
+      <div className="flex items-center gap-3">
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl" style={{ background: `color-mix(in oklab, ${val} 18%, transparent)`, color: val }}><HabitIcon name={icon} size={20} /></span>
+        <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nombre del hábito" autoFocus />
+      </div>
+      <textarea value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="Descripción (opcional) — qué cuenta como hecho, cómo hacerlo…"
+        rows={2} className="mt-2.5 w-full resize-none rounded-xl border border-border bg-surface px-3.5 py-2.5 text-[13.5px] text-text outline-none placeholder:text-text-muted focus:border-accent" />
+
+      <p className="mt-3 text-[11.5px] font-semibold text-text-muted">Icono</p>
+      <div className="mt-1.5 flex flex-wrap gap-1.5">
+        {CUSTOM_ICONS.map((k) => (
+          <button key={k} onClick={() => setIcon(k)} className={cn("flex h-9 w-9 items-center justify-center rounded-xl border transition-colors", icon === k ? "border-accent text-accent" : "border-border text-text-secondary hover:text-text")}>
+            <HabitIcon name={k} size={16} />
+          </button>
+        ))}
+      </div>
+
+      <p className="mt-3 text-[11.5px] font-semibold text-text-muted">Color</p>
+      <div className="mt-1.5 flex flex-wrap gap-2">
+        {HABIT_COLORS.map((c) => (
+          <button key={c.key} onClick={() => setColor(c.key)} aria-label={c.key}
+            className={cn("h-7 w-7 rounded-full transition-transform hover:scale-110", color === c.key && "ring-2 ring-offset-2 ring-offset-surface")}
+            style={{ background: c.value, boxShadow: color === c.key ? `0 0 0 2px ${c.value}` : undefined }} />
+        ))}
+      </div>
+
+      <div className="mt-4 flex items-center justify-between rounded-xl border border-border bg-surface p-3">
+        <div className="flex items-center gap-2"><Camera size={15} className="text-accent" /><span className="text-[13px] font-medium">Verificar con foto (IA)</span></div>
+        <Toggle checked={verify} onChange={setVerify} label="Verificar con IA" />
+      </div>
+
+      <div className="mt-4 flex gap-2">
+        <button onClick={() => setOpen(false)} className="h-10 flex-1 rounded-xl border border-border text-[13.5px] font-medium text-text-secondary">Cancelar</button>
+        <button onClick={submit} disabled={!name.trim()} className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl accent-gradient text-[13.5px] font-semibold text-accent-ink disabled:opacity-50"><Plus size={15} /> Añadir hábito</button>
+      </div>
+    </div>
   );
 }
 

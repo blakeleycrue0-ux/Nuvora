@@ -20,6 +20,7 @@ create table if not exists public.group_habits (
   id          uuid primary key default gen_random_uuid(),
   group_id    uuid not null references public.groups(id) on delete cascade,
   name        text not null,
+  description text,
   icon        text not null default 'sparkles',
   color       text not null default 'c-emerald',
   difficulty  text not null default 'medium',
@@ -53,14 +54,25 @@ create table if not exists public.group_completions (
 );
 alter table public.group_completions enable row level security;
 
--- Helper predicates ------------------------------------------------------------
--- (inline subqueries in policies below; kept simple for clarity)
+-- Helper predicates (SECURITY DEFINER = bypass RLS, so policies that call them
+-- don't recurse into each other's policies). This avoids the classic
+-- "infinite recursion detected in policy" error between groups <-> members.
+create or replace function public.is_group_owner(p_group uuid)
+returns boolean language sql security definer stable set search_path = public as $$
+  select exists(select 1 from public.groups where id = p_group and owner_id = auth.uid());
+$$;
+grant execute on function public.is_group_owner(uuid) to authenticated;
+
+create or replace function public.is_group_member(p_group uuid)
+returns boolean language sql security definer stable set search_path = public as $$
+  select exists(select 1 from public.group_members where group_id = p_group and user_id = auth.uid());
+$$;
+grant execute on function public.is_group_member(uuid) to authenticated;
 
 -- RLS: groups ------------------------------------------------------------------
 drop policy if exists "groups_select" on public.groups;
 create policy "groups_select" on public.groups for select using (
-  owner_id = auth.uid()
-  or id in (select group_id from public.group_members where user_id = auth.uid())
+  owner_id = auth.uid() or public.is_group_member(id)
 );
 drop policy if exists "groups_insert" on public.groups;
 create policy "groups_insert" on public.groups for insert with check (owner_id = auth.uid());
@@ -72,44 +84,33 @@ create policy "groups_delete" on public.groups for delete using (owner_id = auth
 -- RLS: group_habits ------------------------------------------------------------
 drop policy if exists "ghabits_select" on public.group_habits;
 create policy "ghabits_select" on public.group_habits for select using (
-  group_id in (select id from public.groups where owner_id = auth.uid())
-  or group_id in (select group_id from public.group_members where user_id = auth.uid())
+  public.is_group_owner(group_id) or public.is_group_member(group_id)
 );
 drop policy if exists "ghabits_write" on public.group_habits;
 create policy "ghabits_write" on public.group_habits for all
-  using (group_id in (select id from public.groups where owner_id = auth.uid()))
-  with check (group_id in (select id from public.groups where owner_id = auth.uid()));
+  using (public.is_group_owner(group_id)) with check (public.is_group_owner(group_id));
 
 -- RLS: group_members -----------------------------------------------------------
 drop policy if exists "gmembers_select" on public.group_members;
 create policy "gmembers_select" on public.group_members for select using (
-  user_id = auth.uid()
-  or group_id in (select id from public.groups where owner_id = auth.uid())
+  user_id = auth.uid() or public.is_group_owner(group_id)
 );
 -- Members may leave; owners may remove members.
 drop policy if exists "gmembers_delete" on public.group_members;
 create policy "gmembers_delete" on public.group_members for delete using (
-  user_id = auth.uid()
-  or group_id in (select id from public.groups where owner_id = auth.uid())
+  user_id = auth.uid() or public.is_group_owner(group_id)
 );
 -- Inserts happen through join_group() (security definer) — no direct insert policy.
 
 -- RLS: group_completions -------------------------------------------------------
 drop policy if exists "gcompletions_select" on public.group_completions;
 create policy "gcompletions_select" on public.group_completions for select using (
-  user_id = auth.uid()
-  or group_id in (select id from public.groups where owner_id = auth.uid())
+  user_id = auth.uid() or public.is_group_owner(group_id)
 );
 drop policy if exists "gcompletions_write" on public.group_completions;
 create policy "gcompletions_write" on public.group_completions for all
-  using (
-    user_id = auth.uid()
-    and group_id in (select group_id from public.group_members where user_id = auth.uid())
-  )
-  with check (
-    user_id = auth.uid()
-    and group_id in (select group_id from public.group_members where user_id = auth.uid())
-  );
+  using (user_id = auth.uid() and public.is_group_member(group_id))
+  with check (user_id = auth.uid() and public.is_group_member(group_id));
 
 create index if not exists gcompletions_group_date_idx on public.group_completions(group_id, date);
 create index if not exists gmembers_group_idx on public.group_members(group_id);

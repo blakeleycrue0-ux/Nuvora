@@ -16,6 +16,7 @@ export interface TeamHabit {
   id: string;
   groupId: string;
   name: string;
+  description?: string;
   icon: string;
   color: string;
   difficulty: string;
@@ -38,6 +39,7 @@ export interface TeamCompletion {
 
 export interface NewHabit {
   name: string;
+  description?: string;
   icon: string;
   color: string;
   difficulty?: string;
@@ -59,8 +61,8 @@ function newCode(len = 6): string {
 type GroupRow = { id: string; name: string; invite_code: string; owner_id: string; created_at: string };
 const toGroup = (r: GroupRow): TeamGroup => ({ id: r.id, name: r.name, inviteCode: r.invite_code, ownerId: r.owner_id, createdAt: r.created_at });
 
-type HabitRow = { id: string; group_id: string; name: string; icon: string; color: string; difficulty: string; verify: boolean; sort: number };
-const toHabit = (r: HabitRow): TeamHabit => ({ id: r.id, groupId: r.group_id, name: r.name, icon: r.icon, color: r.color, difficulty: r.difficulty, verify: r.verify, sort: r.sort });
+type HabitRow = { id: string; group_id: string; name: string; description: string | null; icon: string; color: string; difficulty: string; verify: boolean; sort: number };
+const toHabit = (r: HabitRow): TeamHabit => ({ id: r.id, groupId: r.group_id, name: r.name, description: r.description ?? undefined, icon: r.icon, color: r.color, difficulty: r.difficulty, verify: r.verify, sort: r.sort });
 
 /* ---------------- coach ---------------- */
 
@@ -85,7 +87,7 @@ export async function createGroup(name: string, habits: NewHabit[]): Promise<Tea
 
   if (habits.length) {
     const rows = habits.map((h, i) => ({
-      group_id: group!.id, name: h.name, icon: h.icon, color: h.color,
+      group_id: group!.id, name: h.name, description: h.description ?? null, icon: h.icon, color: h.color,
       difficulty: h.difficulty ?? "medium", verify: h.verify ?? false, sort: i,
     }));
     const { error } = await supabase.from("group_habits").insert(rows);
@@ -126,7 +128,7 @@ export async function groupHabits(groupId: string): Promise<TeamHabit[]> {
 
 export async function addGroupHabit(groupId: string, h: NewHabit, sort: number): Promise<void> {
   const { error } = await supabase.from("group_habits").insert({
-    group_id: groupId, name: h.name, icon: h.icon, color: h.color,
+    group_id: groupId, name: h.name, description: h.description ?? null, icon: h.icon, color: h.color,
     difficulty: h.difficulty ?? "medium", verify: h.verify ?? false, sort,
   });
   if (error) throw new Error(error.message);
