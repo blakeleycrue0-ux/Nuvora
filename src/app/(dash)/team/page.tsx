@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { motion } from "motion/react";
-import { Flame, Check, Camera, Users, Loader2, Plus } from "lucide-react";
+import { Flame, Check, Camera, Users, Loader2, Plus, Zap, Megaphone } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { VerifyModal } from "@/components/verify/VerifyModal";
@@ -11,7 +11,8 @@ import { HabitIcon, colorValue } from "@/lib/icons";
 import { todayISO, lastNDays } from "@/lib/momentum/date";
 import {
   myMemberGroups, groupHabits, myGroupCompletions, setGroupCompletion, streakFor,
-  groupByCode, joinGroup, type TeamGroup, type TeamHabit,
+  groupByCode, joinGroup, groupAnnouncements, levelForXp,
+  type TeamGroup, type TeamHabit, type Announcement,
 } from "@/lib/teams";
 import type { Habit, HabitColor, Difficulty } from "@/lib/momentum/types";
 import { cn } from "@/lib/utils";
@@ -23,6 +24,8 @@ export default function TeamPage() {
   const [habits, setHabits] = useState<TeamHabit[]>([]);
   const [doneToday, setDoneToday] = useState<Set<string>>(new Set());
   const [streak, setStreak] = useState(0);
+  const [xp, setXp] = useState(0);
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(true);
   const [verify, setVerify] = useState<TeamHabit | null>(null);
   const [joining, setJoining] = useState(false);
@@ -38,11 +41,14 @@ export default function TeamPage() {
     if (!gid) { setLoading(false); return; }
     setLoading(true);
     const since = lastNDays(21)[0];
-    const [h, c] = await Promise.all([groupHabits(gid), myGroupCompletions(gid, since)]);
+    const [h, c, a] = await Promise.all([groupHabits(gid), myGroupCompletions(gid, since), groupAnnouncements(gid)]);
     setHabits(h);
     const today = todayISO();
     setDoneToday(new Set(c.filter((x) => x.date === today).map((x) => x.habitId)));
     setStreak(streakFor(new Set(c.map((x) => x.date))));
+    const xpOf = new Map(h.map((x) => [x.id, x.xp]));
+    setXp(c.reduce((sum, x) => sum + (xpOf.get(x.habitId) ?? 10), 0));
+    setAnnouncements(a);
     setLoading(false);
   }, [gid]);
   useEffect(() => { if (gid) void load(); else if (groups) setLoading(false); }, [gid, groups, load]);
@@ -106,11 +112,28 @@ export default function TeamPage() {
               <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="mt-6 overflow-hidden rounded-3xl accent-gradient p-5 text-accent-ink">
                 <div className="flex items-center justify-between">
                   <div><p className="text-[12.5px] font-medium opacity-80">Tu equipo</p><p className="text-[22px] font-semibold">{group.name}</p></div>
-                  <div className="flex items-center gap-1.5 rounded-full bg-black/15 px-3 py-1.5 text-[15px] font-bold"><Flame size={16} /> {streak}</div>
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5 rounded-full bg-black/15 px-3 py-1.5 text-[15px] font-bold"><Zap size={15} /> {xp}</div>
+                    <div className="flex items-center gap-1.5 rounded-full bg-black/15 px-3 py-1.5 text-[15px] font-bold"><Flame size={16} /> {streak}</div>
+                  </div>
                 </div>
-                <div className="mt-4 flex items-center justify-between text-[12.5px] font-medium opacity-90"><span>Hoy</span><span>{doneCount} de {habits.length}</span></div>
+                <div className="mt-4 flex items-center justify-between text-[12.5px] font-medium opacity-90"><span>Nivel {levelForXp(xp)}</span><span>Hoy · {doneCount} de {habits.length}</span></div>
                 <div className="mt-2 h-2 overflow-hidden rounded-full bg-black/15"><motion.div className="h-full rounded-full bg-accent-ink/80" initial={false} animate={{ width: `${pct}%` }} /></div>
               </motion.div>
+
+              {announcements.length > 0 && (
+                <div className="mt-4 space-y-2">
+                  {announcements.slice(0, 2).map((a) => (
+                    <div key={a.id} className="flex gap-3 rounded-2xl border border-border bg-surface p-3.5">
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent"><Megaphone size={16} /></span>
+                      <div className="min-w-0">
+                        <p className="text-[13.5px] font-semibold text-text">{a.title}</p>
+                        {a.body && <p className="mt-0.5 text-[12.5px] leading-snug text-text-secondary">{a.body}</p>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
 
               <div className="mt-5 space-y-2.5">
                 {habits.map((h) => {
@@ -123,6 +146,7 @@ export default function TeamPage() {
                         {h.description && <p className="text-[11.5px] leading-snug text-text-muted">{h.description}</p>}
                         {h.verify && !done && <p className="flex items-center gap-1 text-[11.5px] text-accent"><Camera size={11} /> Verificar con foto</p>}
                       </div>
+                      <span className="inline-flex shrink-0 items-center gap-0.5 text-[11.5px] font-semibold text-text-secondary"><Zap size={11} className="text-accent" /> {h.xp}</span>
                       <span className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-colors", done ? "accent-gradient text-accent-ink" : "border-2 border-border-strong")}>{done && <Check size={16} strokeWidth={3} />}</span>
                     </button>
                   );
