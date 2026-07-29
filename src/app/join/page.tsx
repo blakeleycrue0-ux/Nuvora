@@ -14,7 +14,7 @@ const PENDING_KEY = "momentum-pending-join";
 
 export default function JoinPage() {
   const router = useRouter();
-  const { user, ready, setAccountType } = useAuth();
+  const { user, ready, setAccountType, markOnboarded } = useAuth();
   const [code, setCode] = useState("");
   const [name, setName] = useState("");
   const [group, setGroup] = useState<{ id: string; name: string; memberCount: number } | null>(null);
@@ -52,6 +52,7 @@ export default function JoinPage() {
     try {
       const gid = await joinGroup(code.trim(), name);
       if (user && !user.accountType) await setAccountType("personal");
+      if (user && !user.onboarded) await markOnboarded(); // let team members into the app without the personal onboarding
       try { localStorage.removeItem(PENDING_KEY); } catch {}
       router.replace(`/team?g=${gid}`);
     } catch (e) { setErr((e as Error).message); setBusy(false); }

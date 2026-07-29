@@ -15,7 +15,8 @@ import { HabitIcon, colorValue, HABIT_COLORS } from "@/lib/icons";
 import { todayISO, lastNDays } from "@/lib/momentum/date";
 import {
   createGroup, myOwnedGroups, groupHabits, groupMembers, groupCompletions,
-  streakFor, type TeamGroup, type TeamHabit, type TeamMember, type NewHabit,
+  addGroupHabit, deleteGroupHabit, streakFor,
+  type TeamGroup, type TeamHabit, type TeamMember, type NewHabit,
 } from "@/lib/teams";
 import { cn } from "@/lib/utils";
 
@@ -163,8 +164,8 @@ function CreateGroup({ onCreated, coachName }: { onCreated: () => Promise<void>;
 
 const CUSTOM_ICONS = ["sparkles", "dumbbell", "bed", "glass-water", "salad", "book-open", "brain", "heart", "waves", "footprints", "target", "flame", "sunrise", "leaf", "music", "notebook-pen"];
 
-function CustomHabitForm({ onAdd, disabled }: { onAdd: (h: NewHabit) => void; disabled: boolean }) {
-  const [open, setOpen] = useState(false);
+function CustomHabitForm({ onAdd, disabled, startOpen, onCancel }: { onAdd: (h: NewHabit) => void | Promise<void>; disabled: boolean; startOpen?: boolean; onCancel?: () => void }) {
+  const [open, setOpen] = useState(!!startOpen);
   const [name, setName] = useState("");
   const [desc, setDesc] = useState("");
   const [icon, setIcon] = useState("sparkles");
@@ -173,9 +174,11 @@ function CustomHabitForm({ onAdd, disabled }: { onAdd: (h: NewHabit) => void; di
 
   const submit = () => {
     if (!name.trim()) return;
-    onAdd({ name: name.trim(), description: desc.trim() || undefined, icon, color, verify });
-    setName(""); setDesc(""); setIcon("sparkles"); setColor("c-emerald"); setVerify(false); setOpen(false);
+    void onAdd({ name: name.trim(), description: desc.trim() || undefined, icon, color, verify });
+    setName(""); setDesc(""); setIcon("sparkles"); setColor("c-emerald"); setVerify(false);
+    if (!startOpen) setOpen(false);
   };
+  const cancel = () => { if (startOpen) onCancel?.(); else setOpen(false); };
 
   if (!open) {
     return (
@@ -220,7 +223,7 @@ function CustomHabitForm({ onAdd, disabled }: { onAdd: (h: NewHabit) => void; di
       </div>
 
       <div className="mt-4 flex gap-2">
-        <button onClick={() => setOpen(false)} className="h-10 flex-1 rounded-xl border border-border text-[13.5px] font-medium text-text-secondary">Cancelar</button>
+        <button onClick={cancel} className="h-10 flex-1 rounded-xl border border-border text-[13.5px] font-medium text-text-secondary">Cancelar</button>
         <button onClick={submit} disabled={!name.trim()} className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl accent-gradient text-[13.5px] font-semibold text-accent-ink disabled:opacity-50"><Plus size={15} /> Añadir hábito</button>
       </div>
     </div>
@@ -239,6 +242,7 @@ function Dashboard({ groups, active, setActive, onNewGroup, reload, coachName }:
   const [comp, setComp] = useState<{ habitId: string; userId: string; date: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [showAddHabit, setShowAddHabit] = useState(false);
 
   const gid = group?.id;
   const loadData = useCallback(async () => {
@@ -370,19 +374,42 @@ function Dashboard({ groups, active, setActive, onNewGroup, reload, coachName }:
         </div>
       )}
 
-      {/* Habits summary */}
-      {habits.length > 0 && (
-        <div className="mt-5 rounded-3xl border border-border bg-surface p-5">
-          <p className="text-[13px] font-semibold text-text-secondary">Hábitos del grupo</p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {habits.map((h) => (
-              <span key={h.id} className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface-2 px-3 py-1.5 text-[13px]" style={{ color: colorValue(h.color) }}>
-                <HabitIcon name={h.icon} size={14} /><span className="text-text">{h.name}</span>
-              </span>
-            ))}
-          </div>
+      {/* Habits management */}
+      <div className="mt-5 rounded-3xl border border-border bg-surface p-5">
+        <div className="flex items-center justify-between">
+          <p className="text-[13px] font-semibold text-text-secondary">Hábitos del grupo ({habits.length})</p>
+          {habits.length < MAX_HABITS && !showAddHabit && (
+            <button onClick={() => setShowAddHabit(true)} className="inline-flex items-center gap-1 text-[13px] font-semibold text-accent"><Plus size={15} /> Añadir hábito</button>
+          )}
         </div>
-      )}
+
+        <div className="mt-3 space-y-2">
+          {habits.map((h) => {
+            const val = colorValue(h.color);
+            return (
+              <div key={h.id} className="flex items-center gap-3 rounded-2xl border border-border bg-surface-2 p-3">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl" style={{ background: `color-mix(in oklab, ${val} 16%, transparent)`, color: val }}><HabitIcon name={h.icon} size={17} /></span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-[13.5px] font-medium text-text">{h.name}</p>
+                  {h.description && <p className="truncate text-[11.5px] text-text-muted">{h.description}</p>}
+                </div>
+                {h.verify && <span className="inline-flex items-center gap-0.5 text-[10.5px] font-semibold text-accent"><Camera size={11} /> IA</span>}
+                <button onClick={async () => { if (confirm(`¿Quitar "${h.name}"?`)) { await deleteGroupHabit(h.id); void loadData(); } }} aria-label="Quitar" className="flex h-7 w-7 items-center justify-center rounded-lg text-text-muted hover:bg-surface hover:text-danger"><X size={15} /></button>
+              </div>
+            );
+          })}
+        </div>
+
+        {showAddHabit && habits.length < MAX_HABITS && (
+          <div className="mt-3">
+            <CustomHabitForm disabled={false} startOpen onCancel={() => setShowAddHabit(false)} onAdd={async (h) => {
+              await addGroupHabit(group.id, h, habits.length);
+              setShowAddHabit(false);
+              void loadData();
+            }} />
+          </div>
+        )}
+      </div>
     </div>
   );
 }

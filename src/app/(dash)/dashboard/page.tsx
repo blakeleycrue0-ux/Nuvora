@@ -20,6 +20,7 @@ import { Ring } from "@/components/ui/Ring";
 import { Button } from "@/components/ui/Button";
 import { Heatmap } from "@/components/app/Heatmap";
 import { HabitRow } from "@/components/app/HabitRow";
+import { TeamCard } from "@/components/app/TeamCard";
 import { HabitIcon, colorValue, ACHIEVEMENT_ICONS } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 
@@ -111,6 +112,9 @@ export default function DashboardPage() {
           <Plus size={17} /> New habit
         </Button>
       </motion.div>
+
+      {/* Team summary (only shows if the user belongs to a group) */}
+      <TeamCard />
 
       <motion.div variants={stagger} initial="hidden" animate="show" className="mt-7 grid grid-cols-1 gap-5 lg:grid-cols-3">
         {/* Progress hero card */}
