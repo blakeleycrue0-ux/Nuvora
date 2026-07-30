@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
 import {
-  Users, Plus, Check, X, Flame, Trophy, Copy, LogOut, Share2, ArrowRight, ShieldCheck,
+  Users, Plus, Check, X, Flame, Trophy, Copy, LogOut, Share2, ArrowRight, ArrowLeft, ShieldCheck,
   Loader2, Camera, LayoutGrid, ListChecks, Megaphone, Settings as SettingsIcon, Trash2, Zap,
 } from "lucide-react";
 import { Wordmark } from "@/components/Wordmark";
@@ -38,23 +38,42 @@ export default function CoachPage() {
   const { user, ready, signOut } = useAuth();
   const [groups, setGroups] = useState<TeamGroup[] | null>(null);
   const [active, setActive] = useState<string | null>(null);
+  const [wantsNew, setWantsNew] = useState(false);
+  const isPersonal = user?.accountType === "personal";
+
+  // Read intent from the URL: ?new=1 opens the create flow, ?g=<id> selects a club.
+  useEffect(() => {
+    const p = new URLSearchParams(window.location.search);
+    const isNew = p.get("new") === "1";
+    setWantsNew(isNew); // eslint-disable-line react-hooks/set-state-in-effect
+    const g = p.get("g");
+    if (isNew) setActive("__new__"); // eslint-disable-line react-hooks/set-state-in-effect
+    else if (g) setActive(g); // eslint-disable-line react-hooks/set-state-in-effect
+  }, []);
 
   useEffect(() => {
     if (!ready) return;
     if (!user) { router.replace("/login"); return; }
     if (!user.accountType) { router.replace("/welcome"); return; }
-    if (user.accountType !== "coach") { router.replace("/dashboard"); return; }
   }, [ready, user, router]);
 
   const load = useCallback(async () => {
     const g = await myOwnedGroups();
     setGroups(g);
-    setActive((a) => (a && a !== "__new__" && g.some((x) => x.id === a) ? a : g[0]?.id ?? null));
+    setActive((a) => (a && (a === "__new__" || g.some((x) => x.id === a)) ? a : g[0]?.id ?? null));
   }, []);
 
-  useEffect(() => { if (ready && user?.accountType === "coach") void load(); }, [ready, user, load]);
+  // Anyone with an account can manage clubs they own; coaches land here to
+  // create their first club. A personal user with no clubs (and not creating
+  // one) belongs back in their personal app.
+  useEffect(() => {
+    if (ready && user?.accountType) void load();
+  }, [ready, user, load]);
+  useEffect(() => {
+    if (groups && isPersonal && groups.length === 0 && !wantsNew) router.replace("/dashboard");
+  }, [groups, isPersonal, wantsNew, router]);
 
-  if (!ready || !user || user.accountType !== "coach") {
+  if (!ready || !user || !user.accountType || groups === null) {
     return <div className="flex min-h-screen items-center justify-center bg-bg"><div className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-accent" /></div>;
   }
 
@@ -65,18 +84,23 @@ export default function CoachPage() {
           <Wordmark href={null} />
           <span className="rounded-full border border-border px-2 py-0.5 text-[11px] font-medium text-text-secondary">Club</span>
         </div>
-        <button onClick={signOut} aria-label="Cerrar sesión" className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-text-muted transition-colors hover:bg-surface-2 hover:text-danger">
-          <LogOut size={17} />
-        </button>
+        <div className="flex items-center gap-2">
+          {isPersonal && (
+            <button onClick={() => router.push("/dashboard")} className="inline-flex h-9 items-center gap-1.5 rounded-lg px-2.5 text-[13px] font-medium text-text-secondary transition-colors hover:bg-surface-2 hover:text-text">
+              <ArrowLeft size={15} /> Mi app personal
+            </button>
+          )}
+          <button onClick={signOut} aria-label="Cerrar sesión" className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-text-muted transition-colors hover:bg-surface-2 hover:text-danger">
+            <LogOut size={17} />
+          </button>
+        </div>
       </header>
 
       <main className="mx-auto max-w-5xl px-5 py-7 sm:px-8 lg:py-10">
-        {groups === null ? (
-          <div className="space-y-4"><div className="h-40 animate-pulse rounded-3xl bg-surface-2" /><div className="h-64 animate-pulse rounded-3xl bg-surface-2" /></div>
-        ) : groups.length === 0 ? (
-          <CreateGroup onCreated={load} coachName={user.name} />
+        {groups.length === 0 ? (
+          <CreateGroup onCreated={async () => { setWantsNew(false); await load(); }} coachName={user.name} />
         ) : (
-          <Dashboard groups={groups} active={active!} setActive={setActive} onNewGroup={() => setActive("__new__")} reload={load} coachName={user.name} />
+          <Dashboard groups={groups} active={active ?? groups[0]?.id ?? "__new__"} setActive={setActive} onNewGroup={() => setActive("__new__")} reload={load} coachName={user.name} />
         )}
       </main>
     </div>

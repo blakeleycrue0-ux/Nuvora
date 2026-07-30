@@ -3,8 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
-import { ChevronDown, User, Users, Plus, Check } from "lucide-react";
-import { myMemberGroups, type TeamGroup } from "@/lib/teams";
+import { ChevronDown, User, Users, Plus, Check, Shield, LogIn } from "lucide-react";
+import { myMemberGroups, myOwnedGroups, type TeamGroup } from "@/lib/teams";
 import { cn } from "@/lib/utils";
 
 // Instant switcher between the Personal workspace and any football clubs the
@@ -12,12 +12,16 @@ import { cn } from "@/lib/utils";
 // change global state, so it's safe and works with the existing routes.
 export function WorkspaceSwitcher() {
   const router = useRouter();
-  const [groups, setGroups] = useState<TeamGroup[]>([]);
+  const [joined, setJoined] = useState<TeamGroup[]>([]);
+  const [owned, setOwned] = useState<TeamGroup[]>([]);
   const [open, setOpen] = useState(false);
   const [activeGid, setActiveGid] = useState<string | null>(null);
   const ref = useRef<HTMLDivElement>(null);
 
-  useEffect(() => { void myMemberGroups().then(setGroups); }, []);
+  useEffect(() => {
+    void myMemberGroups().then(setJoined);
+    void myOwnedGroups().then(setOwned);
+  }, []);
 
   // Derive the current workspace from the URL (Personal = /dashboard etc.).
   useEffect(() => {
@@ -32,7 +36,7 @@ export function WorkspaceSwitcher() {
     return () => document.removeEventListener("mousedown", onDoc);
   }, []);
 
-  const active = groups.find((g) => g.id === activeGid) ?? null;
+  const active = joined.find((g) => g.id === activeGid) ?? null;
   const go = (href: string) => { setOpen(false); router.push(href); };
 
   return (
@@ -53,11 +57,20 @@ export function WorkspaceSwitcher() {
             className="absolute left-0 z-50 mt-2 w-64 overflow-hidden rounded-2xl border border-border bg-surface p-1.5 shadow-[var(--shadow-lg)]">
             <p className="px-2.5 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-text-muted">Espacios</p>
             <SwitchItem icon={<User size={15} />} label="Personal" active={!active} onClick={() => go("/dashboard")} />
-            {groups.map((g) => (
+            {joined.map((g) => (
               <SwitchItem key={g.id} icon={<Users size={15} />} label={g.name} active={active?.id === g.id} onClick={() => go(`/team?g=${g.id}`)} />
             ))}
+            {owned.length > 0 && (
+              <>
+                <p className="mt-1.5 px-2.5 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-text-muted">Clubes que gestiono</p>
+                {owned.map((g) => (
+                  <SwitchItem key={g.id} icon={<Shield size={15} />} label={g.name} onClick={() => go(`/coach?g=${g.id}`)} />
+                ))}
+              </>
+            )}
             <div className="my-1.5 h-px bg-border" />
-            <SwitchItem icon={<Plus size={15} />} label="Unirme a un club" muted onClick={() => go("/join")} />
+            <SwitchItem icon={<Plus size={15} />} label="Crear un club" muted onClick={() => go("/coach?new=1")} />
+            <SwitchItem icon={<LogIn size={15} />} label="Unirme a un club" muted onClick={() => go("/join")} />
           </motion.div>
         )}
       </AnimatePresence>
