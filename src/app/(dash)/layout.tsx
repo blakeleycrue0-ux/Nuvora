@@ -9,6 +9,7 @@ import { Wordmark } from "@/components/Wordmark";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Avatar } from "@/components/app/Avatar";
 import { navItems } from "@/components/app/nav";
+import { WorkspaceSwitcher } from "@/components/app/WorkspaceSwitcher";
 import { ReminderScheduler } from "@/components/ReminderScheduler";
 import { AchievementWatcher } from "@/components/AchievementWatcher";
 import { LevelWatcher } from "@/components/LevelWatcher";
@@ -99,10 +100,12 @@ export default function DashLayout({ children }: { children: ReactNode }) {
       <div className="flex min-h-screen flex-1 flex-col">
         {/* Top bar */}
         <header className="sticky top-0 z-40 flex min-h-16 items-center justify-between gap-3 border-b border-border bg-bg/80 px-4 pt-[env(safe-area-inset-top)] backdrop-blur-xl sm:px-6 lg:px-8">
-          <div className="lg:hidden">
-            <Wordmark size="sm" />
+          <div className="flex items-center gap-2.5">
+            <div className="lg:hidden">
+              <Wordmark size="sm" />
+            </div>
+            <WorkspaceSwitcher />
           </div>
-          <div className="hidden lg:block" />
           <div className="flex items-center gap-2.5">
             <ThemeToggle />
             <div className="lg:hidden">
