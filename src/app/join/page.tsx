@@ -8,6 +8,7 @@ import { Wordmark } from "@/components/Wordmark";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { useAuth } from "@/lib/auth";
+import { FEATURE_TEAMS } from "@/lib/features";
 import { groupByCode, joinGroup } from "@/lib/teams";
 
 const PENDING_KEY = "momentum-pending-join";
@@ -21,6 +22,9 @@ export default function JoinPage() {
   const [checking, setChecking] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
+
+  // Teams disabled in personal-only mode: guard direct URL access.
+  useEffect(() => { if (!FEATURE_TEAMS) router.replace("/dashboard"); }, [router]);
 
   // Read ?code= from the URL on the client (avoids useSearchParams suspense).
   useEffect(() => {
@@ -58,7 +62,7 @@ export default function JoinPage() {
     } catch (e) { setErr((e as Error).message); setBusy(false); }
   };
 
-  if (!ready || !user) {
+  if (!FEATURE_TEAMS || !ready || !user) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-bg px-5 text-center">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-accent" />

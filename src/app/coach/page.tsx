@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Toggle } from "@/components/ui/Toggle";
 import { useAuth } from "@/lib/auth";
+import { FEATURE_TEAMS } from "@/lib/features";
 import { HabitIcon, colorValue, HABIT_COLORS } from "@/lib/icons";
 import { todayISO, lastNDays } from "@/lib/momentum/date";
 import {
@@ -40,6 +41,9 @@ export default function CoachPage() {
   const [active, setActive] = useState<string | null>(null);
   const [wantsNew, setWantsNew] = useState(false);
   const isPersonal = user?.accountType === "personal";
+
+  // Teams disabled in personal-only mode: guard direct URL access.
+  useEffect(() => { if (!FEATURE_TEAMS) router.replace("/dashboard"); }, [router]);
 
   // Read intent from the URL: ?new=1 opens the create flow, ?g=<id> selects a club.
   useEffect(() => {
@@ -73,7 +77,7 @@ export default function CoachPage() {
     if (groups && isPersonal && groups.length === 0 && !wantsNew) router.replace("/dashboard");
   }, [groups, isPersonal, wantsNew, router]);
 
-  if (!ready || !user || !user.accountType || groups === null) {
+  if (!FEATURE_TEAMS || !ready || !user || !user.accountType || groups === null) {
     return <div className="flex min-h-screen items-center justify-center bg-bg"><div className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-accent" /></div>;
   }
 

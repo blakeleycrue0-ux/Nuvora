@@ -1,7 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
+import { FEATURE_TEAMS } from "@/lib/features";
 import { Flame, Check, Camera, Users, Loader2, Plus, Zap, Megaphone } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -18,6 +20,10 @@ import type { Habit, HabitColor, Difficulty } from "@/lib/momentum/types";
 import { cn } from "@/lib/utils";
 
 export default function TeamPage() {
+  const router = useRouter();
+  // Teams is disabled in personal-only mode: no UI path leads here, but guard
+  // direct URL access too and send the user back to their personal home.
+  useEffect(() => { if (!FEATURE_TEAMS) router.replace("/dashboard"); }, [router]);
   const { user, ready } = useAuth();
   const [groups, setGroups] = useState<TeamGroup[] | null>(null);
   const [gid, setGid] = useState<string | null>(null);
@@ -68,7 +74,7 @@ export default function TeamPage() {
     void load();
   };
 
-  if (!ready || !user || groups === null) {
+  if (!FEATURE_TEAMS || !ready || !user || groups === null) {
     return <div className="container-page max-w-2xl py-7 lg:py-10"><div className="h-40 animate-pulse rounded-3xl bg-surface-2" /></div>;
   }
 
