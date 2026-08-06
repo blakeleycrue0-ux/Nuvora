@@ -10,7 +10,6 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { Avatar } from "@/components/app/Avatar";
 import { navItems } from "@/components/app/nav";
 import { WorkspaceSwitcher } from "@/components/app/WorkspaceSwitcher";
-import { CoinPill } from "@/components/mascot/CoinPill";
 import { FEATURE_TEAMS } from "@/lib/features";
 import { ReminderScheduler } from "@/components/ReminderScheduler";
 import { AchievementWatcher } from "@/components/AchievementWatcher";
@@ -109,7 +108,6 @@ export default function DashLayout({ children }: { children: ReactNode }) {
             {FEATURE_TEAMS && <WorkspaceSwitcher />}
           </div>
           <div className="flex items-center gap-2.5">
-            <CoinPill />
             <ThemeToggle />
             <div className="lg:hidden">
               <Avatar size={36} />

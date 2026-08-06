@@ -1,7 +1,7 @@
 // ============================================================
 // Tiny, framework-agnostic event bus so the habit store can announce things
 // (e.g. a habit was just completed) without importing React or the mascot
-// system. The MascotProvider subscribes. Emitting is always best-effort and
+// system. The ProgressProvider subscribes. Emitting is always best-effort and
 // must never break the caller — emitters wrap calls in try/catch.
 // ============================================================
 

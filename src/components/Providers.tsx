@@ -6,18 +6,18 @@ import { AuthProvider } from "@/lib/auth";
 import { HabitStoreProvider } from "@/lib/momentum/store";
 import { ConfettiProvider } from "@/components/Confetti";
 import { CelebrationProvider } from "@/components/Celebration";
-import { MascotProvider } from "@/components/mascot/MascotProvider";
+import { ProgressProvider } from "@/components/progress/ProgressProvider";
 
 export function Providers({ children }: { children: ReactNode }) {
   return (
     <ThemeProvider>
       <AuthProvider>
         <HabitStoreProvider>
-          <MascotProvider>
+          <ProgressProvider>
             <ConfettiProvider>
               <CelebrationProvider>{children}</CelebrationProvider>
             </ConfettiProvider>
-          </MascotProvider>
+          </ProgressProvider>
         </HabitStoreProvider>
       </AuthProvider>
     </ThemeProvider>
