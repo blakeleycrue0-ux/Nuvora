@@ -5,17 +5,17 @@ import { cn } from "@/lib/utils";
 import { mascotStateAsset, itemAsset } from "@/lib/fenom/assets";
 import type { MascotAnimation, MascotState } from "@/lib/fenom/types";
 
-// Reusable, asset-agnostic mascot renderer.
+// The Fenom mascot — a single fixed tiger companion. Asset-agnostic: while no
+// artwork exists it shows a clean, neutral placeholder (never an invented or
+// AI-generated character). When real tiger art is registered in
+// lib/fenom/assets it renders in place, with an always-on subtle idle float.
 //
-// While no artwork exists it shows a neutral, on-brand placeholder stage (never
-// an invented character or emoji). When real assets are registered in
-// lib/fenom/assets, the same component renders them in layers:
-//   base < clothing < shoes < accessory < headwear
-// `layers` is the ordered list of equipped item asset keys to stack on top.
+// `layers` (equipped item art) is only used when the customization system is
+// re-enabled; in the fixed-mascot build it stays empty.
 export interface MascotProps {
   state?: MascotState;
   animation?: MascotAnimation;
-  layers?: string[];        // equipped item assetKeys, back-to-front
+  layers?: string[];
   name?: string;
   size?: number;
   className?: string;
@@ -34,37 +34,39 @@ export function Mascot({ state = "idle", animation = "none", layers = [], name =
   const baseSrc = mascotStateAsset(state);
 
   return (
-    <motion.div
-      variants={anim[animation]}
-      animate="animate"
-      className={cn("relative select-none", className)}
-      style={{ width: size, height: size }}
-      aria-label={`Mascota ${name} (${state})`}
-    >
+    <div className={cn("relative select-none", className)} style={{ width: size, height: size }} aria-label={`Mascota ${name}`}>
       {/* Soft stage glow */}
-      <div aria-hidden className="pointer-events-none absolute inset-0 rounded-full opacity-30 blur-2xl"
-        style={{ background: "radial-gradient(circle at 50% 45%, var(--accent), transparent 65%)" }} />
+      <div aria-hidden className="pointer-events-none absolute inset-0 rounded-full opacity-25 blur-2xl"
+        style={{ background: "radial-gradient(circle at 50% 42%, var(--accent), transparent 62%)" }} />
 
-      {baseSrc ? (
-        // Real artwork path (base + layered items). Rendered when assets exist.
-        <div className="absolute inset-0">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={baseSrc} alt="" className="absolute inset-0 h-full w-full object-contain" />
-          {layers.map((key) => {
-            const src = itemAsset(key);
-            return src ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img key={key} src={src} alt="" className="absolute inset-0 h-full w-full object-contain" />
-            ) : null;
-          })}
-        </div>
-      ) : (
-        // Neutral placeholder stage until the penguin artwork is provided.
-        <div className="absolute inset-0 flex flex-col items-center justify-center rounded-[28%] border border-dashed border-border-strong bg-surface-2/70">
-          <span className="text-[15px] font-semibold text-text">{name}</span>
-          <span className="mt-1 text-[11px] font-medium text-text-muted">tu compañero</span>
-        </div>
-      )}
-    </motion.div>
+      {/* Gentle continuous idle float, with per-event animations layered on top */}
+      <motion.div
+        className="absolute inset-0"
+        animate={{ y: [0, -5, 0] }}
+        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+      >
+        <motion.div className="h-full w-full" variants={anim[animation]} animate="animate">
+          {baseSrc ? (
+            <div className="absolute inset-0">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={baseSrc} alt="" className="absolute inset-0 h-full w-full object-contain" />
+              {layers.map((key) => {
+                const src = itemAsset(key);
+                return src ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img key={key} src={src} alt="" className="absolute inset-0 h-full w-full object-contain" />
+                ) : null;
+              })}
+            </div>
+          ) : (
+            // Neutral placeholder until the Fenom tiger artwork is provided.
+            <div className="absolute inset-0 flex flex-col items-center justify-center rounded-[30%] border border-border bg-surface-2/60">
+              <span className="text-[15px] font-semibold text-text">{name}</span>
+              <span className="mt-0.5 text-[11px] font-medium text-text-muted">tu compañero</span>
+            </div>
+          )}
+        </motion.div>
+      </motion.div>
+    </div>
   );
 }

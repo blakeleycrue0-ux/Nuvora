@@ -3,12 +3,13 @@
 import Link from "next/link";
 import { Coins } from "lucide-react";
 import { useMascot } from "@/components/mascot/MascotProvider";
+import { FEATURE_MASCOT_CUSTOMIZATION } from "@/lib/features";
 
-// Compact Fenom Coins balance for the app top bar. Tapping opens the mascot
-// hub (where coins are earned/spent). Hidden until the mascot data is ready.
+// Compact Fenom Coins balance for the app top bar. Only shown when the coins /
+// customization economy is enabled (hidden in the current fixed-mascot build).
 export function CoinPill() {
   const { ready, balance } = useMascot();
-  if (!ready) return null;
+  if (!FEATURE_MASCOT_CUSTOMIZATION || !ready) return null;
   return (
     <Link href="/mascot"
       aria-label={`${balance} Fenom Coins`}

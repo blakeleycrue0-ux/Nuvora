@@ -2,15 +2,79 @@
 
 import { useMemo, useState } from "react";
 import { motion } from "motion/react";
-import { Coins, Check, Lock, Sparkles, Pencil, ShoppingBag, Shirt, Wallet, Loader2 } from "lucide-react";
+import { Coins, Check, Lock, Sparkles, Pencil, ShoppingBag, Shirt, Wallet, Loader2, Flame, Trophy, CalendarCheck } from "lucide-react";
 import { Input } from "@/components/ui/Input";
 import { Mascot } from "@/components/mascot/Mascot";
 import { useMascot } from "@/components/mascot/MascotProvider";
 import { levelFromXP } from "@/lib/fenom/economy";
 import { RARITY_META } from "@/lib/fenom/config";
+import { FEATURE_MASCOT_CUSTOMIZATION } from "@/lib/features";
 import { ITEM_SLOTS, type ItemCategory, type ItemSlot, type MascotItemView } from "@/lib/fenom/types";
 import { useHabits } from "@/lib/momentum/store";
+import { dayProgress, overallStats } from "@/lib/momentum/stats";
 import { cn } from "@/lib/utils";
+
+// The mascot is a single fixed tiger for now; the full customization hub
+// (shop / wallet / equip) stays in the codebase behind FEATURE_MASCOT_CUSTOMIZATION.
+export default function MascotPage() {
+  return FEATURE_MASCOT_CUSTOMIZATION ? <CustomizationHub /> : <CompanionView />;
+}
+
+/* ---------------- companion (clean, fixed tiger) ---------------- */
+
+function CompanionView() {
+  const { ready, name, level, reaction } = useMascot();
+  const { habits, completions, xp } = useHabits();
+
+  const lv = levelFromXP(xp);
+  const today = dayProgress(habits, completions);
+  const stats = overallStats(habits, completions);
+
+  if (!ready) {
+    return <div className="container-page max-w-xl py-7 lg:py-10"><div className="h-72 animate-pulse rounded-3xl bg-surface-2" /></div>;
+  }
+
+  return (
+    <div className="container-page max-w-xl py-7 lg:py-10">
+      {/* Companion */}
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
+        className="flex flex-col items-center rounded-[28px] border border-border bg-surface px-6 py-10 text-center shadow-[var(--shadow-sm)]">
+        <Mascot state={reaction.state} animation={reaction.animation} name={name} size={200} />
+        <h1 className="mt-6 text-[24px] font-semibold tracking-[-0.02em] text-text">{name}</h1>
+        <p className="mt-1 h-5 text-[13.5px] text-accent">{reaction.message}</p>
+        <span className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-surface-2 px-3 py-1.5 text-[13px] font-semibold text-text">
+          <Sparkles size={14} className="text-accent" /> Nivel {level}
+        </span>
+        <div className="mt-4 w-full max-w-xs">
+          <div className="flex items-center justify-between text-[11.5px] text-text-muted"><span>XP</span><span>{lv.into} / {lv.need}</span></div>
+          <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-surface-2"><motion.div className="h-full rounded-full accent-gradient" initial={{ width: 0 }} animate={{ width: `${lv.pct}%` }} transition={{ duration: 0.6, ease: "easeOut" }} /></div>
+        </div>
+      </motion.div>
+
+      {/* Your progress (the real focus) */}
+      <div className="mt-5 grid grid-cols-3 gap-3">
+        <StatTile icon={CalendarCheck} label="Hoy" value={`${today.completed}/${today.total}`} />
+        <StatTile icon={Flame} label="Racha" value={`${stats.bestCurrentStreak}`} />
+        <StatTile icon={Trophy} label="Mejor racha" value={`${stats.bestLongestStreak}`} />
+      </div>
+
+      <p className="mt-6 text-center text-[12.5px] leading-relaxed text-text-muted">
+        Tu compañero crece con tus hábitos. Cada día que cumples, sube contigo.
+      </p>
+    </div>
+  );
+}
+
+function StatTile({ icon: Icon, label, value }: { icon: typeof Flame; label: string; value: string }) {
+  return (
+    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}
+      className="flex flex-col items-center rounded-2xl border border-border bg-surface px-3 py-4 text-center shadow-[var(--shadow-sm)]">
+      <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent-soft text-accent"><Icon size={17} /></span>
+      <p className="mt-2 text-[18px] font-semibold text-text">{value}</p>
+      <p className="text-[11.5px] text-text-muted">{label}</p>
+    </motion.div>
+  );
+}
 
 type Tab = "companion" | "shop" | "wallet";
 
@@ -24,7 +88,7 @@ const CATEGORIES: { key: ItemCategory; label: string }[] = [
   { key: "seasonal", label: "Temporada" },
 ];
 
-export default function MascotPage() {
+function CustomizationHub() {
   const { ready, name, level, balance, itemViews, catalog, reaction, mascot } = useMascot();
   const { xp } = useHabits();
   const [tab, setTab] = useState<Tab>("companion");

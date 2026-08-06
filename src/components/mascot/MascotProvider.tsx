@@ -3,8 +3,9 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useAuth } from "@/lib/auth";
 import { useHabits } from "@/lib/momentum/store";
+import { FEATURE_MASCOT_CUSTOMIZATION } from "@/lib/features";
 import { fenomBus } from "@/lib/fenom/bus";
-import { EVENT_REACTION, MASCOT_MESSAGES, MASCOT_IDLE_MESSAGES } from "@/lib/fenom/config";
+import { EVENT_REACTION, MASCOT_MESSAGES, MASCOT_IDLE_MESSAGES, DEFAULT_MASCOT_NAME } from "@/lib/fenom/config";
 import { currentStreak } from "@/lib/momentum/stats";
 import { levelFromXP, balanceOf, reachedMilestone } from "@/lib/fenom/economy";
 import {
@@ -63,11 +64,13 @@ export function MascotProvider({ children }: { children: ReactNode }) {
     setOwned(inv); setTransactions(txns);
   }, []);
 
-  // One-time setup per signed-in user: make sure the mascot + welcome bonus
-  // exist, then load everything.
+  // One-time setup per signed-in user. When customization is OFF the mascot is
+  // a single fixed tiger with no persistence, coins or inventory — so we skip
+  // every Supabase call and just run client-side (also avoids needless writes).
   useEffect(() => {
     if (!authReady) return;
     if (!user) { setReady(false); setMascot(null); setCatalog([]); setOwned(new Set()); setTransactions([]); return; } // eslint-disable-line react-hooks/set-state-in-effect
+    if (!FEATURE_MASCOT_CUSTOMIZATION) { setReady(true); return; } // eslint-disable-line react-hooks/set-state-in-effect
     let active = true;
     (async () => {
       await ensureMascot();
@@ -96,10 +99,12 @@ export function MascotProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!user) return;
     return fenomBus.subscribe((e) => {
-      if (e.type === "HABIT_COMPLETED" && e.habitId && e.date) awardHabitCompletion(e.habitId, e.date);
-      if (e.type === "DAY_COMPLETED" && e.date) awardDayCompleted(e.date);
-      react(e);
-      scheduleRefresh();
+      if (FEATURE_MASCOT_CUSTOMIZATION) {
+        if (e.type === "HABIT_COMPLETED" && e.habitId && e.date) awardHabitCompletion(e.habitId, e.date);
+        if (e.type === "DAY_COMPLETED" && e.date) awardDayCompleted(e.date);
+        scheduleRefresh();
+      }
+      react(e); // the mascot always reacts, coins or not
     });
   }, [user, react, scheduleRefresh]);
 
@@ -132,9 +137,8 @@ export function MascotProvider({ children }: { children: ReactNode }) {
         milestoneRef.current.set(h.id, m);
         // Skip awards on the very first pass (seeding existing streaks).
         if (streakSeeded.current) {
-          awardStreakMilestone(m, h.id);
+          if (FEATURE_MASCOT_CUSTOMIZATION) { awardStreakMilestone(m, h.id); scheduleRefresh(); }
           react({ type: "STREAK_MILESTONE", streak: m });
-          scheduleRefresh();
         }
       }
     }
@@ -146,9 +150,8 @@ export function MascotProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!ready) return;
     if (lastLevelRef.current !== null && level > lastLevelRef.current) {
-      awardLevelUp(level);
+      if (FEATURE_MASCOT_CUSTOMIZATION) { awardLevelUp(level); scheduleRefresh(); }
       react({ type: "LEVEL_UP", level });
-      scheduleRefresh();
     }
     lastLevelRef.current = level;
   }, [ready, level, react, scheduleRefresh]);
@@ -175,7 +178,7 @@ export function MascotProvider({ children }: { children: ReactNode }) {
   }, [refresh, react]);
 
   const value = useMemo<MascotValue>(() => ({
-    ready, mascot, name: mascot?.name ?? "Fen", level, balance, catalog, owned, transactions, itemViews,
+    ready, mascot, name: mascot?.name ?? DEFAULT_MASCOT_NAME, level, balance, catalog, owned, transactions, itemViews,
     reaction, refresh, rename, equip, purchase, claimFree, react,
   }), [ready, mascot, level, balance, catalog, owned, transactions, itemViews, reaction, refresh, rename, equip, purchase, claimFree, react]);
 
