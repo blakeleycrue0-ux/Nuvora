@@ -5,11 +5,12 @@ import { useAuth } from "@/lib/auth";
 import { useHabits } from "@/lib/momentum/store";
 import { fenomBus } from "@/lib/fenom/bus";
 import { EVENT_REACTION, MASCOT_MESSAGES, MASCOT_IDLE_MESSAGES } from "@/lib/fenom/config";
-import { levelFromXP, balanceOf } from "@/lib/fenom/economy";
+import { currentStreak } from "@/lib/momentum/stats";
+import { levelFromXP, balanceOf, reachedMilestone } from "@/lib/fenom/economy";
 import {
   ensureMascot, getMascot, getCatalog, getInventory, getTransactions,
   setMascotName, setEquipped, purchaseItem, claimFreeItem, buildItemViews,
-  awardHabitCompletion, awardDayCompleted, awardLevelUp,
+  awardHabitCompletion, awardDayCompleted, awardLevelUp, awardStreakMilestone,
 } from "@/lib/fenom/mascot";
 import type {
   CoinTransaction, FenomEvent, ItemSlot, MascotAnimation, MascotItem, MascotItemView, MascotRecord, MascotState,
@@ -115,6 +116,30 @@ export function MascotProvider({ children }: { children: ReactNode }) {
       fenomBus.emit({ type: "DAY_COMPLETED", date: today });
     }
   }, [ready, storeReady, habits, completions]);
+
+  // Detect streak milestones per habit and reward them once each (the DB ref
+  // key makes this idempotent across reloads).
+  const streakSeeded = useRef(false);
+  const milestoneRef = useRef<Map<string, number>>(new Map());
+  useEffect(() => {
+    if (!ready || !storeReady) return;
+    for (const h of habits) {
+      if (h.archived) continue;
+      const m = reachedMilestone(currentStreak(h, completions));
+      if (m === null) continue;
+      const prev = milestoneRef.current.get(h.id) ?? 0;
+      if (m > prev) {
+        milestoneRef.current.set(h.id, m);
+        // Skip awards on the very first pass (seeding existing streaks).
+        if (streakSeeded.current) {
+          awardStreakMilestone(m, h.id);
+          react({ type: "STREAK_MILESTONE", streak: m });
+          scheduleRefresh();
+        }
+      }
+    }
+    streakSeeded.current = true;
+  }, [ready, storeReady, habits, completions, react, scheduleRefresh]);
 
   // Detect level-ups and reward them.
   const lastLevelRef = useRef<number | null>(null);

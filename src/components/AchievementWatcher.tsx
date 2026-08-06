@@ -4,6 +4,8 @@ import { useEffect, useRef } from "react";
 import { useHabits } from "@/lib/momentum/store";
 import { computeAchievements } from "@/lib/momentum/stats";
 import { useCelebration } from "@/components/Celebration";
+import { fenomBus } from "@/lib/fenom/bus";
+import { awardAchievement } from "@/lib/fenom/mascot";
 
 // Watches for newly-earned achievements and fires the celebration overlay.
 // Seeds the already-earned set on first load so it doesn't re-celebrate them.
@@ -28,6 +30,9 @@ export function AchievementWatcher() {
       if (!earned.current.has(a.id)) {
         earned.current.add(a.id);
         celebrateAchievement({ id: a.id, title: a.title, description: a.description, icon: a.icon, tier: a.tier });
+        // Reward Fenom Coins for the achievement + let the mascot react.
+        awardAchievement(a.id);
+        fenomBus.emit({ type: "ACHIEVEMENT_UNLOCKED", achievementId: a.id });
       }
     }
   }, [ready, habits, completions, xp, celebrateAchievement]);
