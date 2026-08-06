@@ -6,6 +6,7 @@ import { getCount, isComplete, key, DIFFICULTY_XP } from "./stats";
 import { todayISO } from "./date";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
+import { fenomBus } from "@/lib/fenom/bus";
 
 interface StoreValue {
   ready: boolean;
@@ -249,6 +250,11 @@ export function HabitStoreProvider({ children }: { children: ReactNode }) {
     persistCompletion(habitId, date, next);
     const wasComplete = prev >= habit.targetPerDay;
     const nowComplete = next >= habit.targetPerDay;
+    // Announce completions so the mascot/coin system can react. Best-effort:
+    // the bus swallows listener errors and never affects the toggle.
+    if (!wasComplete && nowComplete) {
+      try { fenomBus.emit({ type: "HABIT_COMPLETED", habitId, date }); } catch { /* never break completion */ }
+    }
     return !wasComplete && nowComplete;
   }, [persistCompletion]);
 

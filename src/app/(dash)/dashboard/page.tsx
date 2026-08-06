@@ -6,21 +6,24 @@ import {
   AreaChart, Area, ResponsiveContainer, XAxis, Tooltip, CartesianGrid,
 } from "recharts";
 import {
-  Flame, Trophy, Target, Sparkles, CheckCircle2, Plus, Award, Quote,
+  Flame, Trophy, Target, CheckCircle2, Plus, Award, Quote,
 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth";
 import { useHabits } from "@/lib/momentum/store";
 import {
-  dayProgress, overallStats, levelFromXP, computeAchievements, isScheduled,
+  overallStats, levelFromXP, computeAchievements, isScheduled,
   isComplete, dailyCompletionSeries,
 } from "@/lib/momentum/stats";
 import { todayISO, prettyDate, weekdayShort, lastNDays, diffDays } from "@/lib/momentum/date";
-import { Ring } from "@/components/ui/Ring";
 import { Button } from "@/components/ui/Button";
 import { Heatmap } from "@/components/app/Heatmap";
 import { HabitRow } from "@/components/app/HabitRow";
 import { TeamCard } from "@/components/app/TeamCard";
+import { ProgressBubble } from "@/components/progress/ProgressBubble";
+import { CoinBalance } from "@/components/progress/CoinBalance";
+import { EarnPulse } from "@/components/progress/EarnPulse";
+import { FEATURE_TEAMS } from "@/lib/features";
 import { HabitIcon, colorValue, ACHIEVEMENT_ICONS } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 
@@ -57,7 +60,6 @@ export default function DashboardPage() {
     () => active.filter((h) => isScheduled(h, today) && diffDays(today, h.createdAt) >= 0),
     [active, today],
   );
-  const progress = useMemo(() => dayProgress(habits, completions, today), [habits, completions, today]);
   const stats = useMemo(() => overallStats(habits, completions), [habits, completions]);
   const level = useMemo(() => levelFromXP(xp), [xp]);
   const achievements = useMemo(() => computeAchievements(habits, completions, xp), [habits, completions, xp]);
@@ -108,82 +110,38 @@ export default function DashboardPage() {
             {greeting()}, {user?.name?.split(" ")[0] ?? "friend"}
           </h1>
         </div>
-        <Button href="/habits" className="w-full sm:w-auto">
-          <Plus size={17} /> New habit
-        </Button>
+        <div className="flex items-center gap-3">
+          <CoinBalance />
+          <Button href="/habits" className="hidden sm:inline-flex">
+            <Plus size={17} /> New habit
+          </Button>
+        </div>
       </motion.div>
 
-      {/* Team summary (only shows if the user belongs to a group) */}
-      <TeamCard />
+      {/* Team summary (only shows if the user belongs to a group; hidden in personal-only mode) */}
+      {FEATURE_TEAMS && <TeamCard />}
 
-      <motion.div variants={stagger} initial="hidden" animate="show" className="mt-7 grid grid-cols-1 gap-5 lg:grid-cols-3">
-        {/* Progress hero card */}
-        <motion.div variants={item} className="lg:col-span-2">
-          <div className="relative h-full overflow-hidden rounded-3xl border border-border bg-surface p-6 shadow-[var(--shadow-sm)]">
-            <div aria-hidden className="absolute -right-20 -top-20 h-56 w-56 rounded-full accent-gradient opacity-10 blur-3xl" />
-            <div className="flex flex-col items-center gap-6 sm:flex-row sm:gap-8">
-              <Ring value={progress.pct} size={148} stroke={14}>
-                <div className="text-center">
-                  <p className="text-[34px] font-bold leading-none tracking-tight text-text">{progress.pct}%</p>
-                  <p className="mt-1 text-[12px] text-text-muted">{progress.completed}/{progress.total} done</p>
-                </div>
-              </Ring>
-              <div className="flex-1 text-center sm:text-left">
-                <h2 className="text-[20px] font-semibold text-text">
-                  {progress.total === 0 ? "No habits scheduled today" : progress.pct === 100 ? "A perfect day" : progress.pct >= 50 ? "You're on a roll" : "Let's get moving"}
-                </h2>
-                <p className="mt-1.5 text-[14px] leading-relaxed text-text-secondary">
-                  {progress.total === 0
-                    ? "Add a habit to start building momentum today."
-                    : `${progress.completed} of ${progress.total} habits completed. ${progress.total - progress.completed > 0 ? `${progress.total - progress.completed} to go — you've got this.` : "Every single one — incredible."}`}
-                </p>
-                <div className="mt-5 grid grid-cols-3 gap-3">
-                  <MiniStat icon={Flame} label="Best streak" value={stats.bestCurrentStreak} tint="var(--accent)" />
-                  <MiniStat icon={Trophy} label="Longest" value={stats.bestLongestStreak} tint="var(--c-violet)" />
-                  <MiniStat icon={Target} label="Active" value={stats.activeCount} tint="var(--c-sky)" />
-                </div>
-              </div>
-            </div>
+      {/* Progress bubble hero — the heart of Fenom */}
+      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }} className="mt-6">
+        <div className="relative flex flex-col items-center rounded-3xl border border-border bg-surface px-6 py-9 shadow-[var(--shadow-sm)]">
+          <div aria-hidden className="pointer-events-none absolute -top-16 left-1/2 h-52 w-52 -translate-x-1/2 rounded-full accent-gradient opacity-[0.07] blur-3xl" />
+          <div className="relative">
+            <EarnPulse />
+            <ProgressBubble pct={level.pct} level={level.level} xp={xp} size={244} />
           </div>
-        </motion.div>
-
-        {/* Level / XP card */}
-        <motion.div variants={item}>
-          <div className="relative isolate flex h-full flex-col justify-between overflow-hidden rounded-3xl border border-transparent p-6 text-accent-ink shadow-[var(--shadow-md)]">
-            <div aria-hidden className="absolute inset-0 -z-10 accent-gradient" />
-            <div aria-hidden className="absolute inset-0 -z-10 opacity-25" style={{ background: "radial-gradient(circle at 80% 0%, rgba(255,255,255,0.4), transparent 45%)" }} />
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[color:var(--accent-ink)]/15 backdrop-blur">
-                  <Sparkles size={22} />
-                </span>
-                <div>
-                  <p className="text-[12.5px] font-medium text-accent-ink/70">Level {level.level}</p>
-                  <p className="text-[17px] font-bold leading-tight">{level.title}</p>
-                </div>
-              </div>
-              <p className="text-[13px] font-semibold text-accent-ink/85">{xp} XP</p>
-            </div>
-            <div className="mt-6">
-              <div className="flex items-center justify-between text-[12px] font-medium text-accent-ink/80">
-                <span>{level.into} / {level.need} XP</span>
-                <span>Level {level.level + 1}</span>
-              </div>
-              <div className="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-[color:var(--accent-ink)]/20">
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${level.pct}%` }}
-                  transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-                  className="h-full rounded-full bg-[color:var(--accent-ink)]"
-                />
-              </div>
-              <p className="mt-3 text-[12.5px] text-accent-ink/70">
-                {level.need - level.into} XP until your next level up.
-              </p>
-            </div>
+          <p className="mt-6 text-[14px] font-medium text-text-secondary">
+            {level.need - level.into} XP hasta el Nivel {level.level + 1}
+          </p>
+          <div className="mt-6 grid w-full max-w-md grid-cols-3 gap-3">
+            <MiniStat icon={Flame} label="Best streak" value={stats.bestCurrentStreak} tint="var(--accent)" />
+            <MiniStat icon={Trophy} label="Longest" value={stats.bestLongestStreak} tint="var(--c-violet)" />
+            <MiniStat icon={Target} label="Active" value={stats.activeCount} tint="var(--c-sky)" />
           </div>
-        </motion.div>
+          <Button href="/habits" className="mt-6 w-full sm:hidden"><Plus size={17} /> New habit</Button>
+        </div>
+      </motion.div>
 
+      <motion.div variants={stagger} initial="hidden" animate="show" className="mt-6 grid grid-cols-1 gap-5 lg:grid-cols-3">
         {/* Today's habits */}
         <motion.div variants={item} className="lg:col-span-2">
           <Panel title="Today's habits" action={<Link href="/habits" className="text-[13px] font-medium text-accent hover:underline">Manage</Link>}>

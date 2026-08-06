@@ -7,6 +7,7 @@ import { User, Users, ArrowRight, Check } from "lucide-react";
 import { Wordmark } from "@/components/Wordmark";
 import { Button } from "@/components/ui/Button";
 import { useAuth } from "@/lib/auth";
+import { FEATURE_TEAMS } from "@/lib/features";
 import { isOnboarded } from "@/lib/momentum/onboarding";
 import { cn } from "@/lib/utils";
 
@@ -18,7 +19,12 @@ export default function WelcomePage() {
   const [choice, setChoice] = useState<Choice | null>(null);
   const [saving, setSaving] = useState(false);
 
+  // Personal/coach chooser only exists when Teams is enabled. Otherwise send
+  // users straight into the personal app (onboarding or dashboard).
+  useEffect(() => { if (!FEATURE_TEAMS) router.replace(isOnboarded() ? "/dashboard" : "/onboarding"); }, [router]);
+
   useEffect(() => {
+    if (!FEATURE_TEAMS) return;
     if (ready && !user) router.replace("/login");
     else if (ready && accountType) route(accountType); // already chosen
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -36,7 +42,7 @@ export default function WelcomePage() {
     route(choice);
   }
 
-  if (!ready || !user) {
+  if (!FEATURE_TEAMS || !ready || !user) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-bg">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-accent" />

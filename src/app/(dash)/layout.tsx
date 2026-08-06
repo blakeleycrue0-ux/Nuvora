@@ -9,6 +9,8 @@ import { Wordmark } from "@/components/Wordmark";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Avatar } from "@/components/app/Avatar";
 import { navItems } from "@/components/app/nav";
+import { WorkspaceSwitcher } from "@/components/app/WorkspaceSwitcher";
+import { FEATURE_TEAMS } from "@/lib/features";
 import { ReminderScheduler } from "@/components/ReminderScheduler";
 import { AchievementWatcher } from "@/components/AchievementWatcher";
 import { LevelWatcher } from "@/components/LevelWatcher";
@@ -25,17 +27,17 @@ export default function DashLayout({ children }: { children: ReactNode }) {
     if (!ready) return;
     if (!user) {
       router.replace("/login");
-    } else if (!user.accountType) {
-      router.replace("/welcome"); // hasn't chosen personal vs coach yet
-    } else if (user.accountType === "coach") {
-      router.replace("/coach"); // coaches use the separate coach app
+    } else if (FEATURE_TEAMS && !user.accountType) {
+      router.replace("/welcome"); // (teams only) hasn't chosen personal vs coach yet
+    } else if (FEATURE_TEAMS && user.accountType === "coach") {
+      router.replace("/coach"); // (teams only) coaches use the separate coach app
     } else if (!user.onboarded && !isOnboarded()) {
-      // New personal account that hasn't completed onboarding → send them through it.
+      // New account that hasn't completed onboarding → send them through it.
       router.replace("/onboarding");
     }
   }, [ready, user, router]);
 
-  if (!ready || !user || user.accountType === "coach" || !user.accountType || (!user.onboarded && !isOnboarded())) {
+  if (!ready || !user || (FEATURE_TEAMS && (user.accountType === "coach" || !user.accountType)) || (!user.onboarded && !isOnboarded())) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-bg">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-accent" />
@@ -99,10 +101,12 @@ export default function DashLayout({ children }: { children: ReactNode }) {
       <div className="flex min-h-screen flex-1 flex-col">
         {/* Top bar */}
         <header className="sticky top-0 z-40 flex min-h-16 items-center justify-between gap-3 border-b border-border bg-bg/80 px-4 pt-[env(safe-area-inset-top)] backdrop-blur-xl sm:px-6 lg:px-8">
-          <div className="lg:hidden">
-            <Wordmark size="sm" />
+          <div className="flex items-center gap-2.5">
+            <div className="lg:hidden">
+              <Wordmark size="sm" />
+            </div>
+            {FEATURE_TEAMS && <WorkspaceSwitcher />}
           </div>
-          <div className="hidden lg:block" />
           <div className="flex items-center gap-2.5">
             <ThemeToggle />
             <div className="lg:hidden">

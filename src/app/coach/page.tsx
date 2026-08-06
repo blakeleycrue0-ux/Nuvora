@@ -1,32 +1,37 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
 import {
-  Users, Plus, Check, X, Flame, Trophy, Copy, LogOut, Share2, ArrowRight, ShieldCheck, Loader2, Camera,
+  Users, Plus, Check, X, Flame, Trophy, Copy, LogOut, Share2, ArrowRight, ArrowLeft, ShieldCheck,
+  Loader2, Camera, LayoutGrid, ListChecks, Megaphone, Settings as SettingsIcon, Trash2, Zap,
 } from "lucide-react";
 import { Wordmark } from "@/components/Wordmark";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Toggle } from "@/components/ui/Toggle";
 import { useAuth } from "@/lib/auth";
+import { FEATURE_TEAMS } from "@/lib/features";
 import { HabitIcon, colorValue, HABIT_COLORS } from "@/lib/icons";
 import { todayISO, lastNDays } from "@/lib/momentum/date";
 import {
   createGroup, myOwnedGroups, groupHabits, groupMembers, groupCompletions,
-  addGroupHabit, deleteGroupHabit, streakFor,
-  type TeamGroup, type TeamHabit, type TeamMember, type NewHabit,
+  addGroupHabit, deleteGroupHabit, setMemberRole, removeMember,
+  groupAnnouncements, postAnnouncement, deleteAnnouncement,
+  renameGroup, deleteGroup, buildLeaderboard, streakFor,
+  TASK_TYPES, type LeaderPeriod,
+  type TeamGroup, type TeamHabit, type TeamMember, type NewHabit, type Announcement, type MemberRole,
 } from "@/lib/teams";
 import { cn } from "@/lib/utils";
 
 const SUGGESTED: NewHabit[] = [
-  { name: "Descanso 8h", icon: "bed", color: "c-indigo" },
-  { name: "Hidratación", icon: "glass-water", color: "c-sky" },
-  { name: "Movilidad", icon: "waves", color: "c-teal" },
-  { name: "Entreno individual", icon: "dumbbell", color: "c-rose", verify: true },
-  { name: "Nutrición", icon: "salad", color: "c-emerald" },
-  { name: "Estudio al día", icon: "book-open", color: "c-amber" },
+  { name: "Descanso 8h", icon: "bed", color: "c-indigo", xp: 10 },
+  { name: "Hidratación", icon: "glass-water", color: "c-sky", xp: 10 },
+  { name: "Movilidad", icon: "waves", color: "c-teal", xp: 15 },
+  { name: "Entreno individual", icon: "dumbbell", color: "c-rose", verify: true, type: "ai_photo", xp: 25 },
+  { name: "Nutrición", icon: "salad", color: "c-emerald", xp: 15 },
+  { name: "Ver partido", icon: "target", color: "c-amber", type: "match", xp: 20 },
 ];
 
 export default function CoachPage() {
@@ -34,23 +39,45 @@ export default function CoachPage() {
   const { user, ready, signOut } = useAuth();
   const [groups, setGroups] = useState<TeamGroup[] | null>(null);
   const [active, setActive] = useState<string | null>(null);
+  const [wantsNew, setWantsNew] = useState(false);
+  const isPersonal = user?.accountType === "personal";
+
+  // Teams disabled in personal-only mode: guard direct URL access.
+  useEffect(() => { if (!FEATURE_TEAMS) router.replace("/dashboard"); }, [router]);
+
+  // Read intent from the URL: ?new=1 opens the create flow, ?g=<id> selects a club.
+  useEffect(() => {
+    const p = new URLSearchParams(window.location.search);
+    const isNew = p.get("new") === "1";
+    setWantsNew(isNew); // eslint-disable-line react-hooks/set-state-in-effect
+    const g = p.get("g");
+    if (isNew) setActive("__new__"); // eslint-disable-line react-hooks/set-state-in-effect
+    else if (g) setActive(g); // eslint-disable-line react-hooks/set-state-in-effect
+  }, []);
 
   useEffect(() => {
     if (!ready) return;
     if (!user) { router.replace("/login"); return; }
     if (!user.accountType) { router.replace("/welcome"); return; }
-    if (user.accountType !== "coach") { router.replace("/dashboard"); return; }
   }, [ready, user, router]);
 
   const load = useCallback(async () => {
     const g = await myOwnedGroups();
     setGroups(g);
-    setActive((a) => a ?? g[0]?.id ?? null);
+    setActive((a) => (a && (a === "__new__" || g.some((x) => x.id === a)) ? a : g[0]?.id ?? null));
   }, []);
 
-  useEffect(() => { if (ready && user?.accountType === "coach") void load(); }, [ready, user, load]);
+  // Anyone with an account can manage clubs they own; coaches land here to
+  // create their first club. A personal user with no clubs (and not creating
+  // one) belongs back in their personal app.
+  useEffect(() => {
+    if (ready && user?.accountType) void load();
+  }, [ready, user, load]);
+  useEffect(() => {
+    if (groups && isPersonal && groups.length === 0 && !wantsNew) router.replace("/dashboard");
+  }, [groups, isPersonal, wantsNew, router]);
 
-  if (!ready || !user || user.accountType !== "coach") {
+  if (!FEATURE_TEAMS || !ready || !user || !user.accountType || groups === null) {
     return <div className="flex min-h-screen items-center justify-center bg-bg"><div className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-accent" /></div>;
   }
 
@@ -59,20 +86,25 @@ export default function CoachPage() {
       <header className="sticky top-0 z-40 flex min-h-16 items-center justify-between gap-3 border-b border-border bg-bg/80 px-5 pt-[env(safe-area-inset-top)] backdrop-blur-xl sm:px-8">
         <div className="flex items-center gap-2.5">
           <Wordmark href={null} />
-          <span className="rounded-full border border-border px-2 py-0.5 text-[11px] font-medium text-text-secondary">Entrenador</span>
+          <span className="rounded-full border border-border px-2 py-0.5 text-[11px] font-medium text-text-secondary">Club</span>
         </div>
-        <button onClick={signOut} aria-label="Cerrar sesión" className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-text-muted transition-colors hover:bg-surface-2 hover:text-danger">
-          <LogOut size={17} />
-        </button>
+        <div className="flex items-center gap-2">
+          {isPersonal && (
+            <button onClick={() => router.push("/dashboard")} className="inline-flex h-9 items-center gap-1.5 rounded-lg px-2.5 text-[13px] font-medium text-text-secondary transition-colors hover:bg-surface-2 hover:text-text">
+              <ArrowLeft size={15} /> Mi app personal
+            </button>
+          )}
+          <button onClick={signOut} aria-label="Cerrar sesión" className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-text-muted transition-colors hover:bg-surface-2 hover:text-danger">
+            <LogOut size={17} />
+          </button>
+        </div>
       </header>
 
       <main className="mx-auto max-w-5xl px-5 py-7 sm:px-8 lg:py-10">
-        {groups === null ? (
-          <div className="space-y-4"><div className="h-40 animate-pulse rounded-3xl bg-surface-2" /><div className="h-64 animate-pulse rounded-3xl bg-surface-2" /></div>
-        ) : groups.length === 0 ? (
-          <CreateGroup onCreated={load} coachName={user.name} />
+        {groups.length === 0 ? (
+          <CreateGroup onCreated={async () => { setWantsNew(false); await load(); }} coachName={user.name} />
         ) : (
-          <Dashboard groups={groups} active={active!} setActive={setActive} onNewGroup={() => setActive("__new__")} reload={load} coachName={user.name} />
+          <Dashboard groups={groups} active={active ?? groups[0]?.id ?? "__new__"} setActive={setActive} onNewGroup={() => setActive("__new__")} reload={load} coachName={user.name} />
         )}
       </main>
     </div>
@@ -106,40 +138,24 @@ function CreateGroup({ onCreated, coachName }: { onCreated: () => Promise<void>;
       <div className="flex justify-center">
         <span className="flex h-16 w-16 items-center justify-center rounded-3xl accent-gradient text-accent-ink shadow-[var(--shadow-glow)]"><Users size={30} /></span>
       </div>
-      <h1 className="mt-6 text-center text-[26px] font-semibold tracking-[-0.02em] sm:text-[30px]">Crea tu primer grupo</h1>
-      <p className="mx-auto mt-2 max-w-md text-center text-[14.5px] leading-relaxed text-text-secondary">Ponle nombre y define hasta {MAX_HABITS} hábitos. Puedes usar sugerencias o crear los tuyos.</p>
+      <h1 className="mt-6 text-center text-[26px] font-semibold tracking-[-0.02em] sm:text-[30px]">Crea tu club</h1>
+      <p className="mx-auto mt-2 max-w-md text-center text-[14.5px] leading-relaxed text-text-secondary">Ponle nombre y define hasta {MAX_HABITS} tareas. Puedes usar sugerencias o crear las tuyas.</p>
 
       <div className="mt-7 rounded-3xl border border-border bg-surface p-6">
-        <label className="text-[12.5px] font-semibold text-text-secondary">Nombre del grupo</label>
+        <label className="text-[12.5px] font-semibold text-text-secondary">Nombre del club</label>
         <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Ej. Alevín A, Primer equipo…" className="mt-2" autoFocus />
 
         <div className="mt-6 flex items-center justify-between">
-          <p className="text-[12.5px] font-semibold text-text-secondary">Hábitos ({chosen.length}/{MAX_HABITS})</p>
+          <p className="text-[12.5px] font-semibold text-text-secondary">Tareas ({chosen.length}/{MAX_HABITS})</p>
         </div>
 
-        {/* Chosen habits */}
         <div className="mt-2.5 space-y-2">
-          {chosen.length === 0 && <p className="rounded-2xl border border-dashed border-border p-4 text-center text-[13px] text-text-muted">Añade hábitos abajo o crea uno propio.</p>}
-          {chosen.map((h) => {
-            const val = colorValue(h.color);
-            return (
-              <div key={h.name} className="flex items-center gap-3 rounded-2xl border border-border bg-surface-2 p-3">
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl" style={{ background: `color-mix(in oklab, ${val} 16%, transparent)`, color: val }}><HabitIcon name={h.icon} size={17} /></span>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-[13.5px] font-medium">{h.name}</p>
-                  {h.description && <p className="truncate text-[11.5px] text-text-muted">{h.description}</p>}
-                </div>
-                {h.verify && <span className="inline-flex items-center gap-0.5 text-[10.5px] font-semibold text-accent"><Camera size={11} /> IA</span>}
-                <button onClick={() => remove(h.name)} aria-label="Quitar" className="flex h-7 w-7 items-center justify-center rounded-lg text-text-muted hover:bg-surface hover:text-danger"><X size={15} /></button>
-              </div>
-            );
-          })}
+          {chosen.length === 0 && <p className="rounded-2xl border border-dashed border-border p-4 text-center text-[13px] text-text-muted">Añade tareas abajo o crea una propia.</p>}
+          {chosen.map((h) => <ChosenRow key={h.name} h={h} onRemove={() => remove(h.name)} />)}
         </div>
 
-        {/* Custom habit builder */}
         <CustomHabitForm disabled={chosen.length >= MAX_HABITS} onAdd={add} />
 
-        {/* Suggestions */}
         {chosen.length < MAX_HABITS && (
           <div className="mt-5">
             <p className="text-[12px] font-semibold text-text-muted">Sugerencias</p>
@@ -155,10 +171,26 @@ function CreateGroup({ onCreated, coachName }: { onCreated: () => Promise<void>;
 
         {err && <p className="mt-4 text-[13px] text-danger">{err}</p>}
         <Button size="lg" onClick={create} disabled={busy || chosen.length === 0} className="mt-6 w-full group">
-          {busy ? <Loader2 size={17} className="animate-spin" /> : <>Crear grupo <ArrowRight size={17} className="transition-transform group-hover:translate-x-0.5" /></>}
+          {busy ? <Loader2 size={17} className="animate-spin" /> : <>Crear club <ArrowRight size={17} className="transition-transform group-hover:translate-x-0.5" /></>}
         </Button>
       </div>
     </motion.div>
+  );
+}
+
+function ChosenRow({ h, onRemove }: { h: NewHabit; onRemove: () => void }) {
+  const val = colorValue(h.color);
+  return (
+    <div className="flex items-center gap-3 rounded-2xl border border-border bg-surface-2 p-3">
+      <span className="flex h-9 w-9 items-center justify-center rounded-xl" style={{ background: `color-mix(in oklab, ${val} 16%, transparent)`, color: val }}><HabitIcon name={h.icon} size={17} /></span>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-[13.5px] font-medium">{h.name}</p>
+        {h.description && <p className="truncate text-[11.5px] text-text-muted">{h.description}</p>}
+      </div>
+      <span className="inline-flex items-center gap-0.5 text-[11px] font-semibold text-text-secondary"><Zap size={11} className="text-accent" /> {h.xp ?? 10}</span>
+      {h.verify && <span className="inline-flex items-center gap-0.5 text-[10.5px] font-semibold text-accent"><Camera size={11} /> IA</span>}
+      <button onClick={onRemove} aria-label="Quitar" className="flex h-7 w-7 items-center justify-center rounded-lg text-text-muted hover:bg-surface hover:text-danger"><X size={15} /></button>
+    </div>
   );
 }
 
@@ -170,21 +202,31 @@ function CustomHabitForm({ onAdd, disabled, startOpen, onCancel }: { onAdd: (h: 
   const [desc, setDesc] = useState("");
   const [icon, setIcon] = useState("sparkles");
   const [color, setColor] = useState("c-emerald");
+  const [type, setType] = useState<NewHabit["type"]>("daily");
+  const [xp, setXp] = useState(10);
   const [verify, setVerify] = useState(false);
 
+  const reset = () => { setName(""); setDesc(""); setIcon("sparkles"); setColor("c-emerald"); setType("daily"); setXp(10); setVerify(false); };
   const submit = () => {
     if (!name.trim()) return;
-    void onAdd({ name: name.trim(), description: desc.trim() || undefined, icon, color, verify });
-    setName(""); setDesc(""); setIcon("sparkles"); setColor("c-emerald"); setVerify(false);
+    void onAdd({ name: name.trim(), description: desc.trim() || undefined, icon, color, type, xp, verify });
+    reset();
     if (!startOpen) setOpen(false);
   };
   const cancel = () => { if (startOpen) onCancel?.(); else setOpen(false); };
+
+  // Choosing a verification task type turns on photo verification automatically.
+  const chooseType = (t: NewHabit["type"]) => {
+    setType(t);
+    const meta = TASK_TYPES.find((x) => x.key === t);
+    if (meta?.verify) setVerify(true);
+  };
 
   if (!open) {
     return (
       <button onClick={() => setOpen(true)} disabled={disabled}
         className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-border-strong p-3 text-[13.5px] font-semibold text-accent transition-colors hover:bg-accent-soft disabled:opacity-40">
-        <Plus size={16} /> Crear hábito propio
+        <Plus size={16} /> Crear tarea propia
       </button>
     );
   }
@@ -194,10 +236,24 @@ function CustomHabitForm({ onAdd, disabled, startOpen, onCancel }: { onAdd: (h: 
     <div className="mt-3 rounded-2xl border border-accent/40 bg-accent-soft/40 p-4">
       <div className="flex items-center gap-3">
         <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl" style={{ background: `color-mix(in oklab, ${val} 18%, transparent)`, color: val }}><HabitIcon name={icon} size={20} /></span>
-        <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nombre del hábito" autoFocus />
+        <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nombre de la tarea" autoFocus />
       </div>
       <textarea value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="Descripción (opcional) — qué cuenta como hecho, cómo hacerlo…"
         rows={2} className="mt-2.5 w-full resize-none rounded-xl border border-border bg-surface px-3.5 py-2.5 text-[13.5px] text-text outline-none placeholder:text-text-muted focus:border-accent" />
+
+      <div className="mt-3 grid grid-cols-2 gap-3">
+        <div>
+          <p className="text-[11.5px] font-semibold text-text-muted">Tipo de tarea</p>
+          <select value={type} onChange={(e) => chooseType(e.target.value as NewHabit["type"])}
+            className="mt-1.5 w-full rounded-xl border border-border bg-surface px-3 py-2.5 text-[13px] text-text outline-none focus:border-accent">
+            {TASK_TYPES.map((t) => <option key={t.key} value={t.key}>{t.label}</option>)}
+          </select>
+        </div>
+        <div>
+          <p className="text-[11.5px] font-semibold text-text-muted">XP por completar</p>
+          <Input type="number" min={0} max={500} value={xp} onChange={(e) => setXp(Math.max(0, Number(e.target.value) || 0))} className="mt-1.5" />
+        </div>
+      </div>
 
       <p className="mt-3 text-[11.5px] font-semibold text-text-muted">Icono</p>
       <div className="mt-1.5 flex flex-wrap gap-1.5">
@@ -224,55 +280,48 @@ function CustomHabitForm({ onAdd, disabled, startOpen, onCancel }: { onAdd: (h: 
 
       <div className="mt-4 flex gap-2">
         <button onClick={cancel} className="h-10 flex-1 rounded-xl border border-border text-[13.5px] font-medium text-text-secondary">Cancelar</button>
-        <button onClick={submit} disabled={!name.trim()} className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl accent-gradient text-[13.5px] font-semibold text-accent-ink disabled:opacity-50"><Plus size={15} /> Añadir hábito</button>
+        <button onClick={submit} disabled={!name.trim()} className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl accent-gradient text-[13.5px] font-semibold text-accent-ink disabled:opacity-50"><Plus size={15} /> Añadir tarea</button>
       </div>
     </div>
   );
 }
 
-/* ---------------- dashboard ---------------- */
+/* ---------------- dashboard (tabbed) ---------------- */
+
+type Tab = "overview" | "players" | "tasks" | "leaderboard" | "announcements" | "settings";
+const TABS: { key: Tab; label: string; icon: typeof LayoutGrid }[] = [
+  { key: "overview", label: "Resumen", icon: LayoutGrid },
+  { key: "players", label: "Jugadores", icon: Users },
+  { key: "tasks", label: "Tareas", icon: ListChecks },
+  { key: "leaderboard", label: "Clasificación", icon: Trophy },
+  { key: "announcements", label: "Anuncios", icon: Megaphone },
+  { key: "settings", label: "Ajustes", icon: SettingsIcon },
+];
 
 function Dashboard({ groups, active, setActive, onNewGroup, reload, coachName }: {
   groups: TeamGroup[]; active: string; setActive: (id: string) => void; onNewGroup: () => void; reload: () => Promise<void>; coachName: string;
 }) {
   const creating = active === "__new__";
   const group = groups.find((g) => g.id === active) ?? groups[0];
+  const [tab, setTab] = useState<Tab>("overview");
   const [habits, setHabits] = useState<TeamHabit[]>([]);
   const [members, setMembers] = useState<TeamMember[]>([]);
-  const [comp, setComp] = useState<{ habitId: string; userId: string; date: string }[]>([]);
+  const [comp, setComp] = useState<{ habitId: string; userId: string; date: string; count: number }[]>([]);
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(true);
-  const [copied, setCopied] = useState(false);
-  const [showAddHabit, setShowAddHabit] = useState(false);
 
   const gid = group?.id;
   const loadData = useCallback(async () => {
     if (!gid) return;
     setLoading(true);
     const since = lastNDays(30)[0];
-    const [h, m, c] = await Promise.all([groupHabits(gid), groupMembers(gid), groupCompletions(gid, since)]);
-    setHabits(h); setMembers(m); setComp(c); setLoading(false);
+    const [h, m, c, a] = await Promise.all([groupHabits(gid), groupMembers(gid), groupCompletions(gid, since), groupAnnouncements(gid)]);
+    setHabits(h); setMembers(m); setComp(c); setAnnouncements(a); setLoading(false);
   }, [gid]);
   useEffect(() => { if (!creating) void loadData(); }, [creating, loadData]);
 
   if (creating) return <CreateGroup onCreated={async () => { await reload(); setActive(groups[0]?.id ?? ""); }} coachName={coachName} />;
   if (!group) return null;
-
-  const today = todayISO();
-  const doneToday = new Set(comp.filter((c) => c.date === today).map((c) => `${c.userId}|${c.habitId}`));
-  const week = new Set(lastNDays(7));
-  const stats = members.map((m) => {
-    const dates = new Set(comp.filter((c) => c.userId === m.userId).map((c) => c.date));
-    const weekPts = comp.filter((c) => c.userId === m.userId && week.has(c.date)).length;
-    return { m, streak: streakFor(dates), weekPts };
-  });
-  const ranked = [...stats].sort((a, b) => b.weekPts - a.weekPts || b.streak - a.streak);
-
-  const inviteUrl = typeof window !== "undefined" ? `${window.location.origin}/join?code=${group.inviteCode}` : "";
-  const copy = async () => { try { await navigator.clipboard.writeText(inviteUrl); setCopied(true); setTimeout(() => setCopied(false), 1500); } catch {} };
-  const share = async () => {
-    if (navigator.share) { try { await navigator.share({ title: "Únete a mi equipo en Fenom", text: `Código: ${group.inviteCode}`, url: inviteUrl }); } catch {} }
-    else copy();
-  };
 
   return (
     <div>
@@ -286,129 +335,364 @@ function Dashboard({ groups, active, setActive, onNewGroup, reload, coachName }:
           ) : (
             <h1 className="text-[22px] font-semibold tracking-[-0.02em] sm:text-[26px]">{group.name}</h1>
           )}
-          <span className="text-[13px] text-text-muted">{members.length} {members.length === 1 ? "miembro" : "miembros"}</span>
+          <span className="text-[13px] text-text-muted">{members.length} {members.length === 1 ? "jugador" : "jugadores"}</span>
         </div>
-        <Button size="sm" variant="secondary" onClick={onNewGroup}><Plus size={15} /> Nuevo grupo</Button>
+        <Button size="sm" variant="secondary" onClick={onNewGroup}><Plus size={15} /> Nuevo club</Button>
       </div>
 
-      {/* Invite card */}
-      <div className="mt-5 rounded-3xl border border-accent/40 bg-surface p-5 shadow-[var(--shadow-glow)]">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <p className="text-[12.5px] font-medium text-text-muted">Código de invitación</p>
-            <p className="mt-0.5 font-mono text-[30px] font-bold tracking-[0.18em] text-text">{group.inviteCode}</p>
-          </div>
-          <div className="flex gap-2">
-            <Button size="sm" variant="secondary" onClick={copy}><Copy size={15} /> {copied ? "Copiado" : "Copiar enlace"}</Button>
-            <Button size="sm" onClick={share}><Share2 size={15} /> Compartir</Button>
-          </div>
-        </div>
-        <p className="mt-3 text-[12.5px] text-text-secondary">Comparte el código o el enlace. Tu equipo entra, se une y empieza a registrar.</p>
+      {/* Tabs */}
+      <div className="mt-5 flex gap-1 overflow-x-auto rounded-2xl border border-border bg-surface p-1">
+        {TABS.map((t) => {
+          const Icon = t.icon;
+          return (
+            <button key={t.key} onClick={() => setTab(t.key)}
+              className={cn("inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3.5 py-2 text-[13px] font-medium transition-colors",
+                tab === t.key ? "bg-accent-soft text-accent" : "text-text-secondary hover:text-text")}>
+              <Icon size={15} /> {t.label}
+            </button>
+          );
+        })}
       </div>
 
-      {loading ? (
-        <div className="mt-5 h-64 animate-pulse rounded-3xl bg-surface-2" />
-      ) : members.length === 0 ? (
-        <div className="mt-5 flex flex-col items-center gap-3 rounded-3xl border border-dashed border-border py-16 text-center">
+      <div className="mt-5">
+        {loading ? (
+          <div className="h-64 animate-pulse rounded-3xl bg-surface-2" />
+        ) : tab === "overview" ? (
+          <OverviewTab group={group} habits={habits} members={members} comp={comp} />
+        ) : tab === "players" ? (
+          <PlayersTab members={members} comp={comp} onChange={loadData} />
+        ) : tab === "tasks" ? (
+          <TasksTab group={group} habits={habits} onChange={loadData} />
+        ) : tab === "leaderboard" ? (
+          <LeaderboardTab members={members} habits={habits} comp={comp} />
+        ) : tab === "announcements" ? (
+          <AnnouncementsTab group={group} items={announcements} onChange={loadData} />
+        ) : (
+          <SettingsTab group={group} onChange={reload} />
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- invite card (shared) ---------------- */
+
+function InviteCard({ group }: { group: TeamGroup }) {
+  const [copied, setCopied] = useState(false);
+  const inviteUrl = typeof window !== "undefined" ? `${window.location.origin}/join?code=${group.inviteCode}` : "";
+  const copy = async () => { try { await navigator.clipboard.writeText(inviteUrl); setCopied(true); setTimeout(() => setCopied(false), 1500); } catch {} };
+  const share = async () => {
+    if (navigator.share) { try { await navigator.share({ title: "Únete a mi club en Fenom", text: `Código: ${group.inviteCode}`, url: inviteUrl }); } catch {} }
+    else copy();
+  };
+  return (
+    <div className="rounded-3xl border border-accent/40 bg-surface p-5 shadow-[var(--shadow-glow)]">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <p className="text-[12.5px] font-medium text-text-muted">Código de invitación</p>
+          <p className="mt-0.5 font-mono text-[30px] font-bold tracking-[0.18em] text-text">{group.inviteCode}</p>
+        </div>
+        <div className="flex gap-2">
+          <Button size="sm" variant="secondary" onClick={copy}><Copy size={15} /> {copied ? "Copiado" : "Copiar enlace"}</Button>
+          <Button size="sm" onClick={share}><Share2 size={15} /> Compartir</Button>
+        </div>
+      </div>
+      <p className="mt-3 text-[12.5px] text-text-secondary">Comparte el código o el enlace. Tus jugadores entran, se unen y empiezan a registrar.</p>
+    </div>
+  );
+}
+
+/* ---------------- overview ---------------- */
+
+function OverviewTab({ group, habits, members, comp }: { group: TeamGroup; habits: TeamHabit[]; members: TeamMember[]; comp: { habitId: string; userId: string; date: string; count: number }[] }) {
+  const today = todayISO();
+  const board = useMemo(() => buildLeaderboard(members, habits, comp, "week", 7), [members, habits, comp]);
+  const doneToday = comp.filter((c) => c.date === today).length;
+  const possibleToday = habits.length * members.length;
+  const todayPct = possibleToday ? Math.round((doneToday / possibleToday) * 100) : 0;
+  const top = board[0];
+
+  return (
+    <div className="space-y-5">
+      <InviteCard group={group} />
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard icon={Users} label="Jugadores" value={String(members.length)} />
+        <StatCard icon={ListChecks} label="Tareas" value={String(habits.length)} />
+        <StatCard icon={ShieldCheck} label="Cumplimiento hoy" value={`${todayPct}%`} />
+        <StatCard icon={Trophy} label="Líder" value={top ? top.member.displayName : "—"} sub={top ? `${top.xp} XP` : undefined} />
+      </div>
+      {members.length === 0 && (
+        <div className="flex flex-col items-center gap-3 rounded-3xl border border-dashed border-border py-16 text-center">
           <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-accent-soft text-accent"><Users size={26} /></span>
           <div>
-            <p className="text-[15px] font-semibold">Aún no hay nadie en el grupo</p>
+            <p className="text-[15px] font-semibold">Aún no hay nadie en el club</p>
             <p className="mt-1 text-[13px] text-text-muted">Comparte el código de arriba para que tu equipo se una.</p>
           </div>
         </div>
-      ) : (
-        <div className="mt-5 grid gap-4 lg:grid-cols-[1.7fr_1fr]">
-          {/* Compliance grid */}
-          <div className="overflow-hidden rounded-3xl border border-border bg-surface shadow-[var(--shadow-sm)]">
-            <div className="flex items-center justify-between border-b border-border p-4">
-              <p className="text-[15px] font-semibold">Hoy</p>
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-border px-2.5 py-1 text-[11px] font-medium text-text-secondary"><ShieldCheck size={12} className="text-accent" /> Sin fotos</span>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[460px] text-left">
-                <thead>
-                  <tr className="text-text-muted">
-                    <th className="p-3 text-[12px] font-medium">Miembro</th>
-                    {habits.map((h) => (
-                      <th key={h.id} className="p-2 text-center">
-                        <span className="mx-auto flex h-7 w-7 items-center justify-center rounded-lg" style={{ background: `color-mix(in oklab, ${colorValue(h.color)} 15%, transparent)`, color: colorValue(h.color) }} title={h.name}><HabitIcon name={h.icon} size={14} /></span>
-                      </th>
-                    ))}
-                    <th className="p-3 text-center text-[12px] font-medium">Racha</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {members.map((m) => {
-                    const st = stats.find((s) => s.m.userId === m.userId)!;
-                    return (
-                      <tr key={m.id} className="border-t border-border">
-                        <td className="p-3"><div className="flex items-center gap-2.5"><Avatar name={m.displayName} /><span className="text-[13.5px] font-medium">{m.displayName}</span></div></td>
-                        {habits.map((h) => {
-                          const done = doneToday.has(`${m.userId}|${h.id}`);
-                          return <td key={h.id} className="p-2 text-center"><span className={cn("mx-auto flex h-6 w-6 items-center justify-center rounded-full", done ? "bg-accent-soft text-accent" : "bg-surface-2 text-text-muted")}>{done ? <Check size={13} strokeWidth={3} /> : <X size={11} strokeWidth={2.5} />}</span></td>;
-                        })}
-                        <td className="p-3 text-center"><span className="inline-flex items-center gap-1 text-[13px] font-semibold"><Flame size={13} className="text-accent" />{st.streak}</span></td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
+      )}
+    </div>
+  );
+}
 
-          {/* Leaderboard */}
-          <div className="rounded-3xl border border-border bg-surface p-5 shadow-[var(--shadow-sm)]">
-            <div className="flex items-center gap-2"><Trophy size={18} className="text-accent" /><p className="text-[15px] font-semibold">Clasificación</p></div>
-            <p className="mt-0.5 text-[12.5px] text-text-muted">Esta semana</p>
-            <div className="mt-4 space-y-2">
-              {ranked.map((s, i) => (
-                <div key={s.m.id} className={cn("flex items-center gap-3 rounded-2xl border p-2.5", i === 0 ? "border-accent/40 bg-accent-soft" : "border-border")}>
-                  <span className={cn("flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[12px] font-bold", i === 0 ? "accent-gradient text-accent-ink" : "bg-surface-2 text-text-secondary")}>{i + 1}</span>
-                  <Avatar name={s.m.displayName} />
-                  <span className="flex-1 truncate text-[13.5px] font-medium">{s.m.displayName}</span>
-                  <span className="text-[13px] font-semibold">{s.weekPts * 10}</span>
-                </div>
-              ))}
-            </div>
+function StatCard({ icon: Icon, label, value, sub }: { icon: typeof Users; label: string; value: string; sub?: string }) {
+  return (
+    <div className="rounded-3xl border border-border bg-surface p-5 shadow-[var(--shadow-sm)]">
+      <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-accent-soft text-accent"><Icon size={18} /></span>
+      <p className="mt-3 truncate text-[22px] font-semibold text-text">{value}</p>
+      <p className="text-[12.5px] text-text-muted">{label}{sub ? ` · ${sub}` : ""}</p>
+    </div>
+  );
+}
+
+/* ---------------- players (compliance + roles) ---------------- */
+
+const ROLE_LABELS: Record<MemberRole, string> = {
+  owner: "Propietario", admin: "Administrador", coach: "Entrenador", assistant: "Ayudante", player: "Jugador",
+};
+const ROLE_OPTIONS: MemberRole[] = ["player", "assistant", "coach", "admin"];
+
+function PlayersTab({ members, comp, onChange }: { members: TeamMember[]; comp: { habitId: string; userId: string; date: string }[]; onChange: () => Promise<void> }) {
+  const stats = useMemo(() => {
+    return members.map((m) => {
+      const dates = new Set(comp.filter((c) => c.userId === m.userId).map((c) => c.date));
+      return { m, streak: streakFor(dates) };
+    });
+  }, [members, comp]);
+
+  if (members.length === 0) return <Empty icon={Users} title="Aún no hay jugadores" sub="Comparte el código de invitación desde Resumen o Ajustes." />;
+
+  return (
+    <div className="space-y-2.5">
+      {stats.map(({ m, streak }) => (
+        <div key={m.id} className="flex flex-wrap items-center gap-3 rounded-2xl border border-border bg-surface p-3.5">
+          <Avatar name={m.displayName} />
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-[14px] font-semibold text-text">{m.displayName}</p>
+            <p className="text-[12px] text-text-muted">{ROLE_LABELS[m.role]}</p>
           </div>
+          <span className="inline-flex items-center gap-1 text-[13px] font-semibold"><Flame size={13} className="text-accent" /> {streak}</span>
+          <select value={m.role} onChange={async (e) => { await setMemberRole(m.id, e.target.value as MemberRole); await onChange(); }}
+            className="rounded-lg border border-border bg-surface px-2.5 py-1.5 text-[12.5px] text-text-secondary outline-none focus:border-accent">
+            {ROLE_OPTIONS.map((r) => <option key={r} value={r}>{ROLE_LABELS[r]}</option>)}
+          </select>
+          <button onClick={async () => { if (confirm(`¿Quitar a ${m.displayName} del club?`)) { await removeMember(m.id); await onChange(); } }}
+            aria-label="Quitar" className="flex h-8 w-8 items-center justify-center rounded-lg text-text-muted hover:bg-surface-2 hover:text-danger"><X size={16} /></button>
+        </div>
+      ))}
+      <p className="pt-2 text-center text-[11.5px] text-text-muted"><ShieldCheck size={11} className="mr-1 inline text-accent" /> Nunca ves las fotos de verificación, solo si la tarea está hecha.</p>
+    </div>
+  );
+}
+
+/* ---------------- tasks management ---------------- */
+
+function TasksTab({ group, habits, onChange }: { group: TeamGroup; habits: TeamHabit[]; onChange: () => Promise<void> }) {
+  const [showAdd, setShowAdd] = useState(false);
+  return (
+    <div className="rounded-3xl border border-border bg-surface p-5">
+      <div className="flex items-center justify-between">
+        <p className="text-[13px] font-semibold text-text-secondary">Tareas del club ({habits.length})</p>
+        {habits.length < MAX_HABITS && !showAdd && (
+          <button onClick={() => setShowAdd(true)} className="inline-flex items-center gap-1 text-[13px] font-semibold text-accent"><Plus size={15} /> Añadir tarea</button>
+        )}
+      </div>
+
+      <div className="mt-3 space-y-2">
+        {habits.length === 0 && <p className="rounded-2xl border border-dashed border-border p-4 text-center text-[13px] text-text-muted">Aún no hay tareas. Añade la primera.</p>}
+        {habits.map((h) => {
+          const val = colorValue(h.color);
+          const typeLabel = TASK_TYPES.find((t) => t.key === h.type)?.label ?? h.type;
+          return (
+            <div key={h.id} className="flex items-center gap-3 rounded-2xl border border-border bg-surface-2 p-3">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl" style={{ background: `color-mix(in oklab, ${val} 16%, transparent)`, color: val }}><HabitIcon name={h.icon} size={17} /></span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-[13.5px] font-medium text-text">{h.name}</p>
+                <p className="truncate text-[11.5px] text-text-muted">{typeLabel}{h.description ? ` · ${h.description}` : ""}</p>
+              </div>
+              <span className="inline-flex items-center gap-0.5 text-[11px] font-semibold text-text-secondary"><Zap size={11} className="text-accent" /> {h.xp}</span>
+              {h.verify && <span className="inline-flex items-center gap-0.5 text-[10.5px] font-semibold text-accent"><Camera size={11} /> IA</span>}
+              <button onClick={async () => { if (confirm(`¿Quitar "${h.name}"?`)) { await deleteGroupHabit(h.id); await onChange(); } }} aria-label="Quitar" className="flex h-7 w-7 items-center justify-center rounded-lg text-text-muted hover:bg-surface hover:text-danger"><X size={15} /></button>
+            </div>
+          );
+        })}
+      </div>
+
+      {showAdd && habits.length < MAX_HABITS && (
+        <div className="mt-3">
+          <CustomHabitForm disabled={false} startOpen onCancel={() => setShowAdd(false)} onAdd={async (h) => {
+            await addGroupHabit(group.id, h, habits.length);
+            setShowAdd(false);
+            await onChange();
+          }} />
         </div>
       )}
+      {habits.length >= MAX_HABITS && <p className="mt-3 text-center text-[11.5px] text-text-muted">Has alcanzado el máximo de {MAX_HABITS} tareas del plan gratuito.</p>}
+    </div>
+  );
+}
 
-      {/* Habits management */}
-      <div className="mt-5 rounded-3xl border border-border bg-surface p-5">
-        <div className="flex items-center justify-between">
-          <p className="text-[13px] font-semibold text-text-secondary">Hábitos del grupo ({habits.length})</p>
-          {habits.length < MAX_HABITS && !showAddHabit && (
-            <button onClick={() => setShowAddHabit(true)} className="inline-flex items-center gap-1 text-[13px] font-semibold text-accent"><Plus size={15} /> Añadir hábito</button>
-          )}
+/* ---------------- leaderboard ---------------- */
+
+const PERIODS: { key: LeaderPeriod; label: string; days: number }[] = [
+  { key: "today", label: "Hoy", days: 1 },
+  { key: "week", label: "Semana", days: 7 },
+  { key: "month", label: "Mes", days: 30 },
+  { key: "season", label: "Temporada", days: 3650 },
+  { key: "all", label: "Histórico", days: 3650 },
+];
+
+function LeaderboardTab({ members, habits, comp }: { members: TeamMember[]; habits: TeamHabit[]; comp: { habitId: string; userId: string; date: string; count: number }[] }) {
+  const [period, setPeriod] = useState<LeaderPeriod>("week");
+  const days = PERIODS.find((p) => p.key === period)!.days;
+  const board = useMemo(() => buildLeaderboard(members, habits, comp, period, days), [members, habits, comp, period, days]);
+
+  if (members.length === 0) return <Empty icon={Trophy} title="Sin clasificación todavía" sub="Cuando tus jugadores se unan y completen tareas aparecerán aquí." />;
+
+  return (
+    <div>
+      <div className="flex flex-wrap gap-1.5">
+        {PERIODS.map((p) => (
+          <button key={p.key} onClick={() => setPeriod(p.key)}
+            className={cn("rounded-full border px-3.5 py-1.5 text-[12.5px] font-medium transition-colors", period === p.key ? "border-accent bg-accent-soft text-accent" : "border-border text-text-secondary hover:text-text")}>
+            {p.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="mt-4 overflow-hidden rounded-3xl border border-border bg-surface shadow-[var(--shadow-sm)]">
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[520px] text-left">
+            <thead>
+              <tr className="text-text-muted">
+                <th className="p-3 text-[12px] font-medium">#</th>
+                <th className="p-3 text-[12px] font-medium">Jugador</th>
+                <th className="p-3 text-center text-[12px] font-medium">Nivel</th>
+                <th className="p-3 text-center text-[12px] font-medium">Racha</th>
+                <th className="p-3 text-center text-[12px] font-medium">Tareas</th>
+                <th className="p-3 text-center text-[12px] font-medium">%</th>
+                <th className="p-3 text-right text-[12px] font-medium">XP</th>
+              </tr>
+            </thead>
+            <tbody>
+              {board.map((r, i) => (
+                <tr key={r.member.id} className={cn("border-t border-border", i === 0 && "bg-accent-soft/50")}>
+                  <td className="p-3"><span className={cn("flex h-6 w-6 items-center justify-center rounded-full text-[12px] font-bold", i === 0 ? "accent-gradient text-accent-ink" : "bg-surface-2 text-text-secondary")}>{i + 1}</span></td>
+                  <td className="p-3"><div className="flex items-center gap-2.5"><Avatar name={r.member.displayName} /><span className="text-[13.5px] font-medium">{r.member.displayName}</span></div></td>
+                  <td className="p-3 text-center text-[13px] font-semibold">{r.level}</td>
+                  <td className="p-3 text-center"><span className="inline-flex items-center gap-1 text-[13px] font-semibold"><Flame size={12} className="text-accent" />{r.streak}</span></td>
+                  <td className="p-3 text-center text-[13px]">{r.completed}</td>
+                  <td className="p-3 text-center text-[13px]">{r.completionRate}%</td>
+                  <td className="p-3 text-right text-[13.5px] font-bold text-accent">{r.xp}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
+      </div>
+    </div>
+  );
+}
 
-        <div className="mt-3 space-y-2">
-          {habits.map((h) => {
-            const val = colorValue(h.color);
-            return (
-              <div key={h.id} className="flex items-center gap-3 rounded-2xl border border-border bg-surface-2 p-3">
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl" style={{ background: `color-mix(in oklab, ${val} 16%, transparent)`, color: val }}><HabitIcon name={h.icon} size={17} /></span>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-[13.5px] font-medium text-text">{h.name}</p>
-                  {h.description && <p className="truncate text-[11.5px] text-text-muted">{h.description}</p>}
+/* ---------------- announcements ---------------- */
+
+function AnnouncementsTab({ group, items, onChange }: { group: TeamGroup; items: Announcement[]; onChange: () => Promise<void> }) {
+  const [title, setTitle] = useState("");
+  const [body, setBody] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  const post = async () => {
+    if (!title.trim()) return;
+    setBusy(true);
+    try { await postAnnouncement(group.id, title, body); setTitle(""); setBody(""); await onChange(); }
+    finally { setBusy(false); }
+  };
+
+  return (
+    <div className="space-y-5">
+      <div className="rounded-3xl border border-border bg-surface p-5">
+        <p className="text-[13px] font-semibold text-text-secondary">Nuevo anuncio</p>
+        <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Título — ej. Partido el sábado 10:00" className="mt-3" />
+        <textarea value={body} onChange={(e) => setBody(e.target.value)} placeholder="Mensaje para el equipo (opcional)" rows={3}
+          className="mt-2.5 w-full resize-none rounded-xl border border-border bg-surface px-3.5 py-2.5 text-[13.5px] text-text outline-none placeholder:text-text-muted focus:border-accent" />
+        <Button size="sm" onClick={post} disabled={busy || !title.trim()} className="mt-3">
+          {busy ? <Loader2 size={15} className="animate-spin" /> : <><Megaphone size={15} /> Publicar</>}
+        </Button>
+      </div>
+
+      {items.length === 0 ? (
+        <Empty icon={Megaphone} title="Sin anuncios" sub="Publica novedades, convocatorias o recordatorios para tu equipo." />
+      ) : (
+        <div className="space-y-2.5">
+          {items.map((a) => (
+            <div key={a.id} className="rounded-2xl border border-border bg-surface p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-[14.5px] font-semibold text-text">{a.title}</p>
+                  {a.body && <p className="mt-1 whitespace-pre-wrap text-[13px] leading-relaxed text-text-secondary">{a.body}</p>}
+                  <p className="mt-2 text-[11.5px] text-text-muted">{new Date(a.createdAt).toLocaleDateString("es", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" })}</p>
                 </div>
-                {h.verify && <span className="inline-flex items-center gap-0.5 text-[10.5px] font-semibold text-accent"><Camera size={11} /> IA</span>}
-                <button onClick={async () => { if (confirm(`¿Quitar "${h.name}"?`)) { await deleteGroupHabit(h.id); void loadData(); } }} aria-label="Quitar" className="flex h-7 w-7 items-center justify-center rounded-lg text-text-muted hover:bg-surface hover:text-danger"><X size={15} /></button>
+                <button onClick={async () => { if (confirm("¿Eliminar este anuncio?")) { await deleteAnnouncement(a.id); await onChange(); } }}
+                  aria-label="Eliminar" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-text-muted hover:bg-surface-2 hover:text-danger"><Trash2 size={15} /></button>
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
+      )}
+    </div>
+  );
+}
 
-        {showAddHabit && habits.length < MAX_HABITS && (
-          <div className="mt-3">
-            <CustomHabitForm disabled={false} startOpen onCancel={() => setShowAddHabit(false)} onAdd={async (h) => {
-              await addGroupHabit(group.id, h, habits.length);
-              setShowAddHabit(false);
-              void loadData();
-            }} />
-          </div>
-        )}
+/* ---------------- settings ---------------- */
+
+function SettingsTab({ group, onChange }: { group: TeamGroup; onChange: () => Promise<void> }) {
+  const [name, setName] = useState(group.name);
+  const [busy, setBusy] = useState(false);
+  const router = useRouter();
+
+  const save = async () => {
+    if (!name.trim() || name.trim() === group.name) return;
+    setBusy(true);
+    try { await renameGroup(group.id, name); await onChange(); } finally { setBusy(false); }
+  };
+  const remove = async () => {
+    if (!confirm(`¿Eliminar el club "${group.name}"? Esta acción no se puede deshacer.`)) return;
+    await deleteGroup(group.id);
+    await onChange();
+    router.refresh();
+  };
+
+  return (
+    <div className="space-y-5">
+      <InviteCard group={group} />
+      <div className="rounded-3xl border border-border bg-surface p-5">
+        <p className="text-[13px] font-semibold text-text-secondary">Nombre del club</p>
+        <div className="mt-2 flex gap-2">
+          <Input value={name} onChange={(e) => setName(e.target.value)} />
+          <Button size="sm" onClick={save} disabled={busy || !name.trim() || name.trim() === group.name}>
+            {busy ? <Loader2 size={15} className="animate-spin" /> : "Guardar"}
+          </Button>
+        </div>
+      </div>
+      <div className="rounded-3xl border border-danger/30 bg-surface p-5">
+        <p className="text-[13px] font-semibold text-danger">Zona de peligro</p>
+        <p className="mt-1 text-[12.5px] text-text-muted">Eliminar el club borra sus tareas, jugadores y registros.</p>
+        <button onClick={remove} className="mt-3 inline-flex items-center gap-1.5 rounded-xl border border-danger/40 px-3.5 py-2 text-[13px] font-semibold text-danger hover:bg-danger/10">
+          <Trash2 size={15} /> Eliminar club
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- shared bits ---------------- */
+
+function Empty({ icon: Icon, title, sub }: { icon: typeof Users; title: string; sub: string }) {
+  return (
+    <div className="flex flex-col items-center gap-3 rounded-3xl border border-dashed border-border py-16 text-center">
+      <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-accent-soft text-accent"><Icon size={26} /></span>
+      <div>
+        <p className="text-[15px] font-semibold">{title}</p>
+        <p className="mx-auto mt-1 max-w-xs text-[13px] text-text-muted">{sub}</p>
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-const SITE = "https://nuvora0.netlify.app";
+const SITE = "https://fenom.app";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();

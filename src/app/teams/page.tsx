@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { TeamsLanding } from "./TeamsLanding";
+import { FEATURE_TEAMS } from "@/lib/features";
 
 export const metadata: Metadata = {
   title: "Fenom para equipos — los hábitos que marcan la diferencia",
@@ -16,5 +18,7 @@ export const metadata: Metadata = {
 };
 
 export default function TeamsPage() {
+  // Teams marketing page is hidden in personal-only mode.
+  if (!FEATURE_TEAMS) redirect("/");
   return <TeamsLanding />;
 }
