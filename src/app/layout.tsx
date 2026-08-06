@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   title: "Fenom — Build habits that actually stick",
   description:
     "The most beautiful way to build habits. Streaks, heatmaps, analytics, XP and gorgeous dashboards — designed to make consistency feel effortless.",
-  metadataBase: new URL("https://nuvora0.netlify.app"),
+  metadataBase: new URL("https://fenom.app"),
   applicationName: "Fenom",
   keywords: ["habit tracker", "habits", "streaks", "productivity", "routine", "momentum"],
   alternates: { canonical: "/" },
