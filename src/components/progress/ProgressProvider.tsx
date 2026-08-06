@@ -12,6 +12,7 @@ import {
   ensureMascot, getTransactions,
   awardHabitCompletion, awardDayCompleted, awardLevelUp, awardStreakMilestone,
 } from "@/lib/fenom/mascot";
+import { ensureProfile } from "@/lib/fenom/leaderboard";
 import type { CoinTransaction } from "@/lib/fenom/types";
 
 // A transient "you earned this" pulse for the XP/coin fly-in animation.
@@ -48,6 +49,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     let active = true;
     (async () => {
       await ensureMascot();          // idempotent: seeds the welcome coin bonus
+      await ensureProfile();         // idempotent: joins the global leaderboard
       const txns = await getTransactions();
       if (!active) return;
       setTransactions(txns); setReady(true);
