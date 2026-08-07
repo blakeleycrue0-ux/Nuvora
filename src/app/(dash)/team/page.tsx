@@ -59,9 +59,9 @@ export default function TeamPage() {
   }, []);
   useEffect(() => { if (ready && user) void loadGroups(); }, [ready, user, loadGroups]);
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (silent = false) => {
     if (!gid) { setLoading(false); return; }
-    setLoading(true);
+    if (!silent) setLoading(true); // silent refresh (after marking) avoids the skeleton flash + scroll jump
     const since = lastNDays(21)[0];
     const fromISO = new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString();
     const [h, c, a, mine, ss, mates] = await Promise.all([groupHabits(gid), myGroupCompletions(gid, since), groupAnnouncements(gid), myMembership(gid), listSessions(gid, fromISO), groupMembers(gid)]);
@@ -93,7 +93,7 @@ export default function TeamPage() {
       fire(x, y); celebrateXP(h.xp, x, y);
     }
     await setGroupCompletion(gid, h.id, !done);
-    void load();
+    void load(true); // silent: no skeleton, no scroll jump
   };
   const onApproved = async () => {
     if (!gid || !verify) return;
@@ -101,7 +101,7 @@ export default function TeamPage() {
     const x = window.innerWidth / 2, y = window.innerHeight / 2;
     fire(x, y); celebrateXP(verify.xp, x, y);
     await setGroupCompletion(gid, verify.id, true);
-    void load();
+    void load(true);
   };
 
   if (!FEATURE_TEAMS || !ready || !user || groups === null) {
@@ -171,7 +171,7 @@ export default function TeamPage() {
                 <p className="mt-4 text-[13.5px] font-medium text-text-secondary">Hoy · {doneCount} de {habits.length} completado{habits.length === 1 ? "" : "s"}</p>
               </div>
 
-              {membership && <PlayerCard groupId={group.id} membership={membership} onSaved={load} />}
+              {membership && <PlayerCard groupId={group.id} membership={membership} onSaved={() => load(true)} />}
 
               {/* Upcoming sessions — RSVP */}
               {sessions.filter((s) => new Date(s.startsAt) >= new Date()).length > 0 && (
