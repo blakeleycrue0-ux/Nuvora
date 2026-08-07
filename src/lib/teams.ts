@@ -12,8 +12,26 @@ export interface TeamGroup {
   ownerId: string;
   createdAt: string;
   sport: string;
-  color: string;   // accent hex
-  crest?: string;  // emoji / short badge
+  color: string;    // accent hex
+  crest?: string;   // emoji / short badge
+  crestUrl?: string; // uploaded crest image
+}
+
+export type SessionKind = "training" | "match" | "other";
+export interface TeamSession {
+  id: string;
+  groupId: string;
+  title: string;
+  kind: SessionKind;
+  startsAt: string;   // ISO
+  location?: string;
+  notes?: string;
+}
+export type AttendanceStatus = "going" | "maybe" | "out";
+export interface Attendance {
+  sessionId: string;
+  userId: string;
+  status: AttendanceStatus;
 }
 
 export const SPORTS: { key: string; label: string }[] = [
@@ -115,8 +133,8 @@ function newCode(len = 6): string {
 
 /* ---------------- rows → types ---------------- */
 
-type GroupRow = { id: string; name: string; invite_code: string; owner_id: string; created_at: string; sport?: string | null; color?: string | null; crest?: string | null };
-const toGroup = (r: GroupRow): TeamGroup => ({ id: r.id, name: r.name, inviteCode: r.invite_code, ownerId: r.owner_id, createdAt: r.created_at, sport: r.sport ?? "football", color: r.color ?? "#45c68e", crest: r.crest ?? undefined });
+type GroupRow = { id: string; name: string; invite_code: string; owner_id: string; created_at: string; sport?: string | null; color?: string | null; crest?: string | null; crest_url?: string | null };
+const toGroup = (r: GroupRow): TeamGroup => ({ id: r.id, name: r.name, inviteCode: r.invite_code, ownerId: r.owner_id, createdAt: r.created_at, sport: r.sport ?? "football", color: r.color ?? "#45c68e", crest: r.crest ?? undefined, crestUrl: r.crest_url ?? undefined });
 
 type HabitRow = { id: string; group_id: string; name: string; description: string | null; icon: string; color: string; difficulty: string; verify: boolean; type: string | null; xp: number | null; due_date: string | null; sort: number };
 const toHabit = (r: HabitRow): TeamHabit => ({ id: r.id, groupId: r.group_id, name: r.name, description: r.description ?? undefined, icon: r.icon, color: r.color, difficulty: r.difficulty, verify: r.verify, type: (r.type as TaskType) ?? "daily", xp: r.xp ?? 10, dueDate: r.due_date ?? undefined, sort: r.sort });
@@ -166,14 +184,72 @@ export async function renameGroup(groupId: string, name: string): Promise<void> 
 }
 
 // Club identity — editable by managers (owner/admin/coach) via RLS.
-export async function updateGroupIdentity(groupId: string, patch: { name?: string; sport?: string; color?: string; crest?: string | null }): Promise<void> {
+export async function updateGroupIdentity(groupId: string, patch: { name?: string; sport?: string; color?: string; crest?: string | null; crestUrl?: string | null }): Promise<void> {
   const row: Record<string, unknown> = {};
   if (patch.name !== undefined) row.name = patch.name.trim();
   if (patch.sport !== undefined) row.sport = patch.sport;
   if (patch.color !== undefined) row.color = patch.color;
   if (patch.crest !== undefined) row.crest = patch.crest?.trim() || null;
+  if (patch.crestUrl !== undefined) row.crest_url = patch.crestUrl || null;
   if (!Object.keys(row).length) return;
   const { error } = await supabase.from("groups").update(row).eq("id", groupId);
+  if (error) throw new Error(error.message);
+}
+
+// Upload a club crest image to Storage and save its public URL on the group.
+export async function uploadCrest(groupId: string, file: File): Promise<string> {
+  const ext = (file.name.split(".").pop() || "png").toLowerCase();
+  const path = `${groupId}/${Date.now()}.${ext}`;
+  const { error } = await supabase.storage.from("crests").upload(path, file, { upsert: true, contentType: file.type });
+  if (error) throw new Error(error.message);
+  const { data } = supabase.storage.from("crests").getPublicUrl(path);
+  await updateGroupIdentity(groupId, { crestUrl: data.publicUrl });
+  return data.publicUrl;
+}
+
+/* ---------------- sessions & attendance ---------------- */
+
+type SessionRow = { id: string; group_id: string; title: string; kind: string; starts_at: string; location: string | null; notes: string | null };
+const toSession = (r: SessionRow): TeamSession => ({ id: r.id, groupId: r.group_id, title: r.title, kind: (r.kind as SessionKind) ?? "training", startsAt: r.starts_at, location: r.location ?? undefined, notes: r.notes ?? undefined });
+
+export async function listSessions(groupId: string, fromISO?: string): Promise<TeamSession[]> {
+  let q = supabase.from("group_sessions").select("*").eq("group_id", groupId).order("starts_at");
+  if (fromISO) q = q.gte("starts_at", fromISO);
+  const { data, error } = await q;
+  if (error || !data) return [];
+  return (data as SessionRow[]).map(toSession);
+}
+
+export async function createSession(groupId: string, s: { title: string; kind: SessionKind; startsAt: string; location?: string; notes?: string }): Promise<void> {
+  const { data: auth } = await supabase.auth.getUser();
+  const uid = auth.user?.id;
+  if (!uid) throw new Error("No has iniciado sesión.");
+  const { error } = await supabase.from("group_sessions").insert({
+    group_id: groupId, title: s.title.trim(), kind: s.kind, starts_at: s.startsAt,
+    location: s.location?.trim() || null, notes: s.notes?.trim() || null, created_by: uid,
+  });
+  if (error) throw new Error(error.message);
+}
+
+export async function deleteSession(id: string): Promise<void> {
+  await supabase.from("group_sessions").delete().eq("id", id);
+}
+
+export async function sessionAttendance(sessionIds: string[]): Promise<Attendance[]> {
+  if (!sessionIds.length) return [];
+  const { data, error } = await supabase.from("session_attendance").select("session_id,user_id,status").in("session_id", sessionIds);
+  if (error || !data) return [];
+  return (data as { session_id: string; user_id: string; status: string }[]).map((r) => ({ sessionId: r.session_id, userId: r.user_id, status: r.status as AttendanceStatus }));
+}
+
+export async function setMyAttendance(sessionId: string, groupId: string, status: AttendanceStatus): Promise<void> {
+  const { data: auth } = await supabase.auth.getUser();
+  const uid = auth.user?.id;
+  if (!uid) throw new Error("No has iniciado sesión.");
+  const { error } = await supabase.from("session_attendance").upsert(
+    { session_id: sessionId, group_id: groupId, user_id: uid, status, updated_at: new Date().toISOString() },
+    { onConflict: "session_id,user_id" },
+  );
   if (error) throw new Error(error.message);
 }
 

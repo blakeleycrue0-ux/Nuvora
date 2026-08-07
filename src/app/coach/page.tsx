@@ -6,6 +6,7 @@ import { motion } from "motion/react";
 import {
   Users, Plus, Check, X, Flame, Trophy, Copy, LogOut, Share2, ArrowRight, ArrowLeft, ShieldCheck,
   Loader2, Camera, LayoutGrid, ListChecks, Megaphone, Settings as SettingsIcon, Trash2, Zap,
+  ImagePlus, CalendarDays, MapPin, Clock,
 } from "lucide-react";
 import { Wordmark } from "@/components/Wordmark";
 import { Button } from "@/components/ui/Button";
@@ -19,8 +20,9 @@ import {
   createGroup, myOwnedGroups, groupHabits, groupMembers, groupCompletions,
   addGroupHabit, deleteGroupHabit, setMemberRole, setMemberProfile, removeMember,
   groupAnnouncements, postAnnouncement, deleteAnnouncement,
-  updateGroupIdentity, deleteGroup, buildLeaderboard, streakFor,
-  TASK_TYPES, SPORTS, POSITIONS, type LeaderPeriod,
+  updateGroupIdentity, uploadCrest, deleteGroup, buildLeaderboard, streakFor,
+  listSessions, createSession, deleteSession, sessionAttendance,
+  TASK_TYPES, SPORTS, POSITIONS, type LeaderPeriod, type TeamSession, type SessionKind, type Attendance,
   type TeamGroup, type TeamHabit, type TeamMember, type NewHabit, type Announcement, type MemberRole,
 } from "@/lib/teams";
 import { cn } from "@/lib/utils";
@@ -290,11 +292,12 @@ function CustomHabitForm({ onAdd, disabled, startOpen, onCancel }: { onAdd: (h: 
 
 /* ---------------- dashboard (tabbed) ---------------- */
 
-type Tab = "overview" | "players" | "tasks" | "leaderboard" | "announcements" | "settings";
+type Tab = "overview" | "players" | "tasks" | "agenda" | "leaderboard" | "announcements" | "settings";
 const TABS: { key: Tab; label: string; icon: typeof LayoutGrid }[] = [
   { key: "overview", label: "Resumen", icon: LayoutGrid },
   { key: "players", label: "Jugadores", icon: Users },
   { key: "tasks", label: "Tareas", icon: ListChecks },
+  { key: "agenda", label: "Agenda", icon: CalendarDays },
   { key: "leaderboard", label: "Clasificación", icon: Trophy },
   { key: "announcements", label: "Anuncios", icon: Megaphone },
   { key: "settings", label: "Ajustes", icon: SettingsIcon },
@@ -365,6 +368,8 @@ function Dashboard({ groups, active, setActive, onNewGroup, reload, coachName }:
           <PlayersTab members={members} comp={comp} onChange={loadData} />
         ) : tab === "tasks" ? (
           <TasksTab group={group} habits={habits} onChange={loadData} />
+        ) : tab === "agenda" ? (
+          <AgendaTab group={group} members={members} />
         ) : tab === "leaderboard" ? (
           <LeaderboardTab members={members} habits={habits} comp={comp} />
         ) : tab === "announcements" ? (
@@ -661,6 +666,7 @@ function SettingsTab({ group, onChange }: { group: TeamGroup; onChange: () => Pr
   const [color, setColor] = useState(group.color);
   const [crest, setCrest] = useState(group.crest ?? "");
   const [busy, setBusy] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const router = useRouter();
 
   const dirty = name.trim() !== group.name || sport !== group.sport || color !== group.color || (crest.trim() || "") !== (group.crest ?? "");
@@ -685,16 +691,34 @@ function SettingsTab({ group, onChange }: { group: TeamGroup; onChange: () => Pr
 
         {/* Crest preview */}
         <div className="mt-3 flex items-center gap-3">
-          <span className="flex h-14 w-14 items-center justify-center rounded-2xl text-[26px] font-bold text-white shadow-[var(--shadow-sm)]" style={{ background: color }}>
-            {crest.trim() || name.trim().charAt(0).toUpperCase() || "F"}
+          <span className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl text-[26px] font-bold text-white shadow-[var(--shadow-sm)]" style={{ background: color }}>
+            {group.crestUrl
+              // eslint-disable-next-line @next/next/no-img-element
+              ? <img src={group.crestUrl} alt="" className="h-full w-full object-cover" />
+              : (crest.trim() || name.trim().charAt(0).toUpperCase() || "F")}
           </span>
           <div className="min-w-0 flex-1">
             <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nombre del club" />
           </div>
         </div>
 
-        <p className="mt-4 text-[11.5px] font-semibold text-text-muted">Escudo (emoji o 1-2 letras)</p>
-        <Input value={crest} onChange={(e) => setCrest(e.target.value.slice(0, 3))} placeholder="🦁 o CF" className="mt-1.5" />
+        {/* Upload a real crest image */}
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-border px-3 py-2 text-[12.5px] font-semibold text-text-secondary hover:border-border-strong">
+            {uploading ? <Loader2 size={14} className="animate-spin" /> : <ImagePlus size={14} />} Subir escudo
+            <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
+              const f = e.target.files?.[0]; if (!f) return;
+              setUploading(true);
+              try { await uploadCrest(group.id, f); await onChange(); } catch (err) { alert((err as Error).message); } finally { setUploading(false); }
+            }} />
+          </label>
+          {group.crestUrl && (
+            <button onClick={async () => { await updateGroupIdentity(group.id, { crestUrl: null }); await onChange(); }}
+              className="text-[12.5px] font-medium text-text-muted hover:text-danger">Quitar imagen</button>
+          )}
+          <span className="text-[11.5px] text-text-muted">o usa un emoji / iniciales:</span>
+        </div>
+        <Input value={crest} onChange={(e) => setCrest(e.target.value.slice(0, 3))} placeholder="🦁 o CF" className="mt-2" />
 
         <p className="mt-4 text-[11.5px] font-semibold text-text-muted">Color</p>
         <div className="mt-1.5 flex flex-wrap gap-2">
@@ -721,6 +745,115 @@ function SettingsTab({ group, onChange }: { group: TeamGroup; onChange: () => Pr
         <button onClick={remove} className="mt-3 inline-flex items-center gap-1.5 rounded-xl border border-danger/40 px-3.5 py-2 text-[13px] font-semibold text-danger hover:bg-danger/10">
           <Trash2 size={15} /> Eliminar club
         </button>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- agenda (sessions & attendance) ---------------- */
+
+const KINDS: { key: SessionKind; label: string }[] = [
+  { key: "training", label: "Entreno" },
+  { key: "match", label: "Partido" },
+  { key: "other", label: "Otro" },
+];
+
+function AgendaTab({ group, members }: { group: TeamGroup; members: TeamMember[] }) {
+  const [sessions, setSessions] = useState<TeamSession[]>([]);
+  const [att, setAtt] = useState<Attendance[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [open, setOpen] = useState(false);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    const from = new Date(Date.now() - 12 * 3600 * 1000).toISOString(); // include today
+    const s = await listSessions(group.id, from);
+    const a = await sessionAttendance(s.map((x) => x.id));
+    setSessions(s); setAtt(a); setLoading(false);
+  }, [group.id]);
+  useEffect(() => { void load(); }, [load]);
+
+  const countFor = (sid: string, status: string) => att.filter((a) => a.sessionId === sid && a.status === status).length;
+
+  return (
+    <div className="space-y-5">
+      <div className="flex items-center justify-between">
+        <p className="text-[13px] font-semibold text-text-secondary">Próximas sesiones</p>
+        {!open && <button onClick={() => setOpen(true)} className="inline-flex items-center gap-1 text-[13px] font-semibold text-accent"><Plus size={15} /> Nueva sesión</button>}
+      </div>
+
+      {open && <SessionForm groupId={group.id} onDone={async () => { setOpen(false); await load(); }} onCancel={() => setOpen(false)} />}
+
+      {loading ? (
+        <div className="h-32 animate-pulse rounded-3xl bg-surface-2" />
+      ) : sessions.length === 0 ? (
+        <Empty icon={CalendarDays} title="Sin sesiones" sub="Crea un entreno o un partido y el equipo confirma asistencia." />
+      ) : (
+        <div className="space-y-2.5">
+          {sessions.map((s) => {
+            const going = countFor(s.id, "going"), maybe = countFor(s.id, "maybe"), out = countFor(s.id, "out");
+            const d = new Date(s.startsAt);
+            return (
+              <div key={s.id} className="rounded-2xl border border-border bg-surface p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className={cn("rounded-full px-2 py-0.5 text-[10.5px] font-bold uppercase", s.kind === "match" ? "bg-accent-soft text-accent" : "bg-surface-2 text-text-secondary")}>{KINDS.find((k) => k.key === s.kind)?.label}</span>
+                      <p className="truncate text-[14.5px] font-semibold text-text">{s.title}</p>
+                    </div>
+                    <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[12px] text-text-muted">
+                      <span className="inline-flex items-center gap-1"><Clock size={11} /> {d.toLocaleDateString("es", { weekday: "short", day: "numeric", month: "short" })} · {d.toLocaleTimeString("es", { hour: "2-digit", minute: "2-digit" })}</span>
+                      {s.location && <span className="inline-flex items-center gap-1"><MapPin size={11} /> {s.location}</span>}
+                    </p>
+                    {s.notes && <p className="mt-1 text-[12.5px] text-text-secondary">{s.notes}</p>}
+                  </div>
+                  <button onClick={async () => { if (confirm("¿Eliminar esta sesión?")) { await deleteSession(s.id); await load(); } }}
+                    aria-label="Eliminar" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-text-muted hover:bg-surface-2 hover:text-danger"><Trash2 size={15} /></button>
+                </div>
+                <div className="mt-3 flex flex-wrap gap-2 text-[12px] font-semibold">
+                  <span className="rounded-full bg-accent-soft px-2.5 py-1 text-accent">Van {going}</span>
+                  <span className="rounded-full bg-surface-2 px-2.5 py-1 text-text-secondary">Quizá {maybe}</span>
+                  <span className="rounded-full bg-surface-2 px-2.5 py-1 text-text-muted">No {out}</span>
+                  <span className="rounded-full bg-surface-2 px-2.5 py-1 text-text-muted">Sin responder {Math.max(0, members.length - going - maybe - out)}</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SessionForm({ groupId, onDone, onCancel }: { groupId: string; onDone: () => void; onCancel: () => void }) {
+  const [title, setTitle] = useState("");
+  const [kind, setKind] = useState<SessionKind>("training");
+  const [when, setWhen] = useState("");
+  const [location, setLocation] = useState("");
+  const [notes, setNotes] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  const save = async () => {
+    if (!title.trim() || !when) return;
+    setBusy(true);
+    try { await createSession(groupId, { title, kind, startsAt: new Date(when).toISOString(), location, notes }); onDone(); }
+    finally { setBusy(false); }
+  };
+
+  return (
+    <div className="rounded-2xl border border-accent/40 bg-accent-soft/40 p-4">
+      <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Título — ej. Entreno martes / Partido vs Rival" autoFocus />
+      <div className="mt-2.5 grid grid-cols-2 gap-2">
+        <select value={kind} onChange={(e) => setKind(e.target.value as SessionKind)} className="rounded-xl border border-border bg-surface px-3 py-2.5 text-[13px] text-text outline-none focus:border-accent">
+          {KINDS.map((k) => <option key={k.key} value={k.key}>{k.label}</option>)}
+        </select>
+        <input type="datetime-local" value={when} onChange={(e) => setWhen(e.target.value)} className="rounded-xl border border-border bg-surface px-3 py-2.5 text-[13px] text-text outline-none focus:border-accent" />
+      </div>
+      <Input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Lugar (opcional)" className="mt-2.5" />
+      <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Notas (opcional)" rows={2} className="mt-2.5 w-full resize-none rounded-xl border border-border bg-surface px-3.5 py-2.5 text-[13.5px] text-text outline-none placeholder:text-text-muted focus:border-accent" />
+      <div className="mt-3 flex gap-2">
+        <button onClick={onCancel} className="h-10 flex-1 rounded-xl border border-border text-[13.5px] font-medium text-text-secondary">Cancelar</button>
+        <button onClick={save} disabled={busy || !title.trim() || !when} className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl accent-gradient text-[13.5px] font-semibold text-accent-ink disabled:opacity-50">{busy ? <Loader2 size={15} className="animate-spin" /> : "Crear sesión"}</button>
       </div>
     </div>
   );
