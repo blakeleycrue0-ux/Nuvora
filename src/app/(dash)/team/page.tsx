@@ -15,7 +15,8 @@ import {
   myMemberGroups, groupHabits, myGroupCompletions, setGroupCompletion, streakFor,
   groupByCode, joinGroup, groupAnnouncements, levelForXp,
   myMembership, setMyPlayerProfile, POSITIONS,
-  type TeamGroup, type TeamHabit, type Announcement,
+  listSessions, sessionAttendance, setMyAttendance,
+  type TeamGroup, type TeamHabit, type Announcement, type TeamSession, type AttendanceStatus,
 } from "@/lib/teams";
 import type { Habit, HabitColor, Difficulty } from "@/lib/momentum/types";
 import { cn } from "@/lib/utils";
@@ -34,6 +35,8 @@ export default function TeamPage() {
   const [xp, setXp] = useState(0);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [membership, setMembership] = useState<{ position?: string; number?: number } | null>(null);
+  const [sessions, setSessions] = useState<TeamSession[]>([]);
+  const [myAtt, setMyAtt] = useState<Record<string, AttendanceStatus>>({});
   const [loading, setLoading] = useState(true);
   const [verify, setVerify] = useState<TeamHabit | null>(null);
   const [joining, setJoining] = useState(false);
@@ -49,7 +52,8 @@ export default function TeamPage() {
     if (!gid) { setLoading(false); return; }
     setLoading(true);
     const since = lastNDays(21)[0];
-    const [h, c, a, mine] = await Promise.all([groupHabits(gid), myGroupCompletions(gid, since), groupAnnouncements(gid), myMembership(gid)]);
+    const fromISO = new Date(Date.now() - 12 * 3600 * 1000).toISOString();
+    const [h, c, a, mine, ss] = await Promise.all([groupHabits(gid), myGroupCompletions(gid, since), groupAnnouncements(gid), myMembership(gid), listSessions(gid, fromISO)]);
     setHabits(h);
     const today = todayISO();
     setDoneToday(new Set(c.filter((x) => x.date === today).map((x) => x.habitId)));
@@ -58,8 +62,12 @@ export default function TeamPage() {
     setXp(c.reduce((sum, x) => sum + (xpOf.get(x.habitId) ?? 10), 0));
     setAnnouncements(a);
     setMembership(mine);
+    setSessions(ss);
+    const rows = await sessionAttendance(ss.map((s) => s.id));
+    const uid = user?.id;
+    setMyAtt(Object.fromEntries(rows.filter((r) => r.userId === uid).map((r) => [r.sessionId, r.status])));
     setLoading(false);
-  }, [gid]);
+  }, [gid, user?.id]);
   useEffect(() => { if (gid) void load(); else if (groups) setLoading(false); }, [gid, groups, load]);
 
   const complete = async (h: TeamHabit) => {
@@ -134,6 +142,40 @@ export default function TeamPage() {
               </motion.div>
 
               {membership && <PlayerCard groupId={group.id} membership={membership} onSaved={load} />}
+
+              {sessions.length > 0 && (
+                <div className="mt-4">
+                  <p className="mb-2 text-[12px] font-semibold uppercase tracking-wide text-text-muted">Próximo</p>
+                  <div className="space-y-2.5">
+                    {sessions.slice(0, 4).map((s) => {
+                      const d = new Date(s.startsAt);
+                      const mine = myAtt[s.id];
+                      const rsvp = async (status: AttendanceStatus) => {
+                        setMyAtt((m) => ({ ...m, [s.id]: status }));
+                        await setMyAttendance(s.id, group.id, status);
+                      };
+                      return (
+                        <div key={s.id} className="rounded-2xl border border-border bg-surface p-3.5">
+                          <div className="flex items-center gap-2">
+                            <span className={cn("rounded-full px-2 py-0.5 text-[10.5px] font-bold uppercase", s.kind === "match" ? "bg-accent-soft text-accent" : "bg-surface-2 text-text-secondary")}>{s.kind === "match" ? "Partido" : s.kind === "training" ? "Entreno" : "Otro"}</span>
+                            <p className="truncate text-[14px] font-semibold text-text">{s.title}</p>
+                          </div>
+                          <p className="mt-1 text-[12px] text-text-muted">{d.toLocaleDateString("es", { weekday: "short", day: "numeric", month: "short" })} · {d.toLocaleTimeString("es", { hour: "2-digit", minute: "2-digit" })}{s.location ? ` · ${s.location}` : ""}</p>
+                          <div className="mt-2.5 flex gap-2">
+                            {(["going", "maybe", "out"] as AttendanceStatus[]).map((st) => (
+                              <button key={st} onClick={() => rsvp(st)}
+                                className={cn("flex-1 rounded-xl border py-2 text-[12.5px] font-semibold transition-colors",
+                                  mine === st ? "border-accent bg-accent-soft text-accent" : "border-border text-text-secondary hover:text-text")}>
+                                {st === "going" ? "Voy" : st === "maybe" ? "Quizá" : "No voy"}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               {announcements.length > 0 && (
                 <div className="mt-4 space-y-2">
