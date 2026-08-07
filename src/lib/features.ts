@@ -1,16 +1,16 @@
 // ============================================================
 // Product-mode feature flags.
 //
-// Fenom v1 ships as a PERSONAL-ONLY experience. The entire Teams / Clubs
-// system stays in the codebase (DB tables, RLS, APIs, UI, business logic)
-// but is switched OFF here so no normal UI path can reach it.
+// Fenom runs the PERSONAL experience (habits, XP, Progress Bubble, ranking)
+// AND the Football Clubs / Teams experience together. Nothing about Teams was
+// ever deleted — DB tables, RLS, APIs, business logic and UI all stayed in the
+// codebase; this flag only controls whether the Teams UI is exposed.
 //
-// To bring Teams back in a future version, set NEXT_PUBLIC_FEATURE_TEAMS
-// to "true" in the environment (or flip the default below). Nothing else
-// needs to be rebuilt — the code is intact behind this flag.
+// Teams is ON by default now. Set NEXT_PUBLIC_FEATURE_TEAMS="false" to hide it
+// again without removing any code.
 // ============================================================
 
-export const FEATURE_TEAMS = process.env.NEXT_PUBLIC_FEATURE_TEAMS === "true";
+export const FEATURE_TEAMS = process.env.NEXT_PUBLIC_FEATURE_TEAMS !== "false";
 
 // Convenience: the personal experience is always on.
 export const FEATURE_PERSONAL = true;
