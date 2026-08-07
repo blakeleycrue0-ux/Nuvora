@@ -8,6 +8,8 @@ import { Flame, Check, Camera, Users, Loader2, Plus, Zap, Megaphone } from "luci
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { VerifyModal } from "@/components/verify/VerifyModal";
+import { ProgressBubble } from "@/components/progress/ProgressBubble";
+import { levelFromXP } from "@/lib/momentum/stats";
 import { useAuth } from "@/lib/auth";
 import { HabitIcon, colorValue } from "@/lib/icons";
 import { todayISO, lastNDays } from "@/lib/momentum/date";
@@ -16,7 +18,8 @@ import {
   groupByCode, joinGroup, groupAnnouncements, levelForXp,
   myMembership, setMyPlayerProfile, POSITIONS,
   listSessions, sessionAttendance, setMyAttendance,
-  type TeamGroup, type TeamHabit, type Announcement, type TeamSession, type AttendanceStatus, type GroupPreview,
+  groupMembers, mvpVotes, castMvpVote,
+  type TeamGroup, type TeamHabit, type Announcement, type TeamSession, type AttendanceStatus, type GroupPreview, type TeamMember,
 } from "@/lib/teams";
 import type { Habit, HabitColor, Difficulty } from "@/lib/momentum/types";
 import { cn } from "@/lib/utils";
@@ -37,6 +40,8 @@ export default function TeamPage() {
   const [membership, setMembership] = useState<{ position?: string; number?: number } | null>(null);
   const [sessions, setSessions] = useState<TeamSession[]>([]);
   const [myAtt, setMyAtt] = useState<Record<string, AttendanceStatus>>({});
+  const [teammates, setTeammates] = useState<TeamMember[]>([]);
+  const [myMvp, setMyMvp] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [verify, setVerify] = useState<TeamHabit | null>(null);
   const [joining, setJoining] = useState(false);
@@ -52,8 +57,8 @@ export default function TeamPage() {
     if (!gid) { setLoading(false); return; }
     setLoading(true);
     const since = lastNDays(21)[0];
-    const fromISO = new Date(Date.now() - 12 * 3600 * 1000).toISOString();
-    const [h, c, a, mine, ss] = await Promise.all([groupHabits(gid), myGroupCompletions(gid, since), groupAnnouncements(gid), myMembership(gid), listSessions(gid, fromISO)]);
+    const fromISO = new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString();
+    const [h, c, a, mine, ss, mates] = await Promise.all([groupHabits(gid), myGroupCompletions(gid, since), groupAnnouncements(gid), myMembership(gid), listSessions(gid, fromISO), groupMembers(gid)]);
     setHabits(h);
     const today = todayISO();
     setDoneToday(new Set(c.filter((x) => x.date === today).map((x) => x.habitId)));
@@ -63,9 +68,11 @@ export default function TeamPage() {
     setAnnouncements(a);
     setMembership(mine);
     setSessions(ss);
-    const rows = await sessionAttendance(ss.map((s) => s.id));
+    setTeammates(mates);
     const uid = user?.id;
+    const [rows, votes] = await Promise.all([sessionAttendance(ss.map((s) => s.id)), mvpVotes(ss.filter((s) => s.kind === "match").map((s) => s.id))]);
     setMyAtt(Object.fromEntries(rows.filter((r) => r.userId === uid).map((r) => [r.sessionId, r.status])));
+    setMyMvp(Object.fromEntries(votes.filter((v) => v.voterId === uid).map((v) => [v.sessionId, v.nomineeId])));
     setLoading(false);
   }, [gid, user?.id]);
   useEffect(() => { if (gid) void load(); else if (groups) setLoading(false); }, [gid, groups, load]);
@@ -146,13 +153,20 @@ export default function TeamPage() {
                 <div className="mt-2 h-2 overflow-hidden rounded-full bg-black/20"><motion.div className="h-full rounded-full bg-white/85" initial={false} animate={{ width: `${pct}%` }} /></div>
               </motion.div>
 
+              {/* Team progress bubble */}
+              <div className="mt-4 flex flex-col items-center rounded-3xl border border-border bg-surface px-6 py-7 shadow-[var(--shadow-sm)]">
+                <ProgressBubble pct={levelFromXP(xp).pct} level={levelFromXP(xp).level} xp={xp} size={200} />
+                <p className="mt-4 text-[13.5px] font-medium text-text-secondary">Hoy · {doneCount} de {habits.length} completado{habits.length === 1 ? "" : "s"}</p>
+              </div>
+
               {membership && <PlayerCard groupId={group.id} membership={membership} onSaved={load} />}
 
-              {sessions.length > 0 && (
+              {/* Upcoming sessions — RSVP */}
+              {sessions.filter((s) => new Date(s.startsAt) >= new Date()).length > 0 && (
                 <div className="mt-4">
                   <p className="mb-2 text-[12px] font-semibold uppercase tracking-wide text-text-muted">Próximo</p>
                   <div className="space-y-2.5">
-                    {sessions.slice(0, 4).map((s) => {
+                    {sessions.filter((s) => new Date(s.startsAt) >= new Date()).slice(0, 4).map((s) => {
                       const d = new Date(s.startsAt);
                       const mine = myAtt[s.id];
                       const rsvp = async (status: AttendanceStatus) => {
@@ -175,6 +189,37 @@ export default function TeamPage() {
                               </button>
                             ))}
                           </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Recent matches — result + MVP vote */}
+              {sessions.filter((s) => s.kind === "match" && new Date(s.startsAt) < new Date()).length > 0 && (
+                <div className="mt-5">
+                  <p className="mb-2 text-[12px] font-semibold uppercase tracking-wide text-text-muted">Partidos</p>
+                  <div className="space-y-2.5">
+                    {sessions.filter((s) => s.kind === "match" && new Date(s.startsAt) < new Date()).slice(0, 3).map((s) => {
+                      const hasResult = s.scoreUs != null && s.scoreThem != null;
+                      const vote = async (nomineeId: string) => {
+                        setMyMvp((m) => ({ ...m, [s.id]: nomineeId }));
+                        await castMvpVote(s.id, group.id, nomineeId);
+                      };
+                      return (
+                        <div key={s.id} className="rounded-2xl border border-border bg-surface p-3.5">
+                          <p className="truncate text-[14px] font-semibold text-text">{s.title}</p>
+                          {hasResult
+                            ? <p className="mt-0.5 text-[13px] text-text-secondary">Resultado: <span className="font-semibold text-accent">{s.scoreUs}–{s.scoreThem}</span>{s.opponent ? ` vs ${s.opponent}` : ""}</p>
+                            : <p className="mt-0.5 text-[12px] text-text-muted">Resultado pendiente</p>}
+                          <label className="mt-2.5 block text-[11.5px] font-medium text-text-muted">Vota al MVP</label>
+                          <select value={myMvp[s.id] ?? ""} onChange={(e) => e.target.value && vote(e.target.value)}
+                            className="mt-1 w-full rounded-xl border border-border bg-surface px-3 py-2.5 text-[13.5px] text-text outline-none focus:border-accent">
+                            <option value="">Elegir jugador…</option>
+                            {teammates.map((m) => <option key={m.userId} value={m.userId}>{m.number != null ? `#${m.number} ` : ""}{m.displayName}</option>)}
+                          </select>
+                          {myMvp[s.id] && <p className="mt-1.5 text-[12px] text-accent">✓ Tu voto: {teammates.find((m) => m.userId === myMvp[s.id])?.displayName}</p>}
                         </div>
                       );
                     })}

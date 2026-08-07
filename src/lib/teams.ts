@@ -26,7 +26,11 @@ export interface TeamSession {
   startsAt: string;   // ISO
   location?: string;
   notes?: string;
+  opponent?: string;
+  scoreUs?: number;
+  scoreThem?: number;
 }
+export interface MvpVote { sessionId: string; voterId: string; nomineeId: string }
 export type AttendanceStatus = "going" | "maybe" | "out";
 export interface Attendance {
   sessionId: string;
@@ -209,8 +213,8 @@ export async function uploadCrest(groupId: string, file: File): Promise<string> 
 
 /* ---------------- sessions & attendance ---------------- */
 
-type SessionRow = { id: string; group_id: string; title: string; kind: string; starts_at: string; location: string | null; notes: string | null };
-const toSession = (r: SessionRow): TeamSession => ({ id: r.id, groupId: r.group_id, title: r.title, kind: (r.kind as SessionKind) ?? "training", startsAt: r.starts_at, location: r.location ?? undefined, notes: r.notes ?? undefined });
+type SessionRow = { id: string; group_id: string; title: string; kind: string; starts_at: string; location: string | null; notes: string | null; opponent?: string | null; score_us?: number | null; score_them?: number | null };
+const toSession = (r: SessionRow): TeamSession => ({ id: r.id, groupId: r.group_id, title: r.title, kind: (r.kind as SessionKind) ?? "training", startsAt: r.starts_at, location: r.location ?? undefined, notes: r.notes ?? undefined, opponent: r.opponent ?? undefined, scoreUs: r.score_us ?? undefined, scoreThem: r.score_them ?? undefined });
 
 export async function listSessions(groupId: string, fromISO?: string): Promise<TeamSession[]> {
   let q = supabase.from("group_sessions").select("*").eq("group_id", groupId).order("starts_at");
@@ -251,6 +255,42 @@ export async function setMyAttendance(sessionId: string, groupId: string, status
     { onConflict: "session_id,user_id" },
   );
   if (error) throw new Error(error.message);
+}
+
+/* ---------------- match center ---------------- */
+
+export async function setMatchResult(sessionId: string, r: { opponent?: string; scoreUs?: number | null; scoreThem?: number | null }): Promise<void> {
+  const { error } = await supabase.from("group_sessions").update({
+    opponent: r.opponent?.trim() || null,
+    score_us: r.scoreUs ?? null,
+    score_them: r.scoreThem ?? null,
+  }).eq("id", sessionId);
+  if (error) throw new Error(error.message);
+}
+
+export async function mvpVotes(sessionIds: string[]): Promise<MvpVote[]> {
+  if (!sessionIds.length) return [];
+  const { data, error } = await supabase.from("match_mvp_votes").select("session_id,voter_id,nominee_id").in("session_id", sessionIds);
+  if (error || !data) return [];
+  return (data as { session_id: string; voter_id: string; nominee_id: string }[]).map((r) => ({ sessionId: r.session_id, voterId: r.voter_id, nomineeId: r.nominee_id }));
+}
+
+export async function castMvpVote(sessionId: string, groupId: string, nomineeId: string): Promise<void> {
+  const { data: auth } = await supabase.auth.getUser();
+  const uid = auth.user?.id;
+  if (!uid) throw new Error("No has iniciado sesión.");
+  const { error } = await supabase.from("match_mvp_votes").upsert(
+    { session_id: sessionId, group_id: groupId, voter_id: uid, nominee_id: nomineeId },
+    { onConflict: "session_id,voter_id" },
+  );
+  if (error) throw new Error(error.message);
+}
+
+// All attendance rows for a group's sessions (for coach analytics).
+export async function groupAttendance(groupId: string): Promise<Attendance[]> {
+  const { data, error } = await supabase.from("session_attendance").select("session_id,user_id,status").eq("group_id", groupId);
+  if (error || !data) return [];
+  return (data as { session_id: string; user_id: string; status: string }[]).map((r) => ({ sessionId: r.session_id, userId: r.user_id, status: r.status as AttendanceStatus }));
 }
 
 // Coach/admin sets a player's shirt number + position.
