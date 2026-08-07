@@ -6,7 +6,7 @@ import { motion } from "motion/react";
 import {
   Users, Plus, Check, X, Flame, Trophy, Copy, LogOut, Share2, ArrowRight, ArrowLeft, ShieldCheck,
   Loader2, Camera, LayoutGrid, ListChecks, Megaphone, Settings as SettingsIcon, Trash2, Zap,
-  ImagePlus, CalendarDays, MapPin, Clock,
+  ImagePlus, CalendarDays, MapPin, Clock, BarChart3, Star,
 } from "lucide-react";
 import { Wordmark } from "@/components/Wordmark";
 import { Button } from "@/components/ui/Button";
@@ -22,7 +22,8 @@ import {
   groupAnnouncements, postAnnouncement, deleteAnnouncement,
   updateGroupIdentity, uploadCrest, deleteGroup, buildLeaderboard, streakFor,
   listSessions, createSession, deleteSession, sessionAttendance,
-  TASK_TYPES, SPORTS, POSITIONS, type LeaderPeriod, type TeamSession, type SessionKind, type Attendance,
+  setMatchResult, mvpVotes, groupAttendance,
+  TASK_TYPES, SPORTS, POSITIONS, type LeaderPeriod, type TeamSession, type SessionKind, type Attendance, type MvpVote,
   type TeamGroup, type TeamHabit, type TeamMember, type NewHabit, type Announcement, type MemberRole,
 } from "@/lib/teams";
 import { cn } from "@/lib/utils";
@@ -319,13 +320,14 @@ function CustomHabitForm({ onAdd, disabled, startOpen, onCancel }: { onAdd: (h: 
 
 /* ---------------- dashboard (tabbed) ---------------- */
 
-type Tab = "overview" | "players" | "tasks" | "agenda" | "leaderboard" | "announcements" | "settings";
+type Tab = "overview" | "players" | "tasks" | "agenda" | "leaderboard" | "stats" | "announcements" | "settings";
 const TABS: { key: Tab; label: string; icon: typeof LayoutGrid }[] = [
   { key: "overview", label: "Resumen", icon: LayoutGrid },
   { key: "players", label: "Jugadores", icon: Users },
   { key: "tasks", label: "Tareas", icon: ListChecks },
   { key: "agenda", label: "Agenda", icon: CalendarDays },
   { key: "leaderboard", label: "Clasificación", icon: Trophy },
+  { key: "stats", label: "Estadísticas", icon: BarChart3 },
   { key: "announcements", label: "Anuncios", icon: Megaphone },
   { key: "settings", label: "Ajustes", icon: SettingsIcon },
 ];
@@ -399,6 +401,8 @@ function Dashboard({ groups, active, setActive, onNewGroup, reload, coachName }:
           <AgendaTab group={group} members={members} />
         ) : tab === "leaderboard" ? (
           <LeaderboardTab members={members} habits={habits} comp={comp} />
+        ) : tab === "stats" ? (
+          <StatsTab group={group} members={members} habits={habits} comp={comp} />
         ) : tab === "announcements" ? (
           <AnnouncementsTab group={group} items={announcements} onChange={loadData} />
         ) : (
@@ -751,12 +755,21 @@ function SettingsTab({ group, onChange }: { group: TeamGroup; onChange: () => Pr
         <Input value={crest} onChange={(e) => setCrest(e.target.value.slice(0, 3))} placeholder="🦁 o CF" className="mt-2" />
 
         <p className="mt-4 text-[11.5px] font-semibold text-text-muted">Color</p>
-        <div className="mt-1.5 flex flex-wrap gap-2">
+        <div className="mt-1.5 flex flex-wrap items-center gap-2">
           {CLUB_COLORS.map((c) => (
             <button key={c} onClick={() => setColor(c)} aria-label={c}
-              className={cn("h-8 w-8 rounded-full transition-transform hover:scale-110", color === c && "ring-2 ring-offset-2 ring-offset-surface")}
-              style={{ background: c, boxShadow: color === c ? `0 0 0 2px ${c}` : undefined }} />
+              className={cn("h-8 w-8 rounded-full transition-transform hover:scale-110", color.toLowerCase() === c && "ring-2 ring-offset-2 ring-offset-surface")}
+              style={{ background: c, boxShadow: color.toLowerCase() === c ? `0 0 0 2px ${c}` : undefined }} />
           ))}
+          {/* Full colour picker — any colour */}
+          <label className="relative inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-dashed border-border-strong text-text-muted" title="Elegir cualquier color">
+            <Plus size={15} />
+            <input type="color" value={/^#[0-9a-fA-F]{6}$/.test(color) ? color : "#45c68e"} onChange={(e) => setColor(e.target.value)}
+              className="absolute inset-0 cursor-pointer opacity-0" />
+          </label>
+          <span className="ml-1 inline-flex items-center gap-1.5 rounded-lg border border-border px-2 py-1 text-[12px] font-mono text-text-secondary">
+            <span className="h-3.5 w-3.5 rounded-full" style={{ background: color }} /> {color.toUpperCase()}
+          </span>
         </div>
 
         <p className="mt-4 text-[11.5px] font-semibold text-text-muted">Deporte</p>
@@ -796,19 +809,28 @@ const KINDS: { key: SessionKind; label: string }[] = [
 function AgendaTab({ group, members }: { group: TeamGroup; members: TeamMember[] }) {
   const [sessions, setSessions] = useState<TeamSession[]>([]);
   const [att, setAtt] = useState<Attendance[]>([]);
+  const [mvp, setMvp] = useState<MvpVote[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
-    const from = new Date(Date.now() - 12 * 3600 * 1000).toISOString(); // include today
+    const from = new Date(Date.now() - 45 * 24 * 3600 * 1000).toISOString(); // include recent past matches
     const s = await listSessions(group.id, from);
-    const a = await sessionAttendance(s.map((x) => x.id));
-    setSessions(s); setAtt(a); setLoading(false);
+    const [a, v] = await Promise.all([sessionAttendance(s.map((x) => x.id)), mvpVotes(s.filter((x) => x.kind === "match").map((x) => x.id))]);
+    setSessions(s); setAtt(a); setMvp(v); setLoading(false);
   }, [group.id]);
   useEffect(() => { void load(); }, [load]);
 
   const countFor = (sid: string, status: string) => att.filter((a) => a.sessionId === sid && a.status === status).length;
+  const nameOf = (uid: string) => members.find((m) => m.userId === uid)?.displayName ?? "—";
+  const mvpWinner = (sid: string): { name: string; votes: number } | null => {
+    const tally = new Map<string, number>();
+    mvp.filter((v) => v.sessionId === sid).forEach((v) => tally.set(v.nomineeId, (tally.get(v.nomineeId) ?? 0) + 1));
+    let best: [string, number] | null = null;
+    for (const e of tally) if (!best || e[1] > best[1]) best = e;
+    return best ? { name: nameOf(best[0]), votes: best[1] } : null;
+  };
 
   return (
     <div className="space-y-5">
@@ -851,6 +873,7 @@ function AgendaTab({ group, members }: { group: TeamGroup; members: TeamMember[]
                   <span className="rounded-full bg-surface-2 px-2.5 py-1 text-text-muted">No {out}</span>
                   <span className="rounded-full bg-surface-2 px-2.5 py-1 text-text-muted">Sin responder {Math.max(0, members.length - going - maybe - out)}</span>
                 </div>
+                {s.kind === "match" && <MatchResult session={s} winner={mvpWinner(s.id)} onSaved={load} />}
               </div>
             );
           })}
@@ -859,6 +882,50 @@ function AgendaTab({ group, members }: { group: TeamGroup; members: TeamMember[]
     </div>
   );
 }
+
+function MatchResult({ session, winner, onSaved }: { session: TeamSession; winner: { name: string; votes: number } | null; onSaved: () => void | Promise<void> }) {
+  const [edit, setEdit] = useState(false);
+  const [opponent, setOpponent] = useState(session.opponent ?? "");
+  const [us, setUs] = useState<string>(session.scoreUs != null ? String(session.scoreUs) : "");
+  const [them, setThem] = useState<string>(session.scoreThem != null ? String(session.scoreThem) : "");
+  const [busy, setBusy] = useState(false);
+  const hasResult = session.scoreUs != null && session.scoreThem != null;
+
+  const save = async () => {
+    setBusy(true);
+    try { await setMatchResult(session.id, { opponent, scoreUs: us === "" ? null : Number(us), scoreThem: them === "" ? null : Number(them) }); setEdit(false); await onSaved(); }
+    finally { setBusy(false); }
+  };
+
+  return (
+    <div className="mt-3 rounded-xl border border-border bg-surface-2 p-3">
+      {edit ? (
+        <div className="space-y-2">
+          <Input value={opponent} onChange={(e) => setOpponent(e.target.value)} placeholder="Rival" />
+          <div className="flex items-center gap-2">
+            <input type="number" min={0} value={us} onChange={(e) => setUs(e.target.value)} placeholder="Nos" className="w-16 rounded-lg border border-border bg-surface px-2 py-1.5 text-center text-[13px] outline-none focus:border-accent" />
+            <span className="text-text-muted">–</span>
+            <input type="number" min={0} value={them} onChange={(e) => setThem(e.target.value)} placeholder="Ellos" className="w-16 rounded-lg border border-border bg-surface px-2 py-1.5 text-center text-[13px] outline-none focus:border-accent" />
+            <button onClick={save} disabled={busy} className="ml-auto inline-flex h-9 items-center gap-1.5 rounded-lg accent-gradient px-3 text-[12.5px] font-semibold text-accent-ink disabled:opacity-50">{busy ? <Loader2 size={14} className="animate-spin" /> : "Guardar"}</button>
+          </div>
+        </div>
+      ) : (
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            {hasResult ? (
+              <p className="text-[14px] font-semibold text-text">{group0(session)} <span className="text-accent">{session.scoreUs}–{session.scoreThem}</span> {session.opponent || "Rival"}</p>
+            ) : (
+              <p className="text-[13px] text-text-muted">Sin resultado</p>
+            )}
+            {winner && <p className="mt-0.5 inline-flex items-center gap-1 text-[12px] text-text-secondary"><Star size={12} className="text-amber-500" /> MVP: {winner.name} ({winner.votes})</p>}
+          </div>
+          <button onClick={() => setEdit(true)} className="shrink-0 text-[12.5px] font-semibold text-accent">{hasResult ? "Editar" : "Añadir resultado"}</button>
+        </div>
+      )}
+    </div>
+  );
+}
+function group0(_s: TeamSession) { return "Nosotros"; }
 
 function SessionForm({ groupId, onDone, onCancel }: { groupId: string; onDone: () => void; onCancel: () => void }) {
   const [title, setTitle] = useState("");
@@ -889,6 +956,91 @@ function SessionForm({ groupId, onDone, onCancel }: { groupId: string; onDone: (
       <div className="mt-3 flex gap-2">
         <button onClick={onCancel} className="h-10 flex-1 rounded-xl border border-border text-[13.5px] font-medium text-text-secondary">Cancelar</button>
         <button onClick={save} disabled={busy || !title.trim() || !when} className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl accent-gradient text-[13.5px] font-semibold text-accent-ink disabled:opacity-50">{busy ? <Loader2 size={15} className="animate-spin" /> : "Crear sesión"}</button>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- stats / analytics ---------------- */
+
+function StatsTab({ group, members, habits, comp }: { group: TeamGroup; members: TeamMember[]; habits: TeamHabit[]; comp: { habitId: string; userId: string; date: string; count: number }[] }) {
+  const [attendance, setAttendance] = useState<Attendance[]>([]);
+  const [sessions, setSessions] = useState<TeamSession[]>([]);
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      const s = await listSessions(group.id, new Date(Date.now() - 60 * 24 * 3600 * 1000).toISOString());
+      const a = await groupAttendance(group.id);
+      if (active) { setSessions(s); setAttendance(a); }
+    })();
+    return () => { active = false; };
+  }, [group.id]);
+
+  const week = useMemo(() => buildLeaderboard(members, habits, comp, "week", 7), [members, habits, comp]);
+  const month = useMemo(() => buildLeaderboard(members, habits, comp, "month", 30), [members, habits, comp]);
+  const potw = week[0];
+
+  const days = lastNDays(14);
+  const possible = members.length * habits.length;
+  const series = days.map((d) => ({ d, pct: possible ? Math.round((comp.filter((c) => c.date === d).length / possible) * 100) : 0 }));
+  const avg = series.length ? Math.round(series.reduce((s, x) => s + x.pct, 0) / series.length) : 0;
+
+  const pastSessions = sessions.filter((s) => new Date(s.startsAt) <= new Date());
+  const going = attendance.filter((a) => a.status === "going").length;
+  const attRate = pastSessions.length * members.length ? Math.round((going / (pastSessions.length * members.length)) * 100) : 0;
+
+  if (members.length === 0) return <Empty icon={BarChart3} title="Sin datos todavía" sub="Cuando tus jugadores se unan y registren, verás aquí las estadísticas." />;
+
+  return (
+    <div className="space-y-5">
+      {/* Player of the week */}
+      {potw && (
+        <div className="flex items-center gap-3 overflow-hidden rounded-3xl accent-gradient p-5 text-accent-ink shadow-[var(--shadow-md)]">
+          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-black/15"><Star size={24} /></span>
+          <div className="min-w-0 flex-1">
+            <p className="text-[12.5px] font-medium opacity-80">Jugador de la semana</p>
+            <p className="truncate text-[19px] font-bold">{potw.member.displayName}</p>
+          </div>
+          <div className="text-right"><p className="text-[15px] font-bold">{potw.xp} XP</p><p className="text-[12px] opacity-90">Nivel {potw.level}</p></div>
+        </div>
+      )}
+
+      {/* Tiles */}
+      <div className="grid grid-cols-3 gap-3">
+        <StatCard icon={ShieldCheck} label="Cumplimiento 14d" value={`${avg}%`} />
+        <StatCard icon={CalendarDays} label="Asistencia" value={`${attRate}%`} />
+        <StatCard icon={Users} label="Jugadores" value={String(members.length)} />
+      </div>
+
+      {/* Compliance last 14 days */}
+      <div className="rounded-3xl border border-border bg-surface p-5 shadow-[var(--shadow-sm)]">
+        <p className="text-[15px] font-semibold">Cumplimiento · últimos 14 días</p>
+        <div className="mt-4 flex h-32 items-end gap-1.5">
+          {series.map((x) => (
+            <div key={x.d} className="flex flex-1 flex-col items-center gap-1">
+              <div className="flex w-full flex-1 items-end">
+                <div className="w-full rounded-t-md bg-accent" style={{ height: `${Math.max(3, x.pct)}%`, opacity: 0.35 + (x.pct / 100) * 0.65 }} />
+              </div>
+              <span className="text-[9px] text-text-muted">{new Date(x.d + "T00:00:00").getDate()}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Per-player completion (30 days) */}
+      <div className="rounded-3xl border border-border bg-surface p-5 shadow-[var(--shadow-sm)]">
+        <p className="text-[15px] font-semibold">Cumplimiento por jugador · 30 días</p>
+        <div className="mt-3 space-y-3">
+          {month.map((r) => (
+            <div key={r.member.id}>
+              <div className="flex items-center justify-between text-[13px]">
+                <span className="flex items-center gap-2"><Avatar name={r.member.displayName} /> <span className="font-medium">{r.member.displayName}</span></span>
+                <span className="text-text-muted">{r.completionRate}%</span>
+              </div>
+              <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-surface-2"><div className="h-full rounded-full accent-gradient" style={{ width: `${r.completionRate}%` }} /></div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
