@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
 import { ChevronDown, User, Users, Plus, Check, Shield, LogIn } from "lucide-react";
 import { myMemberGroups, myOwnedGroups, type TeamGroup } from "@/lib/teams";
@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 // change global state, so it's safe and works with the existing routes.
 export function WorkspaceSwitcher() {
   const router = useRouter();
+  const pathname = usePathname();
   const [joined, setJoined] = useState<TeamGroup[]>([]);
   const [owned, setOwned] = useState<TeamGroup[]>([]);
   const [open, setOpen] = useState(false);
@@ -23,12 +24,13 @@ export function WorkspaceSwitcher() {
     void myOwnedGroups().then(setOwned);
   }, []);
 
-  // Derive the current workspace from the URL (Personal = /dashboard etc.).
+  // Derive the current workspace from the URL. Re-runs on every navigation so
+  // the active pill stays correct after switching (Personal = /dashboard etc.).
   useEffect(() => {
-    const onTeam = window.location.pathname.startsWith("/team");
-    const g = new URLSearchParams(window.location.search).get("g");
+    const onTeam = pathname.startsWith("/team");
+    const g = onTeam ? new URLSearchParams(window.location.search).get("g") : null;
     setActiveGid(onTeam ? g : null); // eslint-disable-line react-hooks/set-state-in-effect
-  }, []);
+  }, [pathname]);
 
   useEffect(() => {
     const onDoc = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
@@ -56,9 +58,9 @@ export function WorkspaceSwitcher() {
             transition={{ duration: 0.14 }}
             className="absolute left-0 z-50 mt-2 w-64 overflow-hidden rounded-2xl border border-border bg-surface p-1.5 shadow-[var(--shadow-lg)]">
             <p className="px-2.5 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-text-muted">Espacios</p>
-            <SwitchItem icon={<User size={15} />} label="Personal" active={!active} onClick={() => go("/dashboard")} />
+            <SwitchItem icon={<User size={15} />} label="Personal" active={!active} onClick={() => { setActiveGid(null); go("/dashboard"); }} />
             {joined.map((g) => (
-              <SwitchItem key={g.id} icon={<Users size={15} />} label={g.name} active={active?.id === g.id} onClick={() => go(`/team?g=${g.id}`)} />
+              <SwitchItem key={g.id} icon={<Users size={15} />} label={g.name} active={active?.id === g.id} onClick={() => { setActiveGid(g.id); go(`/team?g=${g.id}`); }} />
             ))}
             {owned.length > 0 && (
               <>
