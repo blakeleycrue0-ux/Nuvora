@@ -17,13 +17,15 @@ import { HabitIcon, colorValue, HABIT_COLORS } from "@/lib/icons";
 import { todayISO, lastNDays } from "@/lib/momentum/date";
 import {
   createGroup, myOwnedGroups, groupHabits, groupMembers, groupCompletions,
-  addGroupHabit, deleteGroupHabit, setMemberRole, removeMember,
+  addGroupHabit, deleteGroupHabit, setMemberRole, setMemberProfile, removeMember,
   groupAnnouncements, postAnnouncement, deleteAnnouncement,
-  renameGroup, deleteGroup, buildLeaderboard, streakFor,
-  TASK_TYPES, type LeaderPeriod,
+  updateGroupIdentity, deleteGroup, buildLeaderboard, streakFor,
+  TASK_TYPES, SPORTS, POSITIONS, type LeaderPeriod,
   type TeamGroup, type TeamHabit, type TeamMember, type NewHabit, type Announcement, type MemberRole,
 } from "@/lib/teams";
 import { cn } from "@/lib/utils";
+
+const CLUB_COLORS = ["#45c68e", "#2563eb", "#dc2626", "#f59e0b", "#7c3aed", "#0ea5e9", "#e11d48", "#0f172a"];
 
 const SUGGESTED: NewHabit[] = [
   { name: "Descanso 8h", icon: "bed", color: "c-indigo", xp: 10 },
@@ -467,10 +469,19 @@ function PlayersTab({ members, comp, onChange }: { members: TeamMember[]; comp: 
         <div key={m.id} className="flex flex-wrap items-center gap-3 rounded-2xl border border-border bg-surface p-3.5">
           <Avatar name={m.displayName} />
           <div className="min-w-0 flex-1">
-            <p className="truncate text-[14px] font-semibold text-text">{m.displayName}</p>
-            <p className="text-[12px] text-text-muted">{ROLE_LABELS[m.role]}</p>
+            <p className="truncate text-[14px] font-semibold text-text">
+              {m.number != null && <span className="mr-1.5 text-text-muted">#{m.number}</span>}{m.displayName}
+            </p>
+            <p className="text-[12px] text-text-muted">{ROLE_LABELS[m.role]}{m.position ? ` · ${m.position}` : ""}</p>
           </div>
           <span className="inline-flex items-center gap-1 text-[13px] font-semibold"><Flame size={13} className="text-accent" /> {streak}</span>
+          <input type="number" min={0} max={99} defaultValue={m.number ?? ""} placeholder="#"
+            onBlur={async (e) => { const v = e.target.value === "" ? null : Number(e.target.value); if (v !== (m.number ?? null)) { await setMemberProfile(m.id, m.position ?? null, v); await onChange(); } }}
+            className="w-12 rounded-lg border border-border bg-surface px-2 py-1.5 text-center text-[12.5px] text-text outline-none focus:border-accent" />
+          <select value={m.position ?? "—"} onChange={async (e) => { await setMemberProfile(m.id, e.target.value === "—" ? null : e.target.value, m.number ?? null); await onChange(); }}
+            className="rounded-lg border border-border bg-surface px-2 py-1.5 text-[12.5px] text-text-secondary outline-none focus:border-accent">
+            {POSITIONS.map((p) => <option key={p} value={p}>{p}</option>)}
+          </select>
           <select value={m.role} onChange={async (e) => { await setMemberRole(m.id, e.target.value as MemberRole); await onChange(); }}
             className="rounded-lg border border-border bg-surface px-2.5 py-1.5 text-[12.5px] text-text-secondary outline-none focus:border-accent">
             {ROLE_OPTIONS.map((r) => <option key={r} value={r}>{ROLE_LABELS[r]}</option>)}
@@ -646,13 +657,17 @@ function AnnouncementsTab({ group, items, onChange }: { group: TeamGroup; items:
 
 function SettingsTab({ group, onChange }: { group: TeamGroup; onChange: () => Promise<void> }) {
   const [name, setName] = useState(group.name);
+  const [sport, setSport] = useState(group.sport);
+  const [color, setColor] = useState(group.color);
+  const [crest, setCrest] = useState(group.crest ?? "");
   const [busy, setBusy] = useState(false);
   const router = useRouter();
 
+  const dirty = name.trim() !== group.name || sport !== group.sport || color !== group.color || (crest.trim() || "") !== (group.crest ?? "");
   const save = async () => {
-    if (!name.trim() || name.trim() === group.name) return;
+    if (!name.trim() || !dirty) return;
     setBusy(true);
-    try { await renameGroup(group.id, name); await onChange(); } finally { setBusy(false); }
+    try { await updateGroupIdentity(group.id, { name, sport, color, crest: crest.trim() || null }); await onChange(); } finally { setBusy(false); }
   };
   const remove = async () => {
     if (!confirm(`¿Eliminar el club "${group.name}"? Esta acción no se puede deshacer.`)) return;
@@ -664,15 +679,42 @@ function SettingsTab({ group, onChange }: { group: TeamGroup; onChange: () => Pr
   return (
     <div className="space-y-5">
       <InviteCard group={group} />
+
       <div className="rounded-3xl border border-border bg-surface p-5">
-        <p className="text-[13px] font-semibold text-text-secondary">Nombre del club</p>
-        <div className="mt-2 flex gap-2">
-          <Input value={name} onChange={(e) => setName(e.target.value)} />
-          <Button size="sm" onClick={save} disabled={busy || !name.trim() || name.trim() === group.name}>
-            {busy ? <Loader2 size={15} className="animate-spin" /> : "Guardar"}
-          </Button>
+        <p className="text-[13px] font-semibold text-text-secondary">Identidad del club</p>
+
+        {/* Crest preview */}
+        <div className="mt-3 flex items-center gap-3">
+          <span className="flex h-14 w-14 items-center justify-center rounded-2xl text-[26px] font-bold text-white shadow-[var(--shadow-sm)]" style={{ background: color }}>
+            {crest.trim() || name.trim().charAt(0).toUpperCase() || "F"}
+          </span>
+          <div className="min-w-0 flex-1">
+            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nombre del club" />
+          </div>
         </div>
+
+        <p className="mt-4 text-[11.5px] font-semibold text-text-muted">Escudo (emoji o 1-2 letras)</p>
+        <Input value={crest} onChange={(e) => setCrest(e.target.value.slice(0, 3))} placeholder="🦁 o CF" className="mt-1.5" />
+
+        <p className="mt-4 text-[11.5px] font-semibold text-text-muted">Color</p>
+        <div className="mt-1.5 flex flex-wrap gap-2">
+          {CLUB_COLORS.map((c) => (
+            <button key={c} onClick={() => setColor(c)} aria-label={c}
+              className={cn("h-8 w-8 rounded-full transition-transform hover:scale-110", color === c && "ring-2 ring-offset-2 ring-offset-surface")}
+              style={{ background: c, boxShadow: color === c ? `0 0 0 2px ${c}` : undefined }} />
+          ))}
+        </div>
+
+        <p className="mt-4 text-[11.5px] font-semibold text-text-muted">Deporte</p>
+        <select value={sport} onChange={(e) => setSport(e.target.value)} className="mt-1.5 w-full rounded-xl border border-border bg-surface px-3 py-2.5 text-[13.5px] text-text outline-none focus:border-accent">
+          {SPORTS.map((s) => <option key={s.key} value={s.key}>{s.label}</option>)}
+        </select>
+
+        <Button size="sm" onClick={save} disabled={busy || !name.trim() || !dirty} className="mt-4">
+          {busy ? <Loader2 size={15} className="animate-spin" /> : "Guardar cambios"}
+        </Button>
       </div>
+
       <div className="rounded-3xl border border-danger/30 bg-surface p-5">
         <p className="text-[13px] font-semibold text-danger">Zona de peligro</p>
         <p className="mt-1 text-[12.5px] text-text-muted">Eliminar el club borra sus tareas, jugadores y registros.</p>
