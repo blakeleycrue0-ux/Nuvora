@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
 import {
@@ -28,6 +28,33 @@ import {
 import { cn } from "@/lib/utils";
 
 const CLUB_COLORS = ["#45c68e", "#2563eb", "#dc2626", "#f59e0b", "#7c3aed", "#0ea5e9", "#e11d48", "#0f172a"];
+
+// Copy that also works on mobile / non-secure contexts where the async
+// Clipboard API can silently fail.
+async function robustCopy(text: string): Promise<boolean> {
+  try { await navigator.clipboard.writeText(text); return true; } catch { /* fall through */ }
+  try {
+    const ta = document.createElement("textarea");
+    ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.focus(); ta.select();
+    const ok = document.execCommand("copy");
+    document.body.removeChild(ta);
+    return ok;
+  } catch { return false; }
+}
+
+// Small club crest badge (image / emoji / initial) in the club color.
+function CrestBadge({ group, size = 44 }: { group: TeamGroup; size?: number }) {
+  return (
+    <span className="flex shrink-0 items-center justify-center overflow-hidden rounded-2xl font-bold text-white shadow-[var(--shadow-sm)]"
+      style={{ width: size, height: size, background: group.color || "var(--accent)", fontSize: size * 0.4 }}>
+      {group.crestUrl
+        // eslint-disable-next-line @next/next/no-img-element
+        ? <img src={group.crestUrl} alt="" className="h-full w-full object-cover" />
+        : (group.crest || group.name.charAt(0).toUpperCase())}
+    </span>
+  );
+}
 
 const SUGGESTED: NewHabit[] = [
   { name: "Descanso 8h", icon: "bed", color: "c-indigo", xp: 10 },
@@ -385,22 +412,28 @@ function Dashboard({ groups, active, setActive, onNewGroup, reload, coachName }:
 /* ---------------- invite card (shared) ---------------- */
 
 function InviteCard({ group }: { group: TeamGroup }) {
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = useState<"" | "code" | "link">("");
   const inviteUrl = typeof window !== "undefined" ? `${window.location.origin}/join?code=${group.inviteCode}` : "";
-  const copy = async () => { try { await navigator.clipboard.writeText(inviteUrl); setCopied(true); setTimeout(() => setCopied(false), 1500); } catch {} };
+  const flash = (w: "code" | "link") => { setCopied(w); setTimeout(() => setCopied(""), 1500); };
+  const copyCode = async () => { if (await robustCopy(group.inviteCode)) flash("code"); };
+  const copyLink = async () => { if (await robustCopy(inviteUrl)) flash("link"); };
   const share = async () => {
-    if (navigator.share) { try { await navigator.share({ title: "Únete a mi club en Fenom", text: `Código: ${group.inviteCode}`, url: inviteUrl }); } catch {} }
-    else copy();
+    if (navigator.share) { try { await navigator.share({ title: "Únete a mi club en Fenom", text: `Código: ${group.inviteCode}`, url: inviteUrl }); return; } catch {} }
+    void copyLink();
   };
   return (
     <div className="rounded-3xl border border-accent/40 bg-surface p-5 shadow-[var(--shadow-glow)]">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <p className="text-[12.5px] font-medium text-text-muted">Código de invitación</p>
-          <p className="mt-0.5 font-mono text-[30px] font-bold tracking-[0.18em] text-text">{group.inviteCode}</p>
+        <div className="flex items-center gap-3">
+          <CrestBadge group={group} />
+          <div>
+            <p className="text-[12.5px] font-medium text-text-muted">Código de invitación</p>
+            <p className="mt-0.5 font-mono text-[30px] font-bold tracking-[0.18em] text-text">{group.inviteCode}</p>
+          </div>
         </div>
-        <div className="flex gap-2">
-          <Button size="sm" variant="secondary" onClick={copy}><Copy size={15} /> {copied ? "Copiado" : "Copiar enlace"}</Button>
+        <div className="flex flex-wrap gap-2">
+          <Button size="sm" variant="secondary" onClick={copyCode}><Copy size={15} /> {copied === "code" ? "¡Copiado!" : "Copiar código"}</Button>
+          <Button size="sm" variant="secondary" onClick={copyLink}><Copy size={15} /> {copied === "link" ? "¡Copiado!" : "Copiar enlace"}</Button>
           <Button size="sm" onClick={share}><Share2 size={15} /> Compartir</Button>
         </div>
       </div>
@@ -667,6 +700,7 @@ function SettingsTab({ group, onChange }: { group: TeamGroup; onChange: () => Pr
   const [crest, setCrest] = useState(group.crest ?? "");
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [cropFile, setCropFile] = useState<File | null>(null);
   const router = useRouter();
 
   const dirty = name.trim() !== group.name || sport !== group.sport || color !== group.color || (crest.trim() || "") !== (group.crest ?? "");
@@ -706,11 +740,7 @@ function SettingsTab({ group, onChange }: { group: TeamGroup; onChange: () => Pr
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-border px-3 py-2 text-[12.5px] font-semibold text-text-secondary hover:border-border-strong">
             {uploading ? <Loader2 size={14} className="animate-spin" /> : <ImagePlus size={14} />} Subir escudo
-            <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
-              const f = e.target.files?.[0]; if (!f) return;
-              setUploading(true);
-              try { await uploadCrest(group.id, f); await onChange(); } catch (err) { alert((err as Error).message); } finally { setUploading(false); }
-            }} />
+            <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) setCropFile(f); e.target.value = ""; }} />
           </label>
           {group.crestUrl && (
             <button onClick={async () => { await updateGroupIdentity(group.id, { crestUrl: null }); await onChange(); }}
@@ -738,6 +768,11 @@ function SettingsTab({ group, onChange }: { group: TeamGroup; onChange: () => Pr
           {busy ? <Loader2 size={15} className="animate-spin" /> : "Guardar cambios"}
         </Button>
       </div>
+
+      {cropFile && (
+        <CrestCropper file={cropFile} busy={uploading} onCancel={() => setCropFile(null)}
+          onSave={async (f) => { setUploading(true); try { await uploadCrest(group.id, f); await onChange(); setCropFile(null); } catch (err) { alert((err as Error).message); } finally { setUploading(false); } }} />
+      )}
 
       <div className="rounded-3xl border border-danger/30 bg-surface p-5">
         <p className="text-[13px] font-semibold text-danger">Zona de peligro</p>
@@ -854,6 +889,73 @@ function SessionForm({ groupId, onDone, onCancel }: { groupId: string; onDone: (
       <div className="mt-3 flex gap-2">
         <button onClick={onCancel} className="h-10 flex-1 rounded-xl border border-border text-[13.5px] font-medium text-text-secondary">Cancelar</button>
         <button onClick={save} disabled={busy || !title.trim() || !when} className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl accent-gradient text-[13.5px] font-semibold text-accent-ink disabled:opacity-50">{busy ? <Loader2 size={15} className="animate-spin" /> : "Crear sesión"}</button>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- crest cropper ---------------- */
+
+function CrestCropper({ file, busy, onCancel, onSave }: { file: File; busy: boolean; onCancel: () => void; onSave: (f: File) => void }) {
+  const V = 260, OUT = 256;
+  const [url] = useState(() => URL.createObjectURL(file));
+  const [nat, setNat] = useState<{ w: number; h: number } | null>(null);
+  const [scale, setScale] = useState(1);
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const imgRef = useRef<HTMLImageElement | null>(null);
+  const drag = useRef<{ x: number; y: number } | null>(null);
+
+  useEffect(() => () => URL.revokeObjectURL(url), [url]);
+
+  const base = nat ? V / Math.min(nat.w, nat.h) : 1;
+  const eff = base * scale;
+
+  const onDown = (e: React.PointerEvent) => { drag.current = { x: e.clientX, y: e.clientY }; (e.target as HTMLElement).setPointerCapture(e.pointerId); };
+  const onMove = (e: React.PointerEvent) => {
+    if (!drag.current) return;
+    const dx = e.clientX - drag.current.x, dy = e.clientY - drag.current.y;
+    drag.current = { x: e.clientX, y: e.clientY };
+    setOffset((o) => ({ x: o.x + dx, y: o.y + dy }));
+  };
+  const onUp = () => { drag.current = null; };
+
+  const save = () => {
+    if (!nat || !imgRef.current) return;
+    const c = document.createElement("canvas"); c.width = OUT; c.height = OUT;
+    const ctx = c.getContext("2d"); if (!ctx) return;
+    const srcSize = V / eff;
+    const srcX = nat.w / 2 - offset.x / eff - srcSize / 2;
+    const srcY = nat.h / 2 - offset.y / eff - srcSize / 2;
+    ctx.drawImage(imgRef.current, srcX, srcY, srcSize, srcSize, 0, 0, OUT, OUT);
+    c.toBlob((b) => { if (b) onSave(new File([b], "crest.png", { type: "image/png" })); }, "image/png", 0.92);
+  };
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-5 backdrop-blur-sm" onClick={onCancel}>
+      <div className="w-full max-w-sm rounded-3xl border border-border bg-surface p-5 shadow-[var(--shadow-lg)]" onClick={(e) => e.stopPropagation()}>
+        <p className="text-[15px] font-semibold text-text">Ajusta el escudo</p>
+        <p className="mt-1 text-[12.5px] text-text-muted">Arrastra para mover y usa el control para el zoom. El círculo marca cómo se verá.</p>
+
+        <div className="mx-auto mt-4 touch-none select-none overflow-hidden rounded-2xl border border-border bg-surface-2" style={{ width: V, height: V, position: "relative" }}
+          onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerLeave={onUp}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img ref={imgRef} src={url} alt="" draggable={false} onLoad={(e) => setNat({ w: e.currentTarget.naturalWidth, h: e.currentTarget.naturalHeight })}
+            style={{ position: "absolute", width: nat ? nat.w * eff : "100%", height: nat ? nat.h * eff : "100%", left: nat ? V / 2 - (nat.w * eff) / 2 + offset.x : 0, top: nat ? V / 2 - (nat.h * eff) / 2 + offset.y : 0, maxWidth: "none" }} />
+          {/* Guides */}
+          <div aria-hidden className="pointer-events-none absolute inset-0 rounded-full ring-2 ring-white/70" style={{ boxShadow: "0 0 0 9999px rgba(0,0,0,0.28)" }} />
+        </div>
+
+        <div className="mt-4 flex items-center gap-3">
+          <span className="text-[12px] text-text-muted">Zoom</span>
+          <input type="range" min={1} max={3} step={0.01} value={scale} onChange={(e) => setScale(Number(e.target.value))} className="flex-1 accent-[var(--accent)]" />
+        </div>
+
+        <div className="mt-4 flex gap-2">
+          <button onClick={onCancel} className="h-10 flex-1 rounded-xl border border-border text-[13.5px] font-medium text-text-secondary">Cancelar</button>
+          <button onClick={save} disabled={busy || !nat} className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl accent-gradient text-[13.5px] font-semibold text-accent-ink disabled:opacity-50">
+            {busy ? <Loader2 size={15} className="animate-spin" /> : "Guardar escudo"}
+          </button>
+        </div>
       </div>
     </div>
   );

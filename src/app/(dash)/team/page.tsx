@@ -16,7 +16,7 @@ import {
   groupByCode, joinGroup, groupAnnouncements, levelForXp,
   myMembership, setMyPlayerProfile, POSITIONS,
   listSessions, sessionAttendance, setMyAttendance,
-  type TeamGroup, type TeamHabit, type Announcement, type TeamSession, type AttendanceStatus,
+  type TeamGroup, type TeamHabit, type Announcement, type TeamSession, type AttendanceStatus, type GroupPreview,
 } from "@/lib/teams";
 import type { Habit, HabitColor, Difficulty } from "@/lib/momentum/types";
 import { cn } from "@/lib/utils";
@@ -129,7 +129,12 @@ export default function TeamPage() {
               <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="mt-6 overflow-hidden rounded-3xl p-5 text-white" style={{ background: group.color || "var(--accent)" }}>
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex min-w-0 items-center gap-3">
-                    <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/20 text-[22px] font-bold">{group.crest || group.name.charAt(0).toUpperCase()}</span>
+                    <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white/20 text-[22px] font-bold">
+                      {group.crestUrl
+                        // eslint-disable-next-line @next/next/no-img-element
+                        ? <img src={group.crestUrl} alt="" className="h-full w-full object-cover" />
+                        : (group.crest || group.name.charAt(0).toUpperCase())}
+                    </span>
                     <div className="min-w-0"><p className="text-[12.5px] font-medium opacity-80">Tu equipo</p><p className="truncate text-[22px] font-semibold">{group.name}</p></div>
                   </div>
                   <div className="flex shrink-0 items-center gap-2">
@@ -265,13 +270,13 @@ function PlayerCard({ groupId, membership, onSaved }: { groupId: string; members
 function JoinCard({ onJoin, busy, defaultName, compact }: { onJoin: (code: string, name: string) => Promise<string | null>; busy: boolean; defaultName: string; compact?: boolean }) {
   const [code, setCode] = useState("");
   const [name, setName] = useState(defaultName);
-  const [preview, setPreview] = useState<{ name: string; memberCount: number } | null>(null);
+  const [preview, setPreview] = useState<GroupPreview | null>(null);
   const [err, setErr] = useState("");
 
   useEffect(() => {
     let active = true;
     if (code.trim().length < 4) { setPreview(null); return; }
-    groupByCode(code.trim()).then((g) => { if (active) setPreview(g ? { name: g.name, memberCount: g.memberCount } : null); });
+    groupByCode(code.trim()).then((g) => { if (active) setPreview(g); });
     return () => { active = false; };
   }, [code]);
 
@@ -289,9 +294,19 @@ function JoinCard({ onJoin, busy, defaultName, compact }: { onJoin: (code: strin
       <div className={cn("mx-auto max-w-xs", !compact && "mt-5")}>
         <Input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} placeholder="Código (ej. ABC123)" maxLength={8} className="text-center font-mono text-[18px] font-bold tracking-[0.28em]" />
         <div className="min-h-[22px] py-1 text-[12.5px]">
-          {preview ? <span className="font-medium text-accent">✓ {preview.name} · {preview.memberCount} {preview.memberCount === 1 ? "miembro" : "miembros"}</span>
-            : code.trim().length >= 4 ? <span className="text-danger">No encontramos ese equipo</span> : null}
+          {!preview && code.trim().length >= 4 ? <span className="text-danger">No encontramos ese equipo</span> : null}
         </div>
+        {preview && (
+          <div className="mx-auto mb-1 flex items-center gap-2.5 rounded-2xl p-2.5 text-left text-white" style={{ background: preview.color || "var(--accent)" }}>
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white/20 text-[16px] font-bold">
+              {preview.crestUrl
+                // eslint-disable-next-line @next/next/no-img-element
+                ? <img src={preview.crestUrl} alt="" className="h-full w-full object-cover" />
+                : (preview.crest || preview.name.charAt(0).toUpperCase())}
+            </span>
+            <div className="min-w-0"><p className="truncate text-[13.5px] font-semibold">{preview.name}</p><p className="text-[11px] opacity-90">{preview.memberCount} {preview.memberCount === 1 ? "miembro" : "miembros"}</p></div>
+          </div>
+        )}
         <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Tu nombre en el equipo" className="mt-1" />
         {err && <p className="mt-2 text-[12.5px] text-danger">{err}</p>}
         <Button size="lg" onClick={submit} disabled={!preview || busy || !name.trim()} className="mt-3 w-full group">

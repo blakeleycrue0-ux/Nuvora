@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { useAuth } from "@/lib/auth";
 import { FEATURE_TEAMS } from "@/lib/features";
-import { groupByCode, joinGroup } from "@/lib/teams";
+import { groupByCode, joinGroup, type GroupPreview } from "@/lib/teams";
 
 const PENDING_KEY = "momentum-pending-join";
 
@@ -18,7 +18,7 @@ export default function JoinPage() {
   const { user, ready, setAccountType, markOnboarded } = useAuth();
   const [code, setCode] = useState("");
   const [name, setName] = useState("");
-  const [group, setGroup] = useState<{ id: string; name: string; memberCount: number } | null>(null);
+  const [group, setGroup] = useState<GroupPreview | null>(null);
   const [checking, setChecking] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
@@ -89,9 +89,23 @@ export default function JoinPage() {
 
             <div className="mt-3 min-h-[24px] text-center text-[13px]">
               {checking ? <span className="inline-flex items-center gap-1.5 text-text-muted"><Loader2 size={13} className="animate-spin" /> Buscando…</span>
-                : group ? <span className="font-medium text-accent">✓ {group.name} · {group.memberCount} {group.memberCount === 1 ? "miembro" : "miembros"}</span>
-                : code.trim().length >= 4 ? <span className="text-danger">No encontramos ese equipo</span> : null}
+                : code.trim().length >= 4 && !group ? <span className="text-danger">No encontramos ese equipo</span> : null}
             </div>
+            {group && (
+              <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
+                className="mt-2 flex items-center gap-3 rounded-2xl p-3 text-white" style={{ background: group.color || "var(--accent)" }}>
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white/20 text-[20px] font-bold">
+                  {group.crestUrl
+                    // eslint-disable-next-line @next/next/no-img-element
+                    ? <img src={group.crestUrl} alt="" className="h-full w-full object-cover" />
+                    : (group.crest || group.name.charAt(0).toUpperCase())}
+                </span>
+                <div className="min-w-0 text-left">
+                  <p className="truncate text-[15px] font-semibold">{group.name}</p>
+                  <p className="text-[12px] opacity-90">{group.memberCount} {group.memberCount === 1 ? "miembro" : "miembros"}</p>
+                </div>
+              </motion.div>
+            )}
 
             <label className="mt-3 block text-[12.5px] font-semibold text-text-secondary">Tu nombre en el equipo</label>
             <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Tu nombre" className="mt-2" />
