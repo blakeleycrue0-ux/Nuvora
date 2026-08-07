@@ -5,7 +5,7 @@ import Link from "next/link";
 import { motion } from "motion/react";
 import {
   ArrowRight, Camera, ShieldCheck, Flame, Trophy, Check, X, Lock, ChevronRight,
-  Sparkles, BarChart3, Bell, Zap,
+  Sparkles, BarChart3, Bell, Zap, ListChecks, Users, Shield, UserRound, CalendarCheck, Goal, Megaphone,
 } from "lucide-react";
 import { Wordmark } from "@/components/Wordmark";
 import { Button } from "@/components/ui/Button";
@@ -69,6 +69,22 @@ const COPY = {
       remindTag: "Constancia", remindH: "Recordatorios diarios", remindP: "Un aviso amable para que el hábito no se olvide. Cero spam.",
       frictionTag: "Sin fricción", frictionH: "Sin descargas", frictionP: "Se abre en el navegador y se añade a la pantalla de inicio. En cualquier móvil.",
       miniHabit: "Entreno extra", miniStatus: "Foto enviada · analizando…", miniVerified: "Verificado — la foto no se comparte",
+    },
+    platform: {
+      eyebrow: "La plataforma", title: "Todo lo que tu club necesita, en un sitio",
+      sub: "Mucho más que hábitos: gestiona el día a día del equipo, dentro y fuera del campo. Pensado para fútbol, y válido para cualquier deporte.",
+      items: [
+        { t: "Tareas y XP", d: "Hábitos y tareas con puntos. El esfuerzo se convierte en progreso visible." },
+        { t: "Verificación con IA", d: "Foto verificada por IA — privada. El club ve hecho/no hecho, nunca la imagen." },
+        { t: "Clasificación", d: "Liguilla del equipo por día, semana, mes o temporada." },
+        { t: "Roles del club", d: "Propietario, administrador, entrenador, ayudante y jugador." },
+        { t: "Identidad del club", d: "Escudo, colores y nombre. Tu club, con tu propia imagen.", tag: "Nuevo" },
+        { t: "Perfiles de jugador", d: "Posición, dorsal y progreso de cada jugador en la temporada.", tag: "Nuevo" },
+        { t: "Entrenos y asistencia", d: "Programa sesiones y controla quién confirma y quién asiste.", tag: "Nuevo" },
+        { t: "Match Center", d: "Convocatorias, resultados, alineaciones y votación al MVP del partido.", tag: "Nuevo" },
+        { t: "Analítica del entrenador", d: "Gráficas de cumplimiento, tendencias y jugador de la semana.", tag: "Nuevo" },
+        { t: "Anuncios", d: "Avisa a todo el equipo: partidos, entrenos y novedades." },
+      ],
     },
     catalog: {
       eyebrow: "Hábitos", title: "Los hábitos que tú decidas",
@@ -178,6 +194,22 @@ const COPY = {
       frictionTag: "No friction", frictionH: "No downloads", frictionP: "Opens in the browser and adds to the home screen. On any phone.",
       miniHabit: "Extra training", miniStatus: "Photo sent · analyzing…", miniVerified: "Verified — the photo isn't shared",
     },
+    platform: {
+      eyebrow: "The platform", title: "Everything your club needs, in one place",
+      sub: "Far more than habits: run your team's day to day, on and off the pitch. Built for football, works for any sport.",
+      items: [
+        { t: "Tasks & XP", d: "Habits and tasks worth points. Effort turns into visible progress." },
+        { t: "AI verification", d: "AI-verified photo — private. The club sees done / not done, never the image." },
+        { t: "Leaderboard", d: "A team league by day, week, month or season." },
+        { t: "Club roles", d: "Owner, admin, coach, assistant and player." },
+        { t: "Club identity", d: "Crest, colors and name. Your club, with your own look.", tag: "New" },
+        { t: "Player profiles", d: "Position, shirt number and each player's season progress.", tag: "New" },
+        { t: "Training & attendance", d: "Schedule sessions and track who confirms and who shows up.", tag: "New" },
+        { t: "Match Center", d: "Call-ups, results, line-ups and man-of-the-match voting.", tag: "New" },
+        { t: "Coach analytics", d: "Compliance charts, trends and player of the week.", tag: "New" },
+        { t: "Announcements", d: "Reach the whole team: matches, training and news." },
+      ],
+    },
     catalog: {
       eyebrow: "Habits", title: "The habits you decide",
       sub: "Pick from a ready-made list or create your own. They adapt to the sport, age and level.",
@@ -283,6 +315,7 @@ export function TeamsLanding() {
         <Showcase />
         <Audience />
         <HowItWorks />
+        <Platform />
         <Bento />
         <HabitCatalog />
         <Privacy />
@@ -449,6 +482,38 @@ function HowItWorks() {
               <p className="mt-2 text-[14px] leading-relaxed text-text-secondary">{s.d}</p>
             </Reveal>
           ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ================= platform ================= */
+
+function Platform() {
+  const { c } = useT();
+  const p = c.platform;
+  const icons = [ListChecks, ShieldCheck, Trophy, Users, Shield, UserRound, CalendarCheck, Goal, BarChart3, Megaphone];
+  return (
+    <section id="plataforma" className="scroll-mt-20 border-y border-border bg-surface/40 px-5 py-24 sm:px-8">
+      <div className="mx-auto max-w-5xl">
+        <SectionHead eyebrow={p.eyebrow} title={p.title} subtitle={p.sub} center />
+        <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {p.items.map((it: { t: string; d: string; tag?: string }, i: number) => {
+            const Icon = icons[i % icons.length];
+            return (
+              <Reveal key={it.t} delay={(i % 3) * 0.06}>
+                <div className="h-full rounded-3xl border border-border bg-surface p-5 shadow-[var(--shadow-sm)] transition-colors hover:border-border-strong">
+                  <div className="flex items-center justify-between">
+                    <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-accent-soft text-accent"><Icon size={20} /></span>
+                    {it.tag && <span className="rounded-full bg-accent-soft px-2 py-0.5 text-[10.5px] font-bold uppercase tracking-wide text-accent">{it.tag}</span>}
+                  </div>
+                  <h3 className="mt-3.5 text-[16px] font-semibold tracking-tight">{it.t}</h3>
+                  <p className="mt-1.5 text-[13.5px] leading-relaxed text-text-secondary">{it.d}</p>
+                </div>
+              </Reveal>
+            );
+          })}
         </div>
       </div>
     </section>
