@@ -381,11 +381,12 @@ export async function groupCompletions(groupId: string, since: string): Promise<
 
 /* ---------------- player ---------------- */
 
-export async function groupByCode(code: string): Promise<{ id: string; name: string; memberCount: number } | null> {
+export interface GroupPreview { id: string; name: string; memberCount: number; crest?: string; crestUrl?: string; color: string }
+export async function groupByCode(code: string): Promise<GroupPreview | null> {
   const { data, error } = await supabase.rpc("group_by_code", { p_code: code });
   if (error || !data || !data.length) return null;
-  const r = data[0] as { id: string; name: string; member_count: number };
-  return { id: r.id, name: r.name, memberCount: Number(r.member_count) };
+  const r = data[0] as { id: string; name: string; member_count: number; crest: string | null; crest_url: string | null; color: string | null };
+  return { id: r.id, name: r.name, memberCount: Number(r.member_count), crest: r.crest ?? undefined, crestUrl: r.crest_url ?? undefined, color: r.color ?? "#45c68e" };
 }
 
 export async function joinGroup(code: string, displayName: string): Promise<string> {
