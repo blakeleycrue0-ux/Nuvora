@@ -11,7 +11,24 @@ export interface TeamGroup {
   inviteCode: string;
   ownerId: string;
   createdAt: string;
+  sport: string;
+  color: string;   // accent hex
+  crest?: string;  // emoji / short badge
 }
+
+export const SPORTS: { key: string; label: string }[] = [
+  { key: "football", label: "Fútbol" },
+  { key: "basketball", label: "Baloncesto" },
+  { key: "handball", label: "Balonmano" },
+  { key: "volleyball", label: "Voleibol" },
+  { key: "athletics", label: "Atletismo" },
+  { key: "swimming", label: "Natación" },
+  { key: "tennis", label: "Tenis" },
+  { key: "other", label: "Otro" },
+];
+
+// Common football positions (kept generic enough for other sports too).
+export const POSITIONS = ["POR", "DEF", "MED", "DEL", "—"];
 // A group habit is internally a "task". `type` describes how it's completed and
 // `xp` is what it awards on the leaderboard. Kept as strings so new task types /
 // roles can be added later without a schema or type migration.
@@ -41,6 +58,8 @@ export interface TeamMember {
   displayName: string;
   role: MemberRole;
   joinedAt: string;
+  position?: string;
+  number?: number;
 }
 export interface TeamCompletion {
   habitId: string;
@@ -96,14 +115,14 @@ function newCode(len = 6): string {
 
 /* ---------------- rows → types ---------------- */
 
-type GroupRow = { id: string; name: string; invite_code: string; owner_id: string; created_at: string };
-const toGroup = (r: GroupRow): TeamGroup => ({ id: r.id, name: r.name, inviteCode: r.invite_code, ownerId: r.owner_id, createdAt: r.created_at });
+type GroupRow = { id: string; name: string; invite_code: string; owner_id: string; created_at: string; sport?: string | null; color?: string | null; crest?: string | null };
+const toGroup = (r: GroupRow): TeamGroup => ({ id: r.id, name: r.name, inviteCode: r.invite_code, ownerId: r.owner_id, createdAt: r.created_at, sport: r.sport ?? "football", color: r.color ?? "#45c68e", crest: r.crest ?? undefined });
 
 type HabitRow = { id: string; group_id: string; name: string; description: string | null; icon: string; color: string; difficulty: string; verify: boolean; type: string | null; xp: number | null; due_date: string | null; sort: number };
 const toHabit = (r: HabitRow): TeamHabit => ({ id: r.id, groupId: r.group_id, name: r.name, description: r.description ?? undefined, icon: r.icon, color: r.color, difficulty: r.difficulty, verify: r.verify, type: (r.type as TaskType) ?? "daily", xp: r.xp ?? 10, dueDate: r.due_date ?? undefined, sort: r.sort });
 
-type MemberRow = { id: string; group_id: string; user_id: string; display_name: string; role: string | null; joined_at: string };
-const toMember = (r: MemberRow): TeamMember => ({ id: r.id, groupId: r.group_id, userId: r.user_id, displayName: r.display_name, role: (r.role as MemberRole) ?? "player", joinedAt: r.joined_at });
+type MemberRow = { id: string; group_id: string; user_id: string; display_name: string; role: string | null; joined_at: string; position?: string | null; number?: number | null };
+const toMember = (r: MemberRow): TeamMember => ({ id: r.id, groupId: r.group_id, userId: r.user_id, displayName: r.display_name, role: (r.role as MemberRole) ?? "player", joinedAt: r.joined_at, position: r.position ?? undefined, number: r.number ?? undefined });
 
 type AnnouncementRow = { id: string; group_id: string; author_id: string; title: string; body: string; created_at: string };
 const toAnnouncement = (r: AnnouncementRow): Announcement => ({ id: r.id, groupId: r.group_id, authorId: r.author_id, title: r.title, body: r.body, createdAt: r.created_at });
@@ -143,6 +162,43 @@ export async function createGroup(name: string, habits: NewHabit[]): Promise<Tea
 
 export async function renameGroup(groupId: string, name: string): Promise<void> {
   const { error } = await supabase.from("groups").update({ name: name.trim() }).eq("id", groupId);
+  if (error) throw new Error(error.message);
+}
+
+// Club identity — editable by managers (owner/admin/coach) via RLS.
+export async function updateGroupIdentity(groupId: string, patch: { name?: string; sport?: string; color?: string; crest?: string | null }): Promise<void> {
+  const row: Record<string, unknown> = {};
+  if (patch.name !== undefined) row.name = patch.name.trim();
+  if (patch.sport !== undefined) row.sport = patch.sport;
+  if (patch.color !== undefined) row.color = patch.color;
+  if (patch.crest !== undefined) row.crest = patch.crest?.trim() || null;
+  if (!Object.keys(row).length) return;
+  const { error } = await supabase.from("groups").update(row).eq("id", groupId);
+  if (error) throw new Error(error.message);
+}
+
+// Coach/admin sets a player's shirt number + position.
+export async function setMemberProfile(memberId: string, position: string | null, number: number | null): Promise<void> {
+  const { error } = await supabase.from("group_members")
+    .update({ position: position?.trim() || null, number: number ?? null })
+    .eq("id", memberId);
+  if (error) throw new Error(error.message);
+}
+
+// The signed-in player's own membership fields (position/number) in a group.
+export async function myMembership(groupId: string): Promise<{ position?: string; number?: number } | null> {
+  const { data: auth } = await supabase.auth.getUser();
+  const uid = auth.user?.id;
+  if (!uid) return null;
+  const { data, error } = await supabase.from("group_members").select("position,number").eq("group_id", groupId).eq("user_id", uid).maybeSingle();
+  if (error || !data) return null;
+  const r = data as { position: string | null; number: number | null };
+  return { position: r.position ?? undefined, number: r.number ?? undefined };
+}
+
+// A player sets their OWN position + number (via SECURITY DEFINER RPC).
+export async function setMyPlayerProfile(groupId: string, position: string | null, number: number | null): Promise<void> {
+  const { error } = await supabase.rpc("set_my_player_profile", { p_group: groupId, p_position: position ?? "", p_number: number ?? null });
   if (error) throw new Error(error.message);
 }
 

@@ -14,6 +14,7 @@ import { todayISO, lastNDays } from "@/lib/momentum/date";
 import {
   myMemberGroups, groupHabits, myGroupCompletions, setGroupCompletion, streakFor,
   groupByCode, joinGroup, groupAnnouncements, levelForXp,
+  myMembership, setMyPlayerProfile, POSITIONS,
   type TeamGroup, type TeamHabit, type Announcement,
 } from "@/lib/teams";
 import type { Habit, HabitColor, Difficulty } from "@/lib/momentum/types";
@@ -32,6 +33,7 @@ export default function TeamPage() {
   const [streak, setStreak] = useState(0);
   const [xp, setXp] = useState(0);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [membership, setMembership] = useState<{ position?: string; number?: number } | null>(null);
   const [loading, setLoading] = useState(true);
   const [verify, setVerify] = useState<TeamHabit | null>(null);
   const [joining, setJoining] = useState(false);
@@ -47,7 +49,7 @@ export default function TeamPage() {
     if (!gid) { setLoading(false); return; }
     setLoading(true);
     const since = lastNDays(21)[0];
-    const [h, c, a] = await Promise.all([groupHabits(gid), myGroupCompletions(gid, since), groupAnnouncements(gid)]);
+    const [h, c, a, mine] = await Promise.all([groupHabits(gid), myGroupCompletions(gid, since), groupAnnouncements(gid), myMembership(gid)]);
     setHabits(h);
     const today = todayISO();
     setDoneToday(new Set(c.filter((x) => x.date === today).map((x) => x.habitId)));
@@ -55,6 +57,7 @@ export default function TeamPage() {
     const xpOf = new Map(h.map((x) => [x.id, x.xp]));
     setXp(c.reduce((sum, x) => sum + (xpOf.get(x.habitId) ?? 10), 0));
     setAnnouncements(a);
+    setMembership(mine);
     setLoading(false);
   }, [gid]);
   useEffect(() => { if (gid) void load(); else if (groups) setLoading(false); }, [gid, groups, load]);
@@ -115,17 +118,22 @@ export default function TeamPage() {
             <div className="mt-6 space-y-3"><div className="h-28 animate-pulse rounded-3xl bg-surface-2" />{Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-16 animate-pulse rounded-2xl bg-surface-2" />)}</div>
           ) : group && (
             <>
-              <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="mt-6 overflow-hidden rounded-3xl accent-gradient p-5 text-accent-ink">
-                <div className="flex items-center justify-between">
-                  <div><p className="text-[12.5px] font-medium opacity-80">Tu equipo</p><p className="text-[22px] font-semibold">{group.name}</p></div>
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1.5 rounded-full bg-black/15 px-3 py-1.5 text-[15px] font-bold"><Zap size={15} /> {xp}</div>
-                    <div className="flex items-center gap-1.5 rounded-full bg-black/15 px-3 py-1.5 text-[15px] font-bold"><Flame size={16} /> {streak}</div>
+              <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="mt-6 overflow-hidden rounded-3xl p-5 text-white" style={{ background: group.color || "var(--accent)" }}>
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/20 text-[22px] font-bold">{group.crest || group.name.charAt(0).toUpperCase()}</span>
+                    <div className="min-w-0"><p className="text-[12.5px] font-medium opacity-80">Tu equipo</p><p className="truncate text-[22px] font-semibold">{group.name}</p></div>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-2">
+                    <div className="flex items-center gap-1.5 rounded-full bg-black/20 px-3 py-1.5 text-[15px] font-bold"><Zap size={15} /> {xp}</div>
+                    <div className="flex items-center gap-1.5 rounded-full bg-black/20 px-3 py-1.5 text-[15px] font-bold"><Flame size={16} /> {streak}</div>
                   </div>
                 </div>
                 <div className="mt-4 flex items-center justify-between text-[12.5px] font-medium opacity-90"><span>Nivel {levelForXp(xp)}</span><span>Hoy · {doneCount} de {habits.length}</span></div>
-                <div className="mt-2 h-2 overflow-hidden rounded-full bg-black/15"><motion.div className="h-full rounded-full bg-accent-ink/80" initial={false} animate={{ width: `${pct}%` }} /></div>
+                <div className="mt-2 h-2 overflow-hidden rounded-full bg-black/20"><motion.div className="h-full rounded-full bg-white/85" initial={false} animate={{ width: `${pct}%` }} /></div>
               </motion.div>
+
+              {membership && <PlayerCard groupId={group.id} membership={membership} onSaved={load} />}
 
               {announcements.length > 0 && (
                 <div className="mt-4 space-y-2">
@@ -176,6 +184,38 @@ export default function TeamPage() {
       )}
 
       <VerifyModal open={!!verify} habit={verify ? teamHabitToHabit(verify) : null} date={todayISO()} onClose={() => setVerify(null)} onApproved={onApproved} />
+    </div>
+  );
+}
+
+function PlayerCard({ groupId, membership, onSaved }: { groupId: string; membership: { position?: string; number?: number }; onSaved: () => void | Promise<void> }) {
+  const [position, setPosition] = useState(membership.position ?? "—");
+  const [number, setNumber] = useState<string>(membership.number != null ? String(membership.number) : "");
+  const [busy, setBusy] = useState(false);
+  const dirty = (position === "—" ? undefined : position) !== membership.position || (number === "" ? undefined : Number(number)) !== membership.number;
+
+  const save = async () => {
+    setBusy(true);
+    try { await setMyPlayerProfile(groupId, position === "—" ? null : position, number === "" ? null : Number(number)); await onSaved(); }
+    finally { setBusy(false); }
+  };
+
+  return (
+    <div className="mt-4 rounded-2xl border border-border bg-surface p-4">
+      <p className="text-[13px] font-semibold text-text-secondary">Mi ficha</p>
+      <div className="mt-3 flex items-end gap-2">
+        <div className="flex-1">
+          <label className="text-[11.5px] font-medium text-text-muted">Dorsal</label>
+          <Input type="number" min={0} max={99} value={number} onChange={(e) => setNumber(e.target.value)} placeholder="#" className="mt-1" />
+        </div>
+        <div className="flex-1">
+          <label className="text-[11.5px] font-medium text-text-muted">Posición</label>
+          <select value={position} onChange={(e) => setPosition(e.target.value)} className="mt-1 w-full rounded-xl border border-border bg-surface px-3 py-2.5 text-[13.5px] text-text outline-none focus:border-accent">
+            {POSITIONS.map((p) => <option key={p} value={p}>{p}</option>)}
+          </select>
+        </div>
+        <Button size="lg" onClick={save} disabled={busy || !dirty}>{busy ? <Loader2 size={16} className="animate-spin" /> : "Guardar"}</Button>
+      </div>
     </div>
   );
 }
