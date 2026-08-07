@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { VerifyModal } from "@/components/verify/VerifyModal";
 import { ProgressBubble } from "@/components/progress/ProgressBubble";
+import { useConfetti } from "@/components/Confetti";
+import { useCelebration } from "@/components/Celebration";
 import { levelFromXP } from "@/lib/momentum/stats";
 import { useAuth } from "@/lib/auth";
 import { HabitIcon, colorValue } from "@/lib/icons";
@@ -30,6 +32,8 @@ export default function TeamPage() {
   // direct URL access too and send the user back to their personal home.
   useEffect(() => { if (!FEATURE_TEAMS) router.replace("/dashboard"); }, [router]);
   const { user, ready } = useAuth();
+  const { fire } = useConfetti();
+  const { celebrateXP } = useCelebration();
   const [groups, setGroups] = useState<TeamGroup[] | null>(null);
   const [gid, setGid] = useState<string | null>(null);
   const [habits, setHabits] = useState<TeamHabit[]>([]);
@@ -49,7 +53,9 @@ export default function TeamPage() {
   const loadGroups = useCallback(async () => {
     const gs = await myMemberGroups();
     setGroups(gs);
-    setGid((cur) => cur ?? gs[0]?.id ?? null);
+    // Honour ?g=<id> from the workspace switcher so the right club is selected.
+    const wanted = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("g") : null;
+    setGid((cur) => (wanted && gs.some((g) => g.id === wanted) ? wanted : cur ?? gs[0]?.id ?? null));
   }, []);
   useEffect(() => { if (ready && user) void loadGroups(); }, [ready, user, loadGroups]);
 
@@ -77,17 +83,23 @@ export default function TeamPage() {
   }, [gid, user?.id]);
   useEffect(() => { if (gid) void load(); else if (groups) setLoading(false); }, [gid, groups, load]);
 
-  const complete = async (h: TeamHabit) => {
+  const complete = async (h: TeamHabit, cx?: number, cy?: number) => {
     if (!gid) return;
     const done = doneToday.has(h.id);
     if (!done && h.verify) { setVerify(h); return; }
     setDoneToday((s) => { const n = new Set(s); if (done) n.delete(h.id); else n.add(h.id); return n; });
+    if (!done) { // just completed → same feel as personal: confetti + XP pop
+      const x = cx ?? window.innerWidth / 2, y = cy ?? window.innerHeight / 2;
+      fire(x, y); celebrateXP(h.xp, x, y);
+    }
     await setGroupCompletion(gid, h.id, !done);
     void load();
   };
   const onApproved = async () => {
     if (!gid || !verify) return;
     setDoneToday((s) => new Set(s).add(verify.id));
+    const x = window.innerWidth / 2, y = window.innerHeight / 2;
+    fire(x, y); celebrateXP(verify.xp, x, y);
     await setGroupCompletion(gid, verify.id, true);
     void load();
   };
@@ -245,7 +257,7 @@ export default function TeamPage() {
                 {habits.map((h) => {
                   const done = doneToday.has(h.id); const val = colorValue(h.color);
                   return (
-                    <button key={h.id} onClick={() => complete(h)} className="flex w-full items-center gap-3 rounded-2xl border border-border bg-surface p-3.5 text-left transition-all hover:border-border-strong">
+                    <button key={h.id} onClick={(e) => { const r = e.currentTarget.getBoundingClientRect(); complete(h, r.left + r.width / 2, r.top + r.height / 2); }} className="flex w-full items-center gap-3 rounded-2xl border border-border bg-surface p-3.5 text-left transition-all hover:border-border-strong">
                       <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl" style={{ background: `color-mix(in oklab, ${val} 15%, transparent)`, color: val }}><HabitIcon name={h.icon} size={19} /></span>
                       <div className="min-w-0 flex-1">
                         <p className="text-[14.5px] font-semibold text-text">{h.name}</p>
