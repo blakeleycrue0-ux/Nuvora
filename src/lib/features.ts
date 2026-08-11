@@ -6,11 +6,13 @@
 // ever deleted — DB tables, RLS, APIs, business logic and UI all stayed in the
 // codebase; this flag only controls whether the Teams UI is exposed.
 //
-// Teams is ON by default now. Set NEXT_PUBLIC_FEATURE_TEAMS="false" to hide it
-// again without removing any code.
+// Teams is HIDDEN by default (personal-only app). Nothing about Teams is
+// removed — all the code, DB tables, RLS and business logic stay intact; this
+// only controls whether the Teams UI is exposed. Set
+// NEXT_PUBLIC_FEATURE_TEAMS="true" to bring the whole clubs experience back.
 // ============================================================
 
-export const FEATURE_TEAMS = process.env.NEXT_PUBLIC_FEATURE_TEAMS !== "false";
+export const FEATURE_TEAMS = process.env.NEXT_PUBLIC_FEATURE_TEAMS === "true";
 
 // Convenience: the personal experience is always on.
 export const FEATURE_PERSONAL = true;
