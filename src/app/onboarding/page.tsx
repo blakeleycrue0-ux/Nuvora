@@ -411,7 +411,7 @@ export default function OnboardingPage() {
                 <Emblem icon={Crown} />
                 <Title className="mt-7">Unlock Fenom Pro</Title>
                 <Lead>Everything you need to make it stick. Start free — cancel anytime.</Lead>
-                <div className="mt-7 rounded-3xl border border-accent/40 bg-surface p-5 shadow-[var(--shadow-glow)]">
+                <div className="mt-7 rounded-2xl border border-accent/40 bg-surface p-5 shadow-[var(--shadow-glow)]">
                   <div className="flex items-center gap-2">
                     <Crown size={18} className="text-accent" />
                     <span className="text-[15px] font-semibold text-text">Pro</span>
@@ -603,7 +603,7 @@ function Success() {
       {Array.from({ length: 14 }).map((_, i) => {
         const angle = (i / 14) * Math.PI * 2;
         const dist = 90 + (i % 3) * 24;
-        const colors = ["#45c68e", "#67b0e0", "#e0b45c", "#a58ce0", "#e58a97"];
+        const colors = ["#6ba98c", "#67b0e0", "#e0b45c", "#a58ce0", "#e58a97"];
         return (
           <motion.span
             key={i}

@@ -96,7 +96,7 @@ export default function ProgressPage() {
       <div className="container-page py-10">
         <div className="h-8 w-40 animate-pulse rounded-lg bg-surface-2" />
         <div className="mt-7 grid gap-5 lg:grid-cols-4">
-          {Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-28 animate-pulse rounded-3xl bg-surface-2" />)}
+          {Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-28 animate-pulse rounded-2xl bg-surface-2" />)}
         </div>
       </div>
     );
@@ -257,7 +257,7 @@ export default function ProgressPage() {
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
           {achievements.map((a) => {
             const Icon = ACHIEVEMENT_ICONS[a.icon] ?? Award;
-            const tierColor = { bronze: "#94a3b0", silver: "#c0cad4", gold: "#45c68e", diamond: "#67b0e0" }[a.tier];
+            const tierColor = { bronze: "#94a3b0", silver: "#c0cad4", gold: "#6ba98c", diamond: "#67b0e0" }[a.tier];
             return (
               <div key={a.id} className={cn("flex flex-col items-center gap-2 rounded-2xl border p-4 text-center transition-all", a.earned ? "border-border bg-surface-2 hover:-translate-y-0.5 hover:shadow-[var(--shadow-sm)]" : "border-dashed border-border")}>
                 <span className={cn("flex h-12 w-12 items-center justify-center rounded-full", !a.earned && "opacity-40 grayscale")} style={{ background: `color-mix(in oklab, ${tierColor} 18%, transparent)`, color: tierColor }}>
@@ -294,7 +294,7 @@ const tooltipStyle = {
 function Kpi({ icon: Icon, label, value, tint, sub }: { icon: typeof Flame; label: string; value: number | string; tint: string; sub: string }) {
   return (
     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
-      className="rounded-3xl border border-border bg-surface p-5 shadow-[var(--shadow-sm)]">
+      className="rounded-2xl border border-border bg-surface p-5 shadow-[var(--shadow-sm)]">
       <span className="flex h-10 w-10 items-center justify-center rounded-2xl" style={{ background: `color-mix(in oklab, ${tint} 15%, transparent)`, color: tint }}>
         <Icon size={19} />
       </span>
@@ -307,7 +307,7 @@ function Kpi({ icon: Icon, label, value, tint, sub }: { icon: typeof Flame; labe
 
 function Panel({ title, subtitle, children, className }: { title: string; subtitle?: string; children: React.ReactNode; className?: string }) {
   return (
-    <div className={cn("rounded-3xl border border-border bg-surface p-5 shadow-[var(--shadow-sm)] sm:p-6", className)}>
+    <div className={cn("rounded-2xl border border-border bg-surface p-5 shadow-[var(--shadow-sm)] sm:p-6", className)}>
       <div className="mb-4">
         <h3 className="text-[15px] font-semibold text-text">{title}</h3>
         {subtitle && <p className="mt-0.5 text-[12.5px] text-text-muted">{subtitle}</p>}

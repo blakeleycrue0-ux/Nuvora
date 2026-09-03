@@ -133,7 +133,7 @@ export function VerifyModal({
           animate={{ y: 0, opacity: 1, scale: 1 }}
           exit={{ y: 40, opacity: 0 }}
           transition={{ type: "spring", stiffness: 260, damping: 26 }}
-          className="relative w-full max-w-md overflow-hidden rounded-t-3xl border border-border bg-surface shadow-[var(--shadow-lg)] sm:rounded-3xl"
+          className="relative w-full max-w-md overflow-hidden rounded-t-3xl border border-border bg-surface shadow-[var(--shadow-lg)] sm:rounded-2xl"
         >
           {/* Header */}
           <div className="flex items-center gap-3 border-b border-border p-4">

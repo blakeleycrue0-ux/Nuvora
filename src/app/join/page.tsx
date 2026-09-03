@@ -78,11 +78,11 @@ export default function JoinPage() {
 
       <main className="relative z-10 flex flex-1 items-center justify-center px-5 pb-16">
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
-          <div className="flex justify-center"><span className="flex h-16 w-16 items-center justify-center rounded-3xl accent-gradient text-accent-ink shadow-[var(--shadow-glow)]"><Users size={30} /></span></div>
+          <div className="flex justify-center"><span className="flex h-16 w-16 items-center justify-center rounded-2xl accent-gradient text-accent-ink shadow-[var(--shadow-glow)]"><Users size={30} /></span></div>
           <h1 className="mt-6 text-center text-[26px] font-semibold tracking-[-0.02em]">Únete a tu equipo</h1>
           <p className="mx-auto mt-2 max-w-xs text-center text-[14px] leading-relaxed text-text-secondary">Introduce el código que te ha dado tu entrenador.</p>
 
-          <div className="mt-7 rounded-3xl border border-border bg-surface p-6">
+          <div className="mt-7 rounded-2xl border border-border bg-surface p-6">
             <label className="text-[12.5px] font-semibold text-text-secondary">Código del equipo</label>
             <Input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} placeholder="ABC123" maxLength={8}
               className="mt-2 text-center font-mono text-[22px] font-bold tracking-[0.3em]" autoFocus />

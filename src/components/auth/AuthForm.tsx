@@ -239,7 +239,7 @@ function Shell({ children }: { children: React.ReactNode }) {
         <div className="mb-8 flex justify-center">
           <Wordmark size="lg" href="/" />
         </div>
-        <div className="rounded-3xl border border-border bg-surface p-7 shadow-[var(--shadow-lg)]">{children}</div>
+        <div className="rounded-2xl border border-border bg-surface p-7 shadow-[var(--shadow-lg)]">{children}</div>
       </motion.div>
     </div>
   );

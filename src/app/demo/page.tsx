@@ -49,9 +49,9 @@ const CHART = [
 ];
 
 const ACHIEVEMENTS = [
-  { icon: Flame, label: "30-day streak", tint: "#45c68e", earned: true },
+  { icon: Flame, label: "30-day streak", tint: "#6ba98c", earned: true },
   { icon: Medal, label: "100 habits", tint: "#c0cad4", earned: true },
-  { icon: Crown, label: "Level 10", tint: "#45c68e", earned: true },
+  { icon: Crown, label: "Level 10", tint: "#6ba98c", earned: true },
   { icon: Sparkles, label: "5,000 XP", tint: "#67b0e0", earned: true },
   { icon: Target, label: "Perfect week", tint: "#e0b45c", earned: false },
   { icon: Award, label: "Year of you", tint: "#a58ce0", earned: false },
@@ -302,7 +302,7 @@ function BoardRow({ r, me }: any) {
 }
 
 function Avatar({ name, size = 36, highlight }: any) {
-  const colors = ["#45c68e", "#67b0e0", "#a58ce0", "#e0b45c", "#e58a97", "#4fc3b8"];
+  const colors = ["#6ba98c", "#67b0e0", "#a58ce0", "#e0b45c", "#e58a97", "#4fc3b8"];
   let h = 0; for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
   return <span className={cn("flex shrink-0 items-center justify-center rounded-full font-bold text-white", highlight && "ring-2 ring-accent ring-offset-2 ring-offset-surface")} style={{ width: size, height: size, fontSize: size * 0.4, background: colors[h % colors.length] }}>{name[0]?.toUpperCase() ?? "?"}</span>;
 }
