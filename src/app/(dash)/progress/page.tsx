@@ -106,7 +106,7 @@ export default function ProgressPage() {
     <div className="container-page py-10 lg:py-16">
       <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-[34px] font-semibold leading-[1.05] tracking-[-0.03em] text-text sm:text-[44px]">Progress</h1>
+          <h1 className="font-display text-[34px] font-semibold leading-[1.02] text-text sm:text-[46px]">Progress</h1>
           <p className="mt-3 text-[15px] leading-relaxed text-text-secondary">Deep insights into your consistency and momentum.</p>
         </div>
         <div className="inline-flex rounded-xl border border-border bg-surface p-1">
@@ -228,7 +228,7 @@ export default function ProgressPage() {
             {habitStats.map(({ habit, streak, longest, rate }) => {
               const color = colorValue(habit.color);
               return (
-                <div key={habit.id} className="flex items-center gap-3.5 rounded-2xl border border-border bg-surface-2 p-3.5">
+                <div key={habit.id} className="flex items-center gap-3.5 rounded-[26px] border border-border bg-surface-2 p-3.5">
                   <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl" style={{ background: `color-mix(in oklab, ${color} 15%, transparent)`, color }}>
                     <HabitIcon name={habit.icon} size={18} />
                   </span>
@@ -294,7 +294,7 @@ const tooltipStyle = {
 function Kpi({ icon: Icon, label, value, tint, sub }: { icon: typeof Flame; label: string; value: number | string; tint: string; sub: string }) {
   return (
     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
-      className="rounded-2xl border border-border bg-surface p-5 shadow-[var(--shadow-sm)]">
+      className="rounded-[26px] border border-border bg-surface p-5 shadow-[var(--shadow-sm)]">
       <span className="flex h-10 w-10 items-center justify-center rounded-2xl" style={{ background: `color-mix(in oklab, ${tint} 15%, transparent)`, color: tint }}>
         <Icon size={19} />
       </span>
@@ -307,7 +307,7 @@ function Kpi({ icon: Icon, label, value, tint, sub }: { icon: typeof Flame; labe
 
 function Panel({ title, subtitle, children, className }: { title: string; subtitle?: string; children: React.ReactNode; className?: string }) {
   return (
-    <div className={cn("rounded-2xl border border-border bg-surface p-5 shadow-[var(--shadow-sm)] sm:p-6", className)}>
+    <div className={cn("rounded-[26px] border border-border bg-surface p-5 shadow-[var(--shadow-sm)] sm:p-6", className)}>
       <div className="mb-4">
         <h3 className="text-[15px] font-semibold text-text">{title}</h3>
         {subtitle && <p className="mt-0.5 text-[12.5px] text-text-muted">{subtitle}</p>}

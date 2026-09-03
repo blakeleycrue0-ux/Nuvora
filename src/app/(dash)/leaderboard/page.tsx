@@ -70,7 +70,7 @@ export default function LeaderboardPage() {
       <div className="flex items-center gap-3">
         <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-accent-soft text-accent"><Trophy size={19} /></span>
         <div>
-          <h1 className="text-[24px] font-semibold tracking-[-0.02em] text-text sm:text-[28px]">Ranking global</h1>
+          <h1 className="font-display text-[30px] font-semibold text-text sm:text-[38px]">Ranking global</h1>
           {me && <p className="text-[13px] text-text-secondary">{me.total.toLocaleString()} atletas en Fenom</p>}
         </div>
       </div>
@@ -111,7 +111,7 @@ export default function LeaderboardPage() {
         </div>
         {hasMore && (
           <button onClick={loadMore} disabled={more}
-            className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl border border-border bg-surface py-3 text-[13.5px] font-semibold text-text-secondary transition-colors hover:text-text disabled:opacity-50">
+            className="mt-3 flex w-full items-center justify-center gap-2 rounded-[26px] border border-border bg-surface py-3 text-[13.5px] font-semibold text-text-secondary transition-colors hover:text-text disabled:opacity-50">
             {more ? <Loader2 size={16} className="animate-spin" /> : <><ChevronDown size={16} /> Ver más</>}
           </button>
         )}

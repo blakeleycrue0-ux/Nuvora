@@ -293,7 +293,7 @@ export default function OnboardingPage() {
                 <Title className="mt-7">Gentle nudges</Title>
                 <Lead>A daily reminder makes you far more likely to show up. We&apos;ll never spam you.</Lead>
                 <div className="mt-7 space-y-3">
-                  <div className="flex items-center justify-between rounded-2xl border border-border bg-surface p-4">
+                  <div className="flex items-center justify-between rounded-[26px] border border-border bg-surface p-4">
                     <div>
                       <p className="text-[14.5px] font-semibold text-text">Daily reminder</p>
                       <p className="text-[12.5px] text-text-muted">A nudge to check in on your habits</p>
@@ -304,7 +304,7 @@ export default function OnboardingPage() {
                     {remindersOn && (
                       <motion.div
                         initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
-                        className="flex items-center justify-between overflow-hidden rounded-2xl border border-border bg-surface p-4"
+                        className="flex items-center justify-between overflow-hidden rounded-[26px] border border-border bg-surface p-4"
                       >
                         <p className="text-[14.5px] font-medium text-text">Remind me at</p>
                         <input
@@ -349,7 +349,7 @@ export default function OnboardingPage() {
                   Listen to your body, go at your own pace, and consult a professional for health decisions.
                   If you ever feel unwell, please stop and seek help.
                 </Lead>
-                <div className="mt-6 rounded-2xl border border-border bg-surface p-4 text-[13px] leading-relaxed text-text-secondary">
+                <div className="mt-6 rounded-[26px] border border-border bg-surface p-4 text-[13px] leading-relaxed text-text-secondary">
                   By continuing you acknowledge that Fenom is a habit-tracking tool for general wellbeing,
                   not a substitute for professional care.
                 </div>
@@ -390,7 +390,7 @@ export default function OnboardingPage() {
                 <Lead>Join thousands turning intentions into streaks.</Lead>
                 <div className="mt-7 space-y-3">
                   {REVIEWS.map((r) => (
-                    <div key={r.name} className="rounded-2xl border border-border bg-surface p-4 shadow-[var(--shadow-sm)]">
+                    <div key={r.name} className="rounded-[26px] border border-border bg-surface p-4 shadow-[var(--shadow-sm)]">
                       <div className="flex gap-0.5">
                         {Array.from({ length: r.stars }).map((_, i) => (
                           <Star key={i} size={13} className="fill-[var(--accent)] text-[var(--accent)]" />
@@ -455,7 +455,7 @@ export default function OnboardingPage() {
                   {(chosenGoals.length ? chosenGoals : [FOCUS_AREAS[0].goals[0]]).map((g) => {
                     const val = colorValue(g.color);
                     return (
-                      <div key={g.id} className="flex items-center gap-3.5 rounded-2xl border border-border bg-surface p-3.5">
+                      <div key={g.id} className="flex items-center gap-3.5 rounded-[26px] border border-border bg-surface p-3.5">
                         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
                           style={{ background: `color-mix(in oklab, ${val} 16%, transparent)`, color: val }}>
                           <HabitIcon name={g.icon} size={19} />
@@ -488,7 +488,7 @@ export default function OnboardingPage() {
             {step === 12 && (
               <motion.div key="success" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center text-center">
                 <Success />
-                <h1 className="mt-8 text-[30px] font-semibold tracking-[-0.02em] text-text sm:text-[34px]">You&apos;re all set, {firstName}.</h1>
+                <h1 className="font-display mt-8 text-[32px] font-semibold text-text sm:text-[40px]">You&apos;re all set, {firstName}.</h1>
                 <p className="mt-3 max-w-sm text-[15px] leading-relaxed text-text-secondary">
                   Your momentum starts now. Let&apos;s make today count.
                 </p>
@@ -518,7 +518,7 @@ function Step({ children }: { children: React.ReactNode }) {
 
 function Title({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <h1 className={cn("text-balance text-center text-[26px] font-semibold leading-tight tracking-[-0.02em] text-text sm:text-[32px]", className)}>
+    <h1 className={cn("font-display text-balance text-center text-[28px] font-semibold leading-tight text-text sm:text-[34px]", className)}>
       {children}
     </h1>
   );
@@ -563,7 +563,7 @@ function Emblem({ icon: Icon }: { icon: typeof Sparkles }) {
 
 function Feature({ icon: Icon, title, desc }: { icon: typeof Sparkles; title: string; desc: string }) {
   return (
-    <div className="flex items-start gap-3.5 rounded-2xl border border-border bg-surface p-4 shadow-[var(--shadow-sm)]">
+    <div className="flex items-start gap-3.5 rounded-[26px] border border-border bg-surface p-4 shadow-[var(--shadow-sm)]">
       <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent">
         <Icon size={19} />
       </span>

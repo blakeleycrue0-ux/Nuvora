@@ -128,10 +128,10 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="container-page max-w-3xl py-7 lg:py-10">
+    <div className="container-page max-w-3xl py-10 lg:py-14">
       <div>
-        <h1 className="text-[26px] font-semibold tracking-[-0.02em] text-text sm:text-[30px]">Settings</h1>
-        <p className="mt-1 text-[14px] text-text-secondary">Manage your profile, preferences, and data.</p>
+        <h1 className="font-display text-[34px] font-semibold leading-[1.02] text-text sm:text-[44px]">Settings</h1>
+        <p className="mt-3 text-[15px] text-text-secondary">Manage your profile, preferences, and data.</p>
       </div>
 
       {/* Profile */}
@@ -286,7 +286,7 @@ function Section({ icon: Icon, title, desc, children }: { icon: typeof UserIcon;
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-60px" }}
       transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-      className="mt-6 rounded-2xl border border-border bg-surface p-5 shadow-[var(--shadow-sm)] sm:p-6"
+      className="mt-6 rounded-[26px] border border-border bg-surface p-5 shadow-[var(--shadow-sm)] sm:p-6"
     >
       <div className="flex items-center gap-3">
         <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-accent-soft text-accent"><Icon size={19} /></span>

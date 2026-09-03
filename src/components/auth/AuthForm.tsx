@@ -114,7 +114,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
               className="flex flex-col gap-4"
             >
               <div className="text-center">
-                <h1 className="text-[20px] font-semibold tracking-tight text-text">Reset your password</h1>
+                <h1 className="font-display text-[22px] font-semibold text-text">Reset your password</h1>
                 <p className="mt-1 text-[13px] text-text-secondary">We&apos;ll email you a secure reset link.</p>
               </div>
               <IconInput icon={Mail} type="email" placeholder="you@example.com" value={email} onChange={setEmail} required />
@@ -132,7 +132,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
   return (
     <Shell>
       <div className="mb-6 text-center">
-        <h1 className="text-[22px] font-semibold tracking-tight text-text">
+        <h1 className="font-display text-[26px] font-semibold text-text">
           {mode === "signup" ? "Create your account" : "Welcome back"}
         </h1>
         <p className="mt-1.5 text-[13.5px] text-text-secondary">
@@ -239,7 +239,7 @@ function Shell({ children }: { children: React.ReactNode }) {
         <div className="mb-8 flex justify-center">
           <Wordmark size="lg" href="/" />
         </div>
-        <div className="rounded-2xl border border-border bg-surface p-7 shadow-[var(--shadow-lg)]">{children}</div>
+        <div className="rounded-[26px] border border-border bg-surface p-7 shadow-[var(--shadow-lg)]">{children}</div>
       </motion.div>
     </div>
   );
