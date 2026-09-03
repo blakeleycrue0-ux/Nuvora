@@ -103,17 +103,11 @@ export default function DashLayout({ children }: { children: ReactNode }) {
         {/* Top bar */}
         <header className="liquid-bar sticky top-0 z-40 flex min-h-16 items-center justify-between gap-3 px-4 pt-[env(safe-area-inset-top)] sm:px-6 lg:px-8">
           <div className="flex items-center gap-2.5">
-            <div className="lg:hidden">
-              <Wordmark size="sm" />
-            </div>
             {FEATURE_TEAMS && <WorkspaceSwitcher />}
           </div>
           <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
             <StatPills />
             <ThemeToggle />
-            <div className="lg:hidden">
-              <Avatar size={36} />
-            </div>
           </div>
         </header>
 

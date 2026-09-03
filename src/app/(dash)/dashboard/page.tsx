@@ -19,7 +19,6 @@ import { Heatmap } from "@/components/app/Heatmap";
 import { HabitRow } from "@/components/app/HabitRow";
 import { TeamCard } from "@/components/app/TeamCard";
 import { ProgressBubble } from "@/components/progress/ProgressBubble";
-import { CoinBalance } from "@/components/progress/CoinBalance";
 import { EarnPulse } from "@/components/progress/EarnPulse";
 import { FEATURE_TEAMS } from "@/lib/features";
 import { colorValue } from "@/lib/icons";
@@ -126,7 +125,6 @@ export default function DashboardPage() {
           </h1>
         </div>
         <div className="flex shrink-0 items-center gap-3">
-          <CoinBalance />
           <Button href="/habits" className="hidden sm:inline-flex"><Plus size={17} /> New habit</Button>
         </div>
       </motion.div>

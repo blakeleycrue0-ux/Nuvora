@@ -28,7 +28,7 @@ import {
 } from "@/lib/teams";
 import { cn } from "@/lib/utils";
 
-const CLUB_COLORS = ["#6ba98c", "#2563eb", "#dc2626", "#f59e0b", "#7c3aed", "#0ea5e9", "#e11d48", "#0f172a"];
+const CLUB_COLORS = ["#45c68e", "#2563eb", "#dc2626", "#f59e0b", "#7c3aed", "#0ea5e9", "#e11d48", "#0f172a"];
 
 // Copy that also works on mobile / non-secure contexts where the async
 // Clipboard API can silently fail.
@@ -764,7 +764,7 @@ function SettingsTab({ group, onChange }: { group: TeamGroup; onChange: () => Pr
           {/* Full colour picker — any colour */}
           <label className="relative inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-dashed border-border-strong text-text-muted" title="Elegir cualquier color">
             <Plus size={15} />
-            <input type="color" value={/^#[0-9a-fA-F]{6}$/.test(color) ? color : "#6ba98c"} onChange={(e) => setColor(e.target.value)}
+            <input type="color" value={/^#[0-9a-fA-F]{6}$/.test(color) ? color : "#45c68e"} onChange={(e) => setColor(e.target.value)}
               className="absolute inset-0 cursor-pointer opacity-0" />
           </label>
           <span className="ml-1 inline-flex items-center gap-1.5 rounded-lg border border-border px-2 py-1 text-[12px] font-mono text-text-secondary">
@@ -1128,7 +1128,7 @@ function Empty({ icon: Icon, title, sub }: { icon: typeof Users; title: string; 
 }
 
 function Avatar({ name }: { name: string }) {
-  const colors = ["#6ba98c", "#67b0e0", "#a58ce0", "#e0b45c", "#e58a97", "#4fc3b8"];
+  const colors = ["#45c68e", "#67b0e0", "#a58ce0", "#e0b45c", "#e58a97", "#4fc3b8"];
   let h = 0; for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
   return <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white" style={{ background: colors[h % colors.length] }}>{name[0]?.toUpperCase() ?? "?"}</span>;
 }

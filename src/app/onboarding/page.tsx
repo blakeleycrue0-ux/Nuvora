@@ -603,7 +603,7 @@ function Success() {
       {Array.from({ length: 14 }).map((_, i) => {
         const angle = (i / 14) * Math.PI * 2;
         const dist = 90 + (i % 3) * 24;
-        const colors = ["#6ba98c", "#67b0e0", "#e0b45c", "#a58ce0", "#e58a97"];
+        const colors = ["#45c68e", "#67b0e0", "#e0b45c", "#a58ce0", "#e58a97"];
         return (
           <motion.span
             key={i}

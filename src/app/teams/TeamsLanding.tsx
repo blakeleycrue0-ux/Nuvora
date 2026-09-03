@@ -282,7 +282,7 @@ const HABIT_META = [
 
 interface Member { name: string; color: string; done: boolean[]; streak: number; }
 const MEMBERS: Member[] = [
-  { name: "Álex", color: "#6ba98c", done: [true, true, true, true, true], streak: 24 },
+  { name: "Álex", color: "#45c68e", done: [true, true, true, true, true], streak: 24 },
   { name: "Marco", color: "#67b0e0", done: [true, true, true, false, true], streak: 19 },
   { name: "Nadia", color: "#a58ce0", done: [true, true, false, true, true], streak: 16 },
   { name: "Leo", color: "#e0b45c", done: [true, false, true, true, false], streak: 11 },

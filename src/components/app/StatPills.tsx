@@ -6,7 +6,6 @@ import { Zap, Flame } from "lucide-react";
 import { useProgress } from "@/components/progress/ProgressProvider";
 import { useHabits } from "@/lib/momentum/store";
 import { overallStats } from "@/lib/momentum/stats";
-import { CoinBalance } from "@/components/progress/CoinBalance";
 
 // The top-bar status cluster: PRO, level, streak, coins — as liquid-glass pills.
 export function StatPills() {
@@ -41,8 +40,6 @@ export function StatPills() {
       >
         {streak} <Flame size={16} strokeWidth={2.4} />
       </span>
-
-      <CoinBalance className="liquid-pill" />
     </div>
   );
 }
