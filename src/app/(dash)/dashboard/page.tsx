@@ -61,6 +61,10 @@ export default function DashboardPage() {
     [active, today],
   );
   const stats = useMemo(() => overallStats(habits, completions), [habits, completions]);
+  const doneToday = useMemo(
+    () => scheduledToday.filter((h) => isComplete(h, completions, today)).length,
+    [scheduledToday, completions, today],
+  );
   const level = useMemo(() => levelFromXP(xp), [xp]);
   const achievements = useMemo(() => computeAchievements(habits, completions, xp), [habits, completions, xp]);
   const earned = achievements.filter((a) => a.earned);
@@ -100,17 +104,24 @@ export default function DashboardPage() {
   if (!ready) return <DashboardSkeleton />;
 
   return (
-    <div className="container-page py-7 lg:py-10">
-      {/* Header */}
+    <div className="container-page py-10 lg:py-16">
+      {/* Header — editorial, with room to breathe */}
       <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
-        className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-[13px] font-medium text-text-muted">{prettyDate(today)}</p>
-          <h1 className="mt-1 text-[26px] font-semibold tracking-[-0.02em] text-text sm:text-[30px]">
-            {greeting()}, {user?.name?.split(" ")[0] ?? "friend"}
+          <p className="text-[12px] font-semibold uppercase tracking-[0.22em] text-text-muted">{prettyDate(today)}</p>
+          <h1 className="mt-3 text-[36px] font-semibold leading-[1.02] tracking-[-0.03em] text-text sm:text-[48px]">
+            {greeting()},<br className="hidden sm:block" /> {user?.name?.split(" ")[0] ?? "friend"}
           </h1>
+          <p className="mt-4 text-[15px] leading-relaxed text-text-secondary">
+            {scheduledToday.length === 0
+              ? "Nothing scheduled today — enjoy the rest."
+              : doneToday === scheduledToday.length
+                ? `All ${scheduledToday.length} done today. Beautiful work.`
+                : `${doneToday} of ${scheduledToday.length} habits done today.`}
+          </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex shrink-0 items-center gap-3">
           <CoinBalance />
           <Button href="/habits" className="hidden sm:inline-flex">
             <Plus size={17} /> New habit
@@ -122,26 +133,25 @@ export default function DashboardPage() {
       {FEATURE_TEAMS && <TeamCard />}
 
       {/* Progress bubble hero — the heart of Fenom */}
-      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }} className="mt-6">
-        <div className="relative flex flex-col items-center rounded-2xl border border-border bg-surface px-6 py-9 shadow-[var(--shadow-sm)]">
-          <div aria-hidden className="pointer-events-none absolute -top-16 left-1/2 h-52 w-52 -translate-x-1/2 rounded-full accent-gradient opacity-[0.07] blur-3xl" />
+      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }} className="mt-10">
+        <div className="relative flex flex-col items-center rounded-2xl border border-border bg-surface px-6 py-14 shadow-[var(--shadow-sm)] sm:py-16">
           <div className="relative">
             <EarnPulse />
-            <ProgressBubble pct={level.pct} level={level.level} xp={xp} size={244} />
+            <ProgressBubble pct={level.pct} level={level.level} xp={xp} size={252} />
           </div>
-          <p className="mt-6 text-[14px] font-medium text-text-secondary">
+          <p className="mt-8 text-[14px] font-medium text-text-secondary">
             {level.need - level.into} XP hasta el Nivel {level.level + 1}
           </p>
-          <div className="mt-6 grid w-full max-w-md grid-cols-3 gap-3">
+          <div className="mt-10 grid w-full max-w-lg grid-cols-3 gap-4">
             <MiniStat icon={Flame} label="Best streak" value={stats.bestCurrentStreak} tint="var(--accent)" />
             <MiniStat icon={Trophy} label="Longest" value={stats.bestLongestStreak} tint="var(--c-violet)" />
             <MiniStat icon={Target} label="Active" value={stats.activeCount} tint="var(--c-sky)" />
           </div>
-          <Button href="/habits" className="mt-6 w-full sm:hidden"><Plus size={17} /> New habit</Button>
+          <Button href="/habits" className="mt-8 w-full sm:hidden"><Plus size={17} /> New habit</Button>
         </div>
       </motion.div>
 
-      <motion.div variants={stagger} initial="hidden" animate="show" className="mt-6 grid grid-cols-1 gap-5 lg:grid-cols-3">
+      <motion.div variants={stagger} initial="hidden" animate="show" className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Today's habits */}
         <motion.div variants={item} className="lg:col-span-2">
           <Panel title="Today's habits" action={<Link href="/habits" className="text-[13px] font-medium text-accent hover:underline">Manage</Link>}>
@@ -282,21 +292,21 @@ export default function DashboardPage() {
 
 function MiniStat({ icon: Icon, label, value, tint }: { icon: typeof Flame; label: string; value: number; tint: string }) {
   return (
-    <div className="rounded-2xl border border-border bg-surface-2 px-3 py-2.5 text-center">
+    <div className="rounded-2xl border border-border bg-surface-2 px-3 py-4 text-center">
       <Icon size={16} className="mx-auto" style={{ color: tint }} />
-      <p className="mt-1 text-[18px] font-bold leading-none text-text">{value}</p>
-      <p className="mt-1 text-[10.5px] text-text-muted">{label}</p>
+      <p className="mt-2 text-[28px] font-semibold leading-none tracking-tight text-text">{value}</p>
+      <p className="mt-1.5 text-[11px] uppercase tracking-[0.08em] text-text-muted">{label}</p>
     </div>
   );
 }
 
 function Panel({ title, subtitle, action, children }: { title: string; subtitle?: string; action?: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div className="h-full rounded-2xl border border-border bg-surface p-5 shadow-[var(--shadow-sm)] sm:p-6">
-      <div className="mb-4 flex items-start justify-between gap-3">
+    <div className="h-full rounded-2xl border border-border bg-surface p-6 shadow-[var(--shadow-sm)] sm:p-7">
+      <div className="mb-5 flex items-start justify-between gap-3">
         <div>
-          <h3 className="text-[15px] font-semibold text-text">{title}</h3>
-          {subtitle && <p className="mt-0.5 text-[12.5px] text-text-muted">{subtitle}</p>}
+          <h3 className="text-[16px] font-semibold tracking-[-0.01em] text-text">{title}</h3>
+          {subtitle && <p className="mt-1 text-[13px] text-text-muted">{subtitle}</p>}
         </div>
         {action}
       </div>

@@ -60,13 +60,13 @@ export default function HabitsPage() {
   const openEdit = (h: Habit) => { setEditing(h); setModalOpen(true); };
 
   return (
-    <div className="container-page py-7 lg:py-10">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="container-page py-10 lg:py-16">
+      <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-[26px] font-semibold tracking-[-0.02em] text-text sm:text-[30px]">Habits</h1>
-          <p className="mt-1 text-[14px] text-text-secondary">Create, edit, and organize the routines that move you forward.</p>
+          <h1 className="text-[34px] font-semibold leading-[1.05] tracking-[-0.03em] text-text sm:text-[44px]">Habits</h1>
+          <p className="mt-3 text-[15px] leading-relaxed text-text-secondary">Create, edit, and organize the routines that move you forward.</p>
         </div>
-        <Button onClick={openNew} className="w-full sm:w-auto"><Plus size={17} /> New habit</Button>
+        <Button onClick={openNew} className="w-full shrink-0 sm:w-auto"><Plus size={17} /> New habit</Button>
       </div>
 
       {/* Controls */}
