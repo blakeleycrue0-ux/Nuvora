@@ -68,7 +68,7 @@ export const ACHIEVEMENT_ICONS: Record<string, LucideIcon> = {
 
 // Cool, modern habit tones that sit well on near-black surfaces.
 export const HABIT_COLORS: { key: string; value: string }[] = [
-  { key: "c-emerald", value: "#45c68e" },
+  { key: "c-emerald", value: "#6ba98c" },
   { key: "c-teal", value: "#4fc3b8" },
   { key: "c-sky", value: "#67b0e0" },
   { key: "c-indigo", value: "#7f8ce0" },

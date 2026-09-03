@@ -231,7 +231,7 @@ export default function SettingsPage() {
       </Section>
 
       {/* Danger zone */}
-      <div className="mt-6 rounded-3xl border border-danger/30 bg-danger-soft/40 p-5 sm:p-6">
+      <div className="mt-6 rounded-2xl border border-danger/30 bg-danger-soft/40 p-5 sm:p-6">
         <h3 className="text-[15px] font-semibold text-danger">Danger zone</h3>
         <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -286,7 +286,7 @@ function Section({ icon: Icon, title, desc, children }: { icon: typeof UserIcon;
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-60px" }}
       transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-      className="mt-6 rounded-3xl border border-border bg-surface p-5 shadow-[var(--shadow-sm)] sm:p-6"
+      className="mt-6 rounded-2xl border border-border bg-surface p-5 shadow-[var(--shadow-sm)] sm:p-6"
     >
       <div className="flex items-center gap-3">
         <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-accent-soft text-accent"><Icon size={19} /></span>

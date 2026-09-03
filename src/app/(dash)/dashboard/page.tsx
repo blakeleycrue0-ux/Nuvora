@@ -123,7 +123,7 @@ export default function DashboardPage() {
 
       {/* Progress bubble hero — the heart of Fenom */}
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }} className="mt-6">
-        <div className="relative flex flex-col items-center rounded-3xl border border-border bg-surface px-6 py-9 shadow-[var(--shadow-sm)]">
+        <div className="relative flex flex-col items-center rounded-2xl border border-border bg-surface px-6 py-9 shadow-[var(--shadow-sm)]">
           <div aria-hidden className="pointer-events-none absolute -top-16 left-1/2 h-52 w-52 -translate-x-1/2 rounded-full accent-gradient opacity-[0.07] blur-3xl" />
           <div className="relative">
             <EarnPulse />
@@ -268,7 +268,7 @@ export default function DashboardPage() {
               )}
             </Panel>
 
-            <div className="relative overflow-hidden rounded-3xl border border-border bg-surface p-6 shadow-[var(--shadow-sm)]">
+            <div className="relative overflow-hidden rounded-2xl border border-border bg-surface p-6 shadow-[var(--shadow-sm)]">
               <Quote size={26} className="text-accent opacity-40" />
               <p className="mt-3 text-[14.5px] font-medium italic leading-relaxed text-text">&ldquo;{quote.text}&rdquo;</p>
               <p className="mt-3 text-[12.5px] text-text-muted">— {quote.author}</p>
@@ -292,7 +292,7 @@ function MiniStat({ icon: Icon, label, value, tint }: { icon: typeof Flame; labe
 
 function Panel({ title, subtitle, action, children }: { title: string; subtitle?: string; action?: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div className="h-full rounded-3xl border border-border bg-surface p-5 shadow-[var(--shadow-sm)] sm:p-6">
+    <div className="h-full rounded-2xl border border-border bg-surface p-5 shadow-[var(--shadow-sm)] sm:p-6">
       <div className="mb-4 flex items-start justify-between gap-3">
         <div>
           <h3 className="text-[15px] font-semibold text-text">{title}</h3>
@@ -307,7 +307,7 @@ function Panel({ title, subtitle, action, children }: { title: string; subtitle?
 
 function AchievementBadge({ a }: { a: ReturnType<typeof computeAchievements>[number] }) {
   const Icon = ACHIEVEMENT_ICONS[a.icon] ?? Award;
-  const tierColor = { bronze: "#94a3b0", silver: "#c0cad4", gold: "#45c68e", diamond: "#67b0e0" }[a.tier];
+  const tierColor = { bronze: "#94a3b0", silver: "#c0cad4", gold: "#6ba98c", diamond: "#7aa6c6" }[a.tier];
   return (
     <div className={cn("flex flex-col items-center rounded-2xl border p-3 text-center transition-colors", a.earned ? "border-border bg-surface-2" : "border-dashed border-border")}>
       <span
@@ -353,10 +353,10 @@ function DashboardSkeleton() {
     <div className="container-page py-10">
       <div className="h-8 w-48 animate-pulse rounded-lg bg-surface-2" />
       <div className="mt-7 grid gap-5 lg:grid-cols-3">
-        <div className="h-52 animate-pulse rounded-3xl bg-surface-2 lg:col-span-2" />
-        <div className="h-52 animate-pulse rounded-3xl bg-surface-2" />
-        <div className="h-64 animate-pulse rounded-3xl bg-surface-2 lg:col-span-2" />
-        <div className="h-64 animate-pulse rounded-3xl bg-surface-2" />
+        <div className="h-52 animate-pulse rounded-2xl bg-surface-2 lg:col-span-2" />
+        <div className="h-52 animate-pulse rounded-2xl bg-surface-2" />
+        <div className="h-64 animate-pulse rounded-2xl bg-surface-2 lg:col-span-2" />
+        <div className="h-64 animate-pulse rounded-2xl bg-surface-2" />
       </div>
     </div>
   );

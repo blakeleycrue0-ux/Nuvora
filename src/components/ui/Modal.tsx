@@ -42,7 +42,7 @@ export function Modal({ open, onClose, title, subtitle, children, wide }: ModalP
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.98 }}
             transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
-            className={`relative z-10 w-full ${wide ? "max-w-2xl" : "max-w-md"} rounded-t-3xl border border-border bg-surface p-6 shadow-[var(--shadow-lg)] sm:rounded-3xl max-h-[92vh] overflow-y-auto no-scrollbar`}
+            className={`relative z-10 w-full ${wide ? "max-w-2xl" : "max-w-md"} rounded-t-3xl border border-border bg-surface p-6 shadow-[var(--shadow-lg)] sm:rounded-2xl max-h-[92vh] overflow-y-auto no-scrollbar`}
           >
             <div className="mb-5 flex items-start justify-between gap-4">
               <div>

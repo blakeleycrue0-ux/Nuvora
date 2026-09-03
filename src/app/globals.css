@@ -1,116 +1,115 @@
 @import "tailwindcss";
 
 /*
-  Fenom design system.
-  Light mode is the default. Dark mode is opt-in via .dark on <html>.
-  Neutral warm-gray surfaces + an indigo→violet→fuchsia accent system.
-*/
-
-/*
-  Modern palette drawn from the logo: near-black (cool navy-charcoal) + white,
-  with the logo's mint green as the single accent. Dark is the default; a clean
-  white light mode is an opt-in via the `.light` class.
+  Fenom design system — "calm, premium, focused."
+  A neutral-first foundation: true-neutral charcoal surfaces, off-white text,
+  muted gray secondaries, thin understated borders, very soft depth, and ONE
+  restrained accent — a muted sage green that keeps Fenom's brand continuity
+  without the neon/glow. Dark is the default; a clean light mode is opt-in via
+  the `.light` class. Every screen consumes these tokens, so the whole app
+  inherits the same quiet, confident tone.
 */
 
 :root {
   color-scheme: dark;
 
-  /* Surfaces — near-black with a cool navy undertone (logo charcoal) */
-  --bg: #0a0d11;
-  --bg-subtle: #0e1217;
-  --surface: #12161c;
-  --surface-2: #0e1217;
-  --elevated: #171c23;
-  --border: #212832;
-  --border-strong: #2d3540;
+  /* Surfaces — true-neutral near-black, no color cast, gentle steps up */
+  --bg: #0c0d0e;
+  --bg-subtle: #121315;
+  --surface: #161719;
+  --surface-2: #121315;
+  --elevated: #1b1d1f;
+  --border: #24262a;
+  --border-strong: #31343a;
 
-  /* Text — cool white */
-  --text: #eef2f5;
-  --text-secondary: #97a2ae;
-  --text-muted: #5e6975;
+  /* Text — warm-neutral off-white with a clear, restrained hierarchy */
+  --text: #f2f2f0;
+  --text-secondary: #9a9b9c;
+  --text-muted: #66686b;
 
-  /* Brand accent — logo mint green */
-  --accent: #45c68e;
-  --accent-2: #52c795;
-  --accent-3: #5ec99a;
-  --accent-soft: rgba(69, 198, 142, 0.13);
-  --accent-ring: rgba(69, 198, 142, 0.38);
-  --accent-ink: #07130d; /* text/icons on top of a green fill (mint is light) */
+  /* Brand accent — muted sage green (calm, not neon). Used sparingly. */
+  --accent: #6ba98c;
+  --accent-2: #72ac90;
+  --accent-3: #7bb197;
+  --accent-soft: rgba(107, 169, 140, 0.11);
+  --accent-ring: rgba(107, 169, 140, 0.30);
+  --accent-ink: #0a1510; /* ink on top of the sage fill (accent is light) */
 
-  /* Status */
-  --success: #45c68e;
-  --success-soft: rgba(69, 198, 142, 0.13);
-  --warning: #e0b45c;
-  --warning-soft: rgba(224, 180, 92, 0.13);
-  --danger: #e57a72;
-  --danger-soft: rgba(229, 122, 114, 0.13);
+  /* Status — desaturated, never shouting */
+  --success: #6ba98c;
+  --success-soft: rgba(107, 169, 140, 0.11);
+  --warning: #cdae74;
+  --warning-soft: rgba(205, 174, 116, 0.11);
+  --danger: #d38b83;
+  --danger-soft: rgba(211, 139, 131, 0.12);
 
-  /* Category / habit accents — cool, modern tones */
-  --c-indigo: #7f8ce0;
-  --c-violet: #a58ce0;
-  --c-fuchsia: #cf8fca;
-  --c-rose: #e58a97;
-  --c-amber: #e0b45c;
-  --c-emerald: #45c68e;
-  --c-sky: #67b0e0;
-  --c-teal: #4fc3b8;
+  /* Category / habit accents — muted, cohesive tones */
+  --c-indigo: #8189bd;
+  --c-violet: #9d8bc0;
+  --c-fuchsia: #b98cb2;
+  --c-rose: #cf8a93;
+  --c-amber: #cdae74;
+  --c-emerald: #6ba98c;
+  --c-sky: #7aa6c6;
+  --c-teal: #6bafa6;
 
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
-  --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.5), 0 14px 34px -10px rgba(0, 0, 0, 0.7);
-  --shadow-lg: 0 14px 28px -8px rgba(0, 0, 0, 0.6), 0 36px 70px -18px rgba(0, 0, 0, 0.8);
-  --shadow-glow: 0 10px 40px -8px rgba(69, 198, 142, 0.28);
+  /* Depth — very soft, neutral. No colored glow anywhere. */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 1px 2px rgba(0, 0, 0, 0.30), 0 8px 24px -14px rgba(0, 0, 0, 0.55);
+  --shadow-lg: 0 8px 20px -10px rgba(0, 0, 0, 0.45), 0 24px 50px -24px rgba(0, 0, 0, 0.6);
+  --shadow-glow: 0 8px 28px -16px rgba(0, 0, 0, 0.5);
 
-  --glass-bg: rgba(18, 22, 28, 0.7);
-  --glass-border: rgba(255, 255, 255, 0.06);
+  --glass-bg: rgba(22, 23, 25, 0.72);
+  --glass-border: rgba(255, 255, 255, 0.05);
 }
 
 .light {
   color-scheme: light;
 
-  /* Surfaces — clean white */
-  --bg: #ffffff;
-  --bg-subtle: #f1f3f6;
+  /* Surfaces — warm off-white, gently layered (not stark white) */
+  --bg: #fbfbfa;
+  --bg-subtle: #f2f2f0;
   --surface: #ffffff;
-  --surface-2: #f6f8fa;
+  --surface-2: #f6f6f4;
   --elevated: #ffffff;
-  --border: #e6e9ee;
-  --border-strong: #d5dae1;
+  --border: #e8e8e5;
+  --border-strong: #d7d7d3;
 
-  --text: #10151b;
-  --text-secondary: #566069;
-  --text-muted: #949ea9;
+  --text: #1a1b1a;
+  --text-secondary: #5f6160;
+  --text-muted: #97999a;
 
-  /* Deeper green for contrast on white; white ink on green fills */
-  --accent: #17a06a;
-  --accent-2: #1faa72;
-  --accent-3: #2bb57d;
-  --accent-soft: #e6f6ee;
-  --accent-ring: rgba(23, 160, 106, 0.26);
+  /* Deeper, muted sage for contrast on light; white ink on the fill */
+  --accent: #3f7c60;
+  --accent-2: #468367;
+  --accent-3: #4e8a6f;
+  --accent-soft: #eaf2ec;
+  --accent-ring: rgba(63, 124, 96, 0.22);
   --accent-ink: #ffffff;
 
-  --success: #17a06a;
-  --success-soft: #e6f6ee;
-  --warning: #b07d1e;
-  --warning-soft: #f6efdb;
-  --danger: #c0483d;
-  --danger-soft: #f7e7e5;
+  --success: #3f7c60;
+  --success-soft: #eaf2ec;
+  --warning: #9a7328;
+  --warning-soft: #f3ecdc;
+  --danger: #b25349;
+  --danger-soft: #f5e7e4;
 
-  --c-indigo: #545fc0;
-  --c-violet: #7c5cc0;
-  --c-fuchsia: #a1509a;
-  --c-rose: #b4505f;
-  --c-amber: #a97e28;
-  --c-emerald: #178a5f;
-  --c-sky: #3f7cae;
-  --c-teal: #2f9088;
+  --c-indigo: #565fa8;
+  --c-violet: #6f57a3;
+  --c-fuchsia: #93507f;
+  --c-rose: #a55461;
+  --c-amber: #8f6c2a;
+  --c-emerald: #3f7c60;
+  --c-sky: #45739c;
+  --c-teal: #3a827a;
 
-  --shadow-sm: 0 1px 2px rgba(16, 21, 27, 0.05), 0 1px 3px rgba(16, 21, 27, 0.06);
-  --shadow-md: 0 2px 4px rgba(16, 21, 27, 0.05), 0 8px 24px -6px rgba(16, 21, 27, 0.12);
-  --shadow-lg: 0 8px 16px -4px rgba(16, 21, 27, 0.1), 0 24px 48px -12px rgba(16, 21, 27, 0.16);
-  --shadow-glow: 0 8px 30px -6px rgba(23, 160, 106, 0.24);
+  --shadow-sm: 0 1px 2px rgba(24, 25, 24, 0.04), 0 1px 3px rgba(24, 25, 24, 0.05);
+  --shadow-md: 0 1px 2px rgba(24, 25, 24, 0.04), 0 6px 20px -8px rgba(24, 25, 24, 0.10);
+  --shadow-lg: 0 6px 16px -6px rgba(24, 25, 24, 0.08), 0 20px 44px -18px rgba(24, 25, 24, 0.14);
+  --shadow-glow: 0 6px 22px -12px rgba(24, 25, 24, 0.14);
 
-  --glass-bg: rgba(255, 255, 255, 0.7);
-  --glass-border: rgba(255, 255, 255, 0.6);
+  --glass-bg: rgba(255, 255, 255, 0.72);
+  --glass-border: rgba(24, 25, 24, 0.06);
 }
 
 @theme inline {
@@ -166,7 +165,7 @@
   }
   @keyframes float {
     0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-12px); }
+    50% { transform: translateY(-6px); }
   }
   @keyframes shimmer {
     from { background-position: -200% 0; }
@@ -246,7 +245,7 @@ body {
   transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
 }
 .hover-lift:hover {
-  transform: translateY(-3px);
+  transform: translateY(-2px);
 }
 
 /* Readable typography for the legal pages */

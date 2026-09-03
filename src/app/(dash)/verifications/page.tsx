@@ -47,7 +47,7 @@ export default function VerificationsPage() {
           {Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-24 animate-pulse rounded-2xl bg-surface-2" />)}
         </div>
       ) : items.length === 0 ? (
-        <div className="mt-10 flex flex-col items-center gap-3 rounded-3xl border border-dashed border-border py-16 text-center">
+        <div className="mt-10 flex flex-col items-center gap-3 rounded-2xl border border-dashed border-border py-16 text-center">
           <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-accent-soft text-accent"><ShieldCheck size={26} /></span>
           <div>
             <p className="text-[15px] font-semibold text-text">No verifications yet</p>
