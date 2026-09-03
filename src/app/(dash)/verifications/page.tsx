@@ -62,7 +62,7 @@ export default function VerificationsPage() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: Math.min(i * 0.03, 0.3) }}
-              className="flex gap-3.5 rounded-2xl border border-border bg-surface p-3.5 shadow-[var(--shadow-sm)]"
+              className="flex gap-3.5 rounded-[26px] border border-border bg-surface p-3.5 shadow-[var(--shadow-sm)]"
             >
               {urls[v.id] ? (
                 // eslint-disable-next-line @next/next/no-img-element

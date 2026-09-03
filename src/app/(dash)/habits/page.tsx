@@ -63,7 +63,7 @@ export default function HabitsPage() {
     <div className="container-page py-10 lg:py-16">
       <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-[34px] font-semibold leading-[1.05] tracking-[-0.03em] text-text sm:text-[44px]">Habits</h1>
+          <h1 className="font-display text-[34px] font-semibold leading-[1.02] text-text sm:text-[46px]">Habits</h1>
           <p className="mt-3 text-[15px] leading-relaxed text-text-secondary">Create, edit, and organize the routines that move you forward.</p>
         </div>
         <Button onClick={openNew} className="w-full shrink-0 sm:w-auto"><Plus size={17} /> New habit</Button>
