@@ -156,7 +156,7 @@ function BoardRow({ r, me }: { r: { rank: number; name: string; level: number; x
 }
 
 function Avatar({ name, size = 36, highlight }: { name: string; size?: number; highlight?: boolean }) {
-  const colors = ["#6ba98c", "#67b0e0", "#a58ce0", "#e0b45c", "#e58a97", "#4fc3b8"];
+  const colors = ["#45c68e", "#67b0e0", "#a58ce0", "#e0b45c", "#e58a97", "#4fc3b8"];
   let h = 0; for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
   return (
     <span className={cn("flex shrink-0 items-center justify-center rounded-full font-bold text-white", highlight && "ring-2 ring-accent ring-offset-2 ring-offset-surface")}

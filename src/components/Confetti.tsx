@@ -9,7 +9,7 @@ interface Burst {
   y: number;
 }
 
-const COLORS = ["#6ba98c", "#7bb197", "#cdae74", "#f2f2f0", "#9a9b9c"];
+const COLORS = ["#45c68e", "#5ec99a", "#2bb57d", "#eef2f5", "#97a2ae"];
 
 const ConfettiContext = createContext<{ fire: (x: number, y: number) => void }>({ fire: () => {} });
 

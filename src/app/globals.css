@@ -27,17 +27,16 @@
   --text-secondary: #9a9b9c;
   --text-muted: #66686b;
 
-  /* Brand accent — confident premium blue. Used sparingly. */
-  --accent: #6f96e6;
-  --accent-2: #789ce9;
-  --accent-3: #83a5ec;
-  --accent-soft: rgba(111, 150, 230, 0.13);
-  --accent-ring: rgba(111, 150, 230, 0.34);
-  --accent-ink: #0a1020; /* ink on top of the blue fill (accent is light) */
+  /* Brand accent — Fenom green. */
+  --accent: #45c68e;
+  --accent-2: #52c795;
+  --accent-3: #5ec99a;
+  --accent-soft: rgba(69, 198, 142, 0.13);
+  --accent-ring: rgba(69, 198, 142, 0.38);
+  --accent-ink: #07130d;
 
-  /* Status — success stays green for meaning; desaturated, never shouting */
-  --success: #6ba98c;
-  --success-soft: rgba(107, 169, 140, 0.12);
+  --success: #45c68e;
+  --success-soft: rgba(69, 198, 142, 0.13);
   --warning: #cdae74;
   --warning-soft: rgba(205, 174, 116, 0.11);
   --danger: #d38b83;
@@ -49,7 +48,7 @@
   --c-fuchsia: #b98cb2;
   --c-rose: #cf8a93;
   --c-amber: #cdae74;
-  --c-emerald: #6ba98c;
+  --c-emerald: #45c68e;
   --c-sky: #7aa6c6;
   --c-teal: #6bafa6;
 
@@ -79,16 +78,16 @@
   --text-secondary: #5f6160;
   --text-muted: #97999a;
 
-  /* Deeper, muted blue for contrast on light; white ink on the fill */
-  --accent: #3f6ea8;
-  --accent-2: #4574a6;
-  --accent-3: #4c7aac;
-  --accent-soft: #e9eff7;
-  --accent-ring: rgba(63, 110, 168, 0.22);
+  /* Deeper green for contrast on white; white ink on green fills */
+  --accent: #17a06a;
+  --accent-2: #1faa72;
+  --accent-3: #2bb57d;
+  --accent-soft: #e6f6ee;
+  --accent-ring: rgba(23, 160, 106, 0.26);
   --accent-ink: #ffffff;
 
-  --success: #3f7c60;
-  --success-soft: #eaf2ec;
+  --success: #17a06a;
+  --success-soft: #e6f6ee;
   --warning: #9a7328;
   --warning-soft: #f3ecdc;
   --danger: #b25349;
