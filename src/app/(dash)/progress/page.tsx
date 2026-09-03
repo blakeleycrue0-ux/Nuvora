@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { motion } from "motion/react";
 import {
-  AreaChart, Area, BarChart, Bar, ResponsiveContainer,
+  AreaChart, Area, BarChart, Bar, PieChart, Pie, ResponsiveContainer,
   XAxis, YAxis, Tooltip, CartesianGrid, Cell,
 } from "recharts";
 import {
@@ -90,6 +90,21 @@ export default function ProgressPage() {
   [active, completions, range]);
 
   const bestWeekday = weekdayStats.reduce((a, b) => (b.pct > a.pct ? b : a), weekdayStats[0]);
+
+  // Effort split by category (all-time completion counts).
+  const catSplit = useMemo(() => {
+    const byId = new Map(habits.map((h) => [h.id, { cat: h.category, color: colorValue(h.color) }]));
+    const m = new Map<string, { value: number; color: string }>();
+    for (const [k, c] of Object.entries(completions)) {
+      if (c <= 0) continue;
+      const info = byId.get(k.split("|")[0]);
+      if (!info) continue;
+      const prev = m.get(info.cat);
+      m.set(info.cat, { value: (prev?.value ?? 0) + c, color: info.color });
+    }
+    return [...m.entries()].map(([name, v]) => ({ name, ...v })).sort((a, b) => b.value - a.value);
+  }, [habits, completions]);
+  const catTotal = catSplit.reduce((a, b) => a + b.value, 0);
 
   if (!ready) {
     return (
@@ -219,6 +234,45 @@ export default function ProgressPage() {
         </Panel>
       </div>
 
+      {/* Effort by category */}
+      <Panel title="Effort by category" subtitle="Where your completions go" className="mt-5">
+        {catTotal === 0 ? (
+          <p className="py-8 text-center text-[13px] text-text-muted">No completions yet.</p>
+        ) : (
+          <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
+            <div className="h-[200px] w-full sm:w-[220px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={catSplit} dataKey="value" nameKey="name" innerRadius={58} outerRadius={92} paddingAngle={2} stroke="none">
+                    {catSplit.map((c, i) => <Cell key={i} fill={c.color} />)}
+                  </Pie>
+                  <Tooltip contentStyle={tooltipStyle} formatter={(v) => [`${v}`, "Completions"]} />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="flex-1 space-y-3">
+              {catSplit.map((c) => {
+                const pct = Math.round((c.value / catTotal) * 100);
+                return (
+                  <div key={c.name}>
+                    <div className="flex items-center justify-between text-[13px]">
+                      <span className="flex min-w-0 items-center gap-2">
+                        <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: c.color }} />
+                        <span className="truncate text-text">{c.name}</span>
+                      </span>
+                      <span className="shrink-0 tabular-nums text-text-muted">{pct}% · {c.value}</span>
+                    </div>
+                    <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-bg-subtle">
+                      <motion.div initial={{ width: 0 }} whileInView={{ width: `${pct}%` }} viewport={{ once: true }} transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }} className="h-full rounded-full" style={{ background: c.color }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </Panel>
+
       {/* Habit leaderboard */}
       <Panel title="Habit performance" subtitle={`Success rate over the past ${range}`} className="mt-5">
         {habitStats.length === 0 ? (
@@ -298,7 +352,7 @@ function Kpi({ icon: Icon, label, value, tint, sub }: { icon: typeof Flame; labe
       <span className="flex h-10 w-10 items-center justify-center rounded-2xl" style={{ background: `color-mix(in oklab, ${tint} 15%, transparent)`, color: tint }}>
         <Icon size={19} />
       </span>
-      <p className="mt-3.5 text-[26px] font-bold tracking-tight text-text">{value}</p>
+      <p className="font-display mt-3.5 text-[32px] font-semibold text-text">{value}</p>
       <p className="text-[13px] font-medium text-text">{label}</p>
       <p className="mt-0.5 text-[11.5px] text-text-muted">{sub}</p>
     </motion.div>
@@ -309,7 +363,7 @@ function Panel({ title, subtitle, children, className }: { title: string; subtit
   return (
     <div className={cn("rounded-[26px] border border-border bg-surface p-5 shadow-[var(--shadow-sm)] sm:p-6", className)}>
       <div className="mb-4">
-        <h3 className="text-[15px] font-semibold text-text">{title}</h3>
+        <h3 className="font-display text-[16px] font-semibold text-text">{title}</h3>
         {subtitle && <p className="mt-0.5 text-[12.5px] text-text-muted">{subtitle}</p>}
       </div>
       {children}

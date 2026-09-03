@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "motion/react";
-import { Check, Flame, Camera } from "lucide-react";
+import { Check, Flame, Camera, Play } from "lucide-react";
 import type { Habit } from "@/lib/momentum/types";
 import { useHabits } from "@/lib/momentum/store";
 import { currentStreak, getCount, DIFFICULTY_XP } from "@/lib/momentum/stats";
@@ -10,6 +10,7 @@ import { todayISO } from "@/lib/momentum/date";
 import { HabitIcon, colorValue } from "@/lib/icons";
 import { useConfetti } from "@/components/Confetti";
 import { useCelebration } from "@/components/Celebration";
+import { useFocus } from "@/components/focus/FocusProvider";
 import { VerifyModal } from "@/components/verify/VerifyModal";
 import { cn } from "@/lib/utils";
 
@@ -17,6 +18,7 @@ export function HabitRow({ habit, date = todayISO() }: { habit: Habit; date?: st
   const { completions, incrementCompletion } = useHabits();
   const { fire } = useConfetti();
   const { celebrateXP } = useCelebration();
+  const { start: startFocus } = useFocus();
   const [verifyOpen, setVerifyOpen] = useState(false);
   const count = getCount(completions, habit.id, date);
   const done = count >= habit.targetPerDay;
@@ -83,6 +85,18 @@ export function HabitRow({ habit, date = todayISO() }: { habit: Habit; date?: st
             />
           ))}
         </div>
+      )}
+
+      {!done && (
+        <motion.button
+          whileTap={{ scale: 0.9 }}
+          onClick={(e) => { e.stopPropagation(); startFocus(habit); }}
+          aria-label="Start focus session"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-accent-ink"
+          style={{ background: color }}
+        >
+          <Play size={14} className="ml-0.5" fill="currentColor" />
+        </motion.button>
       )}
 
       <motion.button
