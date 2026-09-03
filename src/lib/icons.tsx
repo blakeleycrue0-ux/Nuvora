@@ -66,16 +66,16 @@ export const ACHIEVEMENT_ICONS: Record<string, LucideIcon> = {
   "notebook-pen": NotebookPen, leaf: Leaf,
 };
 
-// Vivid, kinetic habit tones (Higgsfield energy palette) on absolute black.
+// Matte, cohesive habit tones on the navy/black base.
 export const HABIT_COLORS: { key: string; value: string }[] = [
-  { key: "c-emerald", value: "#d7ff28" },
-  { key: "c-teal", value: "#3be0c0" },
-  { key: "c-sky", value: "#49ffe9" },
-  { key: "c-indigo", value: "#6b7bff" },
-  { key: "c-violet", value: "#b46bff" },
-  { key: "c-fuchsia", value: "#ff6bd0" },
-  { key: "c-rose", value: "#ff6b8a" },
-  { key: "c-amber", value: "#ffc24b" },
+  { key: "c-indigo", value: "#5878b0" },
+  { key: "c-sky", value: "#6f9ac4" },
+  { key: "c-teal", value: "#5aa0a0" },
+  { key: "c-emerald", value: "#5f9d80" },
+  { key: "c-amber", value: "#c9a24a" },
+  { key: "c-rose", value: "#b07f88" },
+  { key: "c-fuchsia", value: "#b07f9d" },
+  { key: "c-violet", value: "#8f7fb0" },
 ];
 
 export function colorValue(key: string): string {
