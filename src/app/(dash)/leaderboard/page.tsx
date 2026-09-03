@@ -58,8 +58,8 @@ export default function LeaderboardPage() {
   if (loading) {
     return (
       <div className="container-page max-w-2xl py-7 lg:py-10">
-        <div className="h-28 animate-pulse rounded-3xl bg-surface-2" />
-        <div className="mt-5 h-40 animate-pulse rounded-3xl bg-surface-2" />
+        <div className="h-28 animate-pulse rounded-2xl bg-surface-2" />
+        <div className="mt-5 h-40 animate-pulse rounded-2xl bg-surface-2" />
         <div className="mt-5 space-y-2">{Array.from({ length: 6 }).map((_, i) => <div key={i} className="h-14 animate-pulse rounded-2xl bg-surface-2" />)}</div>
       </div>
     );
@@ -78,7 +78,7 @@ export default function LeaderboardPage() {
       {/* Your position */}
       {me && (
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-          className="mt-5 overflow-hidden rounded-3xl accent-gradient p-5 text-accent-ink shadow-[var(--shadow-md)]">
+          className="mt-5 overflow-hidden rounded-2xl accent-gradient p-5 text-accent-ink shadow-[var(--shadow-md)]">
           <p className="text-[12.5px] font-medium opacity-80">Tu posición</p>
           <div className="mt-1 flex items-end justify-between">
             <div>
@@ -142,7 +142,7 @@ function Podium({ row }: { row: LeaderRow }) {
   const badge = row.rank === 1 ? "bg-amber-400 text-black" : row.rank === 2 ? "bg-slate-300 text-black" : "bg-orange-400 text-black";
   return (
     <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: row.rank * 0.05 }}
-      className={cn("flex flex-1 flex-col items-center rounded-3xl border bg-surface p-4 text-center shadow-[var(--shadow-sm)]", ring, isFirst ? "pb-6 pt-6" : "mt-4")}>
+      className={cn("flex flex-1 flex-col items-center rounded-2xl border bg-surface p-4 text-center shadow-[var(--shadow-sm)]", ring, isFirst ? "pb-6 pt-6" : "mt-4")}>
       {isFirst && <Crown size={18} className="mb-1 text-amber-400" />}
       <Avatar name={row.displayName} size={isFirst ? 52 : 44} highlight={row.isMe} />
       <span className={cn("mt-2 flex h-6 w-6 items-center justify-center rounded-full text-[12px] font-bold", badge)}>{row.rank}</span>
@@ -169,7 +169,7 @@ function Row({ row }: { row: LeaderRow }) {
 }
 
 function Avatar({ name, size = 36, highlight }: { name: string; size?: number; highlight?: boolean }) {
-  const colors = ["#45c68e", "#67b0e0", "#a58ce0", "#e0b45c", "#e58a97", "#4fc3b8"];
+  const colors = ["#6ba98c", "#67b0e0", "#a58ce0", "#e0b45c", "#e58a97", "#4fc3b8"];
   let h = 0; for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
   return (
     <span className={cn("flex shrink-0 items-center justify-center rounded-full font-bold text-white", highlight && "ring-2 ring-accent ring-offset-2 ring-offset-surface")}

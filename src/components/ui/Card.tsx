@@ -11,7 +11,7 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
     <div
       ref={ref}
       className={cn(
-        "rounded-3xl border shadow-[var(--shadow-sm)]",
+        "rounded-2xl border shadow-[var(--shadow-sm)]",
         glass ? "glass" : "border-border bg-surface",
         interactive && "hover-lift hover:shadow-[var(--shadow-md)] cursor-pointer",
         className,

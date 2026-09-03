@@ -95,10 +95,10 @@ export default function HabitsPage() {
       {/* Grid */}
       {!ready ? (
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, i) => <div key={i} className="h-44 animate-pulse rounded-3xl bg-surface-2" />)}
+          {Array.from({ length: 6 }).map((_, i) => <div key={i} className="h-44 animate-pulse rounded-2xl bg-surface-2" />)}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="mt-10 flex flex-col items-center gap-4 rounded-3xl border border-dashed border-border py-20 text-center">
+        <div className="mt-10 flex flex-col items-center gap-4 rounded-2xl border border-dashed border-border py-20 text-center">
           <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-accent-soft text-accent"><ListChecks size={26} /></span>
           <div>
             <p className="text-[16px] font-semibold text-text">
@@ -145,7 +145,7 @@ function HabitCard({ habit, today, onEdit }: { habit: Habit; today: string; onEd
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.94 }}
       transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-      className={cn("group relative flex flex-col rounded-3xl border bg-surface p-5 shadow-[var(--shadow-sm)] transition-shadow hover:shadow-[var(--shadow-md)]", habit.archived && "opacity-70")}
+      className={cn("group relative flex flex-col rounded-2xl border bg-surface p-5 shadow-[var(--shadow-sm)] transition-shadow hover:shadow-[var(--shadow-md)]", habit.archived && "opacity-70")}
     >
       <div className="flex items-start justify-between">
         <span className="flex h-12 w-12 items-center justify-center rounded-2xl" style={{ background: `color-mix(in oklab, ${color} 15%, transparent)`, color }}>
@@ -250,7 +250,7 @@ function HabitCard({ habit, today, onEdit }: { habit: Habit; today: string; onEd
         {confirmDelete && (
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-3 rounded-3xl bg-surface/95 p-5 text-center backdrop-blur-sm"
+            className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-3 rounded-2xl bg-surface/95 p-5 text-center backdrop-blur-sm"
           >
             <span className="flex h-11 w-11 items-center justify-center rounded-full bg-danger-soft text-danger"><Trash2 size={20} /></span>
             <p className="text-[14px] font-semibold text-text">Delete &ldquo;{habit.name}&rdquo;?</p>

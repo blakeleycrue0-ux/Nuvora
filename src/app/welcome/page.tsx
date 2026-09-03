@@ -103,7 +103,7 @@ function ChoiceCard({ active, onClick, icon: Icon, title, desc, bullets, badge }
     <button
       onClick={onClick}
       className={cn(
-        "relative flex flex-col rounded-3xl border p-6 text-left transition-all",
+        "relative flex flex-col rounded-2xl border p-6 text-left transition-all",
         active ? "border-accent bg-accent-soft shadow-[var(--shadow-glow)]" : "border-border bg-surface hover:border-border-strong",
       )}
     >

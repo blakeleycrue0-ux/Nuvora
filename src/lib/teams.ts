@@ -138,7 +138,7 @@ function newCode(len = 6): string {
 /* ---------------- rows → types ---------------- */
 
 type GroupRow = { id: string; name: string; invite_code: string; owner_id: string; created_at: string; sport?: string | null; color?: string | null; crest?: string | null; crest_url?: string | null };
-const toGroup = (r: GroupRow): TeamGroup => ({ id: r.id, name: r.name, inviteCode: r.invite_code, ownerId: r.owner_id, createdAt: r.created_at, sport: r.sport ?? "football", color: r.color ?? "#45c68e", crest: r.crest ?? undefined, crestUrl: r.crest_url ?? undefined });
+const toGroup = (r: GroupRow): TeamGroup => ({ id: r.id, name: r.name, inviteCode: r.invite_code, ownerId: r.owner_id, createdAt: r.created_at, sport: r.sport ?? "football", color: r.color ?? "#6ba98c", crest: r.crest ?? undefined, crestUrl: r.crest_url ?? undefined });
 
 type HabitRow = { id: string; group_id: string; name: string; description: string | null; icon: string; color: string; difficulty: string; verify: boolean; type: string | null; xp: number | null; due_date: string | null; sort: number };
 const toHabit = (r: HabitRow): TeamHabit => ({ id: r.id, groupId: r.group_id, name: r.name, description: r.description ?? undefined, icon: r.icon, color: r.color, difficulty: r.difficulty, verify: r.verify, type: (r.type as TaskType) ?? "daily", xp: r.xp ?? 10, dueDate: r.due_date ?? undefined, sort: r.sort });
@@ -426,7 +426,7 @@ export async function groupByCode(code: string): Promise<GroupPreview | null> {
   const { data, error } = await supabase.rpc("group_by_code", { p_code: code });
   if (error || !data || !data.length) return null;
   const r = data[0] as { id: string; name: string; member_count: number; crest: string | null; crest_url: string | null; color: string | null };
-  return { id: r.id, name: r.name, memberCount: Number(r.member_count), crest: r.crest ?? undefined, crestUrl: r.crest_url ?? undefined, color: r.color ?? "#45c68e" };
+  return { id: r.id, name: r.name, memberCount: Number(r.member_count), crest: r.crest ?? undefined, crestUrl: r.crest_url ?? undefined, color: r.color ?? "#6ba98c" };
 }
 
 export async function joinGroup(code: string, displayName: string): Promise<string> {
