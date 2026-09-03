@@ -13,44 +13,44 @@
 :root {
   color-scheme: dark;
 
-  /* Surfaces — true-neutral near-black, no color cast, gentle steps up */
-  --bg: #0c0d0e;
-  --bg-subtle: #121315;
-  --surface: #161719;
-  --surface-2: #121315;
-  --elevated: #1b1d1f;
-  --border: #24262a;
-  --border-strong: #31343a;
+  /* Surfaces — absolute black with faintly-raised cards (Higgsfield). */
+  --bg: #000000;
+  --bg-subtle: #0a0a0b;
+  --surface: #101011;
+  --surface-2: #0a0a0b;
+  --elevated: #17181a;
+  --border: #232326;
+  --border-strong: #333338;
 
-  /* Text — warm-neutral off-white with a clear, restrained hierarchy */
-  --text: #f2f2f0;
-  --text-secondary: #9a9b9c;
-  --text-muted: #66686b;
+  /* Text — pure white, clear hierarchy */
+  --text: #ffffff;
+  --text-secondary: #a6a6a9;
+  --text-muted: #6a6a6e;
 
-  /* Brand accent — Fenom green. */
-  --accent: #45c68e;
-  --accent-2: #52c795;
-  --accent-3: #5ec99a;
-  --accent-soft: rgba(69, 198, 142, 0.13);
-  --accent-ring: rgba(69, 198, 142, 0.38);
-  --accent-ink: #07130d;
+  /* Brand accent — Neon Higgs Green. */
+  --accent: #d7ff28;
+  --accent-2: #c9f51e;
+  --accent-3: #e4ff5c;
+  --accent-soft: rgba(215, 255, 40, 0.12);
+  --accent-ring: rgba(215, 255, 40, 0.40);
+  --accent-ink: #0b1400; /* near-black ink on the bright lime fill */
 
-  --success: #45c68e;
-  --success-soft: rgba(69, 198, 142, 0.13);
-  --warning: #cdae74;
-  --warning-soft: rgba(205, 174, 116, 0.11);
-  --danger: #d38b83;
-  --danger-soft: rgba(211, 139, 131, 0.12);
+  --success: #d7ff28;
+  --success-soft: rgba(215, 255, 40, 0.12);
+  --warning: #ffc24b;
+  --warning-soft: rgba(255, 194, 75, 0.13);
+  --danger: #ff6b6b;
+  --danger-soft: rgba(255, 107, 107, 0.13);
 
-  /* Category / habit accents — muted, cohesive tones */
-  --c-indigo: #8189bd;
-  --c-violet: #9d8bc0;
-  --c-fuchsia: #b98cb2;
-  --c-rose: #cf8a93;
-  --c-amber: #cdae74;
-  --c-emerald: #45c68e;
-  --c-sky: #7aa6c6;
-  --c-teal: #6bafa6;
+  /* Category / habit accents — vivid, kinetic (Higgsfield energy tones) */
+  --c-indigo: #6b7bff;
+  --c-violet: #b46bff;
+  --c-fuchsia: #ff6bd0;
+  --c-rose: #ff6b8a;
+  --c-amber: #ffc24b;
+  --c-emerald: #d7ff28;
+  --c-sky: #49ffe9;
+  --c-teal: #3be0c0;
 
   /* Depth — very soft, neutral. No colored glow anywhere. */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
@@ -78,16 +78,16 @@
   --text-secondary: #5f6160;
   --text-muted: #97999a;
 
-  /* Deeper green for contrast on white; white ink on green fills */
-  --accent: #17a06a;
-  --accent-2: #1faa72;
-  --accent-3: #2bb57d;
-  --accent-soft: #e6f6ee;
-  --accent-ring: rgba(23, 160, 106, 0.26);
+  /* Deeper lime/olive for contrast on white; white ink on the fill */
+  --accent: #5c8a00;
+  --accent-2: #659700;
+  --accent-3: #6fa20a;
+  --accent-soft: #eef7cf;
+  --accent-ring: rgba(92, 138, 0, 0.25);
   --accent-ink: #ffffff;
 
-  --success: #17a06a;
-  --success-soft: #e6f6ee;
+  --success: #5c8a00;
+  --success-soft: #eef7cf;
   --warning: #9a7328;
   --warning-soft: #f3ecdc;
   --danger: #b25349;

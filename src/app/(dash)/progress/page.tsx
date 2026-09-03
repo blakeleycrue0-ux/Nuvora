@@ -311,7 +311,7 @@ export default function ProgressPage() {
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
           {achievements.map((a) => {
             const Icon = ACHIEVEMENT_ICONS[a.icon] ?? Award;
-            const tierColor = { bronze: "#94a3b0", silver: "#c0cad4", gold: "#45c68e", diamond: "#67b0e0" }[a.tier];
+            const tierColor = { bronze: "#94a3b0", silver: "#c0cad4", gold: "#d7ff28", diamond: "#67b0e0" }[a.tier];
             return (
               <div key={a.id} className={cn("flex flex-col items-center gap-2 rounded-2xl border p-4 text-center transition-all", a.earned ? "border-border bg-surface-2 hover:-translate-y-0.5 hover:shadow-[var(--shadow-sm)]" : "border-dashed border-border")}>
                 <span className={cn("flex h-12 w-12 items-center justify-center rounded-full", !a.earned && "opacity-40 grayscale")} style={{ background: `color-mix(in oklab, ${tierColor} 18%, transparent)`, color: tierColor }}>

@@ -66,7 +66,7 @@ const CelebrationContext = createContext<CelebrationValue>({
 const TIER_COLORS: Record<string, string> = {
   bronze: "#94a3b0",
   silver: "#c0cad4",
-  gold: "#45c68e",
+  gold: "#d7ff28",
   diamond: "#67b0e0",
 };
 
@@ -241,7 +241,7 @@ function LevelUpCard({ level, title, onClose }: { level: number; title: string; 
 
 function AchievementCard({ a, onClose }: { a: CelebAchievement; onClose: () => void }) {
   const Icon = ACHIEVEMENT_ICONS[a.icon] ?? Award;
-  const color = TIER_COLORS[a.tier] ?? "#45c68e";
+  const color = TIER_COLORS[a.tier] ?? "#d7ff28";
   return (
     <motion.div
       className="fixed inset-0 z-[120] flex items-center justify-center p-6"
