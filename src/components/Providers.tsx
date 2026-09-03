@@ -7,6 +7,7 @@ import { HabitStoreProvider } from "@/lib/momentum/store";
 import { ConfettiProvider } from "@/components/Confetti";
 import { CelebrationProvider } from "@/components/Celebration";
 import { ProgressProvider } from "@/components/progress/ProgressProvider";
+import { FocusProvider } from "@/components/focus/FocusProvider";
 
 export function Providers({ children }: { children: ReactNode }) {
   return (
@@ -15,7 +16,9 @@ export function Providers({ children }: { children: ReactNode }) {
         <HabitStoreProvider>
           <ProgressProvider>
             <ConfettiProvider>
-              <CelebrationProvider>{children}</CelebrationProvider>
+              <CelebrationProvider>
+                <FocusProvider>{children}</FocusProvider>
+              </CelebrationProvider>
             </ConfettiProvider>
           </ProgressProvider>
         </HabitStoreProvider>

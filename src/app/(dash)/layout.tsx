@@ -10,6 +10,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { Avatar } from "@/components/app/Avatar";
 import { navItems } from "@/components/app/nav";
 import { WorkspaceSwitcher } from "@/components/app/WorkspaceSwitcher";
+import { StatPills } from "@/components/app/StatPills";
 import { FEATURE_TEAMS } from "@/lib/features";
 import { ReminderScheduler } from "@/components/ReminderScheduler";
 import { AchievementWatcher } from "@/components/AchievementWatcher";
@@ -100,14 +101,15 @@ export default function DashLayout({ children }: { children: ReactNode }) {
 
       <div className="flex min-h-screen flex-1 flex-col">
         {/* Top bar */}
-        <header className="sticky top-0 z-40 flex min-h-16 items-center justify-between gap-3 border-b border-border bg-bg/80 px-4 pt-[env(safe-area-inset-top)] backdrop-blur-xl sm:px-6 lg:px-8">
+        <header className="liquid-bar sticky top-0 z-40 flex min-h-16 items-center justify-between gap-3 px-4 pt-[env(safe-area-inset-top)] sm:px-6 lg:px-8">
           <div className="flex items-center gap-2.5">
             <div className="lg:hidden">
               <Wordmark size="sm" />
             </div>
             {FEATURE_TEAMS && <WorkspaceSwitcher />}
           </div>
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
+            <StatPills />
             <ThemeToggle />
             <div className="lg:hidden">
               <Avatar size={36} />
@@ -119,7 +121,7 @@ export default function DashLayout({ children }: { children: ReactNode }) {
       </div>
 
       {/* Mobile bottom nav */}
-      <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-surface/90 backdrop-blur-xl lg:hidden">
+      <nav className="liquid-bar fixed inset-x-0 bottom-0 z-40 lg:hidden">
         <div className="mx-auto flex max-w-md items-stretch justify-between px-3 pb-[calc(env(safe-area-inset-bottom)+8px)] pt-2.5">
           {navItems.map((item) => {
             const active = pathname === item.href;
