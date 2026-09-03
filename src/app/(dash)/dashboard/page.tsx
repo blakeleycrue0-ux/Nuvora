@@ -6,7 +6,7 @@ import {
   AreaChart, Area, ResponsiveContainer, XAxis, Tooltip, CartesianGrid,
 } from "recharts";
 import {
-  Flame, Trophy, Target, CheckCircle2, Plus, Award, Quote,
+  CheckCircle2, Plus, Award, Quote,
 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth";
@@ -110,7 +110,7 @@ export default function DashboardPage() {
         className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-[12px] font-semibold uppercase tracking-[0.22em] text-text-muted">{prettyDate(today)}</p>
-          <h1 className="mt-3 text-[36px] font-semibold leading-[1.02] tracking-[-0.03em] text-text sm:text-[48px]">
+          <h1 className="mt-3 text-[40px] font-semibold leading-[0.98] tracking-[-0.035em] text-text sm:text-[56px]">
             {greeting()},<br className="hidden sm:block" /> {user?.name?.split(" ")[0] ?? "friend"}
           </h1>
           <p className="mt-4 text-[15px] leading-relaxed text-text-secondary">
@@ -132,22 +132,40 @@ export default function DashboardPage() {
       {/* Team summary (only shows if the user belongs to a group; hidden in personal-only mode) */}
       {FEATURE_TEAMS && <TeamCard />}
 
-      {/* Progress bubble hero — the heart of Fenom */}
-      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }} className="mt-10">
-        <div className="relative flex flex-col items-center rounded-2xl border border-border bg-surface px-6 py-14 shadow-[var(--shadow-sm)] sm:py-16">
-          <div className="relative">
-            <EarnPulse />
-            <ProgressBubble pct={level.pct} level={level.level} xp={xp} size={252} />
+      {/* Progress hero — bold, editorial. Bubble + the day's progress statement. */}
+      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }} className="mt-10 lg:mt-14">
+        <div className="relative overflow-hidden rounded-2xl border border-border bg-surface shadow-[var(--shadow-sm)]">
+          <div className="flex flex-col items-center gap-10 p-8 sm:p-12 lg:flex-row lg:items-center lg:gap-16 lg:p-14">
+            <div className="relative shrink-0">
+              <EarnPulse />
+              <ProgressBubble pct={level.pct} level={level.level} xp={xp} size={264} />
+            </div>
+
+            <div className="flex-1 text-center lg:text-left">
+              <p className="text-[12px] font-semibold uppercase tracking-[0.22em] text-text-muted">Tu progreso</p>
+              <p className="mt-3 text-[30px] font-semibold leading-[1.05] tracking-[-0.02em] text-text sm:text-[40px]">
+                {level.need - level.into} XP hasta<br className="hidden sm:block" /> el Nivel {level.level + 1}
+              </p>
+
+              <div className="mx-auto mt-7 h-2 w-full max-w-md overflow-hidden rounded-full bg-bg-subtle lg:mx-0">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${level.pct}%` }}
+                  transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+                  className="h-full rounded-full bg-accent"
+                />
+              </div>
+              <p className="mt-2.5 text-[12.5px] text-text-muted">{level.pct}% del Nivel {level.level}</p>
+
+              <div className="mt-9 grid grid-cols-3 divide-x divide-border border-t border-border pt-7">
+                <StatCell label="Best streak" value={stats.bestCurrentStreak} />
+                <StatCell label="Longest" value={stats.bestLongestStreak} />
+                <StatCell label="Active" value={stats.activeCount} />
+              </div>
+
+              <Button href="/habits" className="mt-8 w-full sm:hidden"><Plus size={17} /> New habit</Button>
+            </div>
           </div>
-          <p className="mt-8 text-[14px] font-medium text-text-secondary">
-            {level.need - level.into} XP hasta el Nivel {level.level + 1}
-          </p>
-          <div className="mt-10 grid w-full max-w-lg grid-cols-3 gap-4">
-            <MiniStat icon={Flame} label="Best streak" value={stats.bestCurrentStreak} tint="var(--accent)" />
-            <MiniStat icon={Trophy} label="Longest" value={stats.bestLongestStreak} tint="var(--c-violet)" />
-            <MiniStat icon={Target} label="Active" value={stats.activeCount} tint="var(--c-sky)" />
-          </div>
-          <Button href="/habits" className="mt-8 w-full sm:hidden"><Plus size={17} /> New habit</Button>
         </div>
       </motion.div>
 
@@ -290,12 +308,11 @@ export default function DashboardPage() {
   );
 }
 
-function MiniStat({ icon: Icon, label, value, tint }: { icon: typeof Flame; label: string; value: number; tint: string }) {
+function StatCell({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-2xl border border-border bg-surface-2 px-3 py-4 text-center">
-      <Icon size={16} className="mx-auto" style={{ color: tint }} />
-      <p className="mt-2 text-[28px] font-semibold leading-none tracking-tight text-text">{value}</p>
-      <p className="mt-1.5 text-[11px] uppercase tracking-[0.08em] text-text-muted">{label}</p>
+    <div className="px-2 text-center sm:px-4 lg:first:pl-0 lg:first:text-left">
+      <p className="text-[32px] font-semibold leading-none tracking-tight text-text sm:text-[40px]">{value}</p>
+      <p className="mt-2 text-[10.5px] uppercase tracking-[0.12em] text-text-muted">{label}</p>
     </div>
   );
 }
