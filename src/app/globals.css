@@ -115,6 +115,7 @@
 @theme inline {
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-display);
 
   --color-bg: var(--bg);
   --color-bg-subtle: var(--bg-subtle);
@@ -220,6 +221,11 @@ body {
 }
 
 .text-balance { text-wrap: balance; }
+
+.font-display {
+  font-family: var(--font-display), ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: -0.02em;
+}
 
 .glass {
   background: var(--glass-bg);
