@@ -103,11 +103,11 @@ export default function ProgressPage() {
   }
 
   return (
-    <div className="container-page py-7 lg:py-10">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <div className="container-page py-10 lg:py-16">
+      <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-[26px] font-semibold tracking-[-0.02em] text-text sm:text-[30px]">Progress</h1>
-          <p className="mt-1 text-[14px] text-text-secondary">Deep insights into your consistency and momentum.</p>
+          <h1 className="text-[34px] font-semibold leading-[1.05] tracking-[-0.03em] text-text sm:text-[44px]">Progress</h1>
+          <p className="mt-3 text-[15px] leading-relaxed text-text-secondary">Deep insights into your consistency and momentum.</p>
         </div>
         <div className="inline-flex rounded-xl border border-border bg-surface p-1">
           {(["week", "month", "quarter", "year"] as Range[]).map((r) => (
