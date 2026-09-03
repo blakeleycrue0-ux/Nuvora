@@ -13,44 +13,44 @@
 :root {
   color-scheme: dark;
 
-  /* Surfaces — absolute black with faintly-raised cards (Higgsfield). */
-  --bg: #000000;
-  --bg-subtle: #0a0a0b;
-  --surface: #101011;
-  --surface-2: #0a0a0b;
-  --elevated: #17181a;
-  --border: #232326;
-  --border-strong: #333338;
+  /* Surfaces — matte black with a faint cool undertone, softly layered. */
+  --bg: #0c0d10;
+  --bg-subtle: #101116;
+  --surface: #15171d;
+  --surface-2: #101116;
+  --elevated: #1a1d24;
+  --border: #262a33;
+  --border-strong: #353a46;
 
-  /* Text — pure white, clear hierarchy */
-  --text: #ffffff;
-  --text-secondary: #a6a6a9;
-  --text-muted: #6a6a6e;
+  /* Text — soft off-white (matte, not glaring) */
+  --text: #eef0f4;
+  --text-secondary: #9a9ea8;
+  --text-muted: #64676f;
 
-  /* Brand accent — Neon Higgs Green. */
-  --accent: #d7ff28;
-  --accent-2: #c9f51e;
-  --accent-3: #e4ff5c;
-  --accent-soft: rgba(215, 255, 40, 0.12);
-  --accent-ring: rgba(215, 255, 40, 0.40);
-  --accent-ink: #0b1400; /* near-black ink on the bright lime fill */
+  /* Brand accent — deep matte navy blue. */
+  --accent: #3a5a94;
+  --accent-2: #40619c;
+  --accent-3: #4a6ba6;
+  --accent-soft: rgba(58, 90, 148, 0.16);
+  --accent-ring: rgba(58, 90, 148, 0.42);
+  --accent-ink: #eef2f8; /* light ink on the deep navy fill */
 
-  --success: #d7ff28;
-  --success-soft: rgba(215, 255, 40, 0.12);
-  --warning: #ffc24b;
-  --warning-soft: rgba(255, 194, 75, 0.13);
-  --danger: #ff6b6b;
-  --danger-soft: rgba(255, 107, 107, 0.13);
+  --success: #5f9d80;
+  --success-soft: rgba(95, 157, 128, 0.14);
+  --warning: #c9a24a;
+  --warning-soft: rgba(201, 162, 74, 0.14);
+  --danger: #c46b6b;
+  --danger-soft: rgba(196, 107, 107, 0.14);
 
-  /* Category / habit accents — vivid, kinetic (Higgsfield energy tones) */
-  --c-indigo: #6b7bff;
-  --c-violet: #b46bff;
-  --c-fuchsia: #ff6bd0;
-  --c-rose: #ff6b8a;
-  --c-amber: #ffc24b;
-  --c-emerald: #d7ff28;
-  --c-sky: #49ffe9;
-  --c-teal: #3be0c0;
+  /* Category / habit accents — matte, cohesive tones on the navy/black base */
+  --c-indigo: #5878b0;
+  --c-violet: #8f7fb0;
+  --c-fuchsia: #b07f9d;
+  --c-rose: #b07f88;
+  --c-amber: #c9a24a;
+  --c-emerald: #5f9d80;
+  --c-sky: #6f9ac4;
+  --c-teal: #5aa0a0;
 
   /* Depth — very soft, neutral. No colored glow anywhere. */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
@@ -78,16 +78,16 @@
   --text-secondary: #5f6160;
   --text-muted: #97999a;
 
-  /* Deeper lime/olive for contrast on white; white ink on the fill */
-  --accent: #5c8a00;
-  --accent-2: #659700;
-  --accent-3: #6fa20a;
-  --accent-soft: #eef7cf;
-  --accent-ring: rgba(92, 138, 0, 0.25);
+  /* Deep matte navy for contrast on white; white ink on the fill */
+  --accent: #2f4d80;
+  --accent-2: #36568c;
+  --accent-3: #3d5f96;
+  --accent-soft: #e8edf6;
+  --accent-ring: rgba(47, 77, 128, 0.24);
   --accent-ink: #ffffff;
 
-  --success: #5c8a00;
-  --success-soft: #eef7cf;
+  --success: #2f7d5a;
+  --success-soft: #e6f2ec;
   --warning: #9a7328;
   --warning-soft: #f3ecdc;
   --danger: #b25349;
