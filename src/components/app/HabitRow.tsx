@@ -59,33 +59,39 @@ export function HabitRow({ habit, date = todayISO() }: { habit: Habit; date?: st
       </span>
 
       <div className="min-w-0 flex-1">
-        <p className={cn("truncate text-[14px] font-semibold text-text", done && "opacity-70")}>{habit.name}</p>
-        <div className="mt-0.5 flex items-center gap-2 text-[11.5px] text-text-muted">
-          <span>{habit.category}</span>
+        <div className="flex items-center gap-2">
+          <p className={cn("truncate text-[14px] font-semibold text-text", done && "line-through opacity-55")}>{habit.name}</p>
+          <span
+            className="shrink-0 rounded-full px-2 py-0.5 text-[10.5px] font-semibold"
+            style={{ background: `color-mix(in oklab, ${color} 16%, transparent)`, color }}
+          >
+            {habit.category}
+          </span>
+        </div>
+
+        {habit.targetPerDay > 1 && !done && (
+          <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-surface-2">
+            <motion.div
+              className="h-full rounded-full"
+              initial={false}
+              animate={{ width: `${Math.min(100, (count / habit.targetPerDay) * 100)}%` }}
+              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+              style={{ background: color }}
+            />
+          </div>
+        )}
+
+        <div className="mt-1 flex items-center gap-2 text-[11.5px] text-text-muted">
+          <span className="tabular-nums">
+            {habit.targetPerDay > 1 ? `${count}/${habit.targetPerDay} · tap to add` : done ? "Completed" : "Tap play to focus"}
+          </span>
           {streak > 0 && (
             <span className="inline-flex items-center gap-1 font-medium" style={{ color }}>
               <Flame size={12} /> {streak}
             </span>
           )}
-          {habit.targetPerDay > 1 && (
-            <span className="tabular-nums">
-              {count}/{habit.targetPerDay}
-            </span>
-          )}
         </div>
       </div>
-
-      {habit.targetPerDay > 1 && !done && (
-        <div className="hidden items-center gap-1 sm:flex">
-          {Array.from({ length: habit.targetPerDay }).map((_, i) => (
-            <span
-              key={i}
-              className="h-1.5 w-4 rounded-full"
-              style={{ background: i < count ? color : "var(--border-strong)" }}
-            />
-          ))}
-        </div>
-      )}
 
       {!done && (
         <motion.button
