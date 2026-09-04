@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "motion/react";
 import {
   AreaChart, Area, ResponsiveContainer, Tooltip,
@@ -21,6 +21,7 @@ import { TeamCard } from "@/components/app/TeamCard";
 import { ProgressBubble } from "@/components/progress/ProgressBubble";
 import { EarnPulse } from "@/components/progress/EarnPulse";
 import { CountUp } from "@/components/CountUp";
+import { getSessions, FOCUS_EVENT } from "@/lib/focus/log";
 import { FEATURE_TEAMS } from "@/lib/features";
 import { colorValue } from "@/lib/icons";
 import { cn } from "@/lib/utils";
@@ -111,6 +112,24 @@ export default function DashboardPage() {
       .sort((a, b) => b.rate - a.rate)
       .slice(0, 4);
   }, [active, completions]);
+
+  // Live focus stats from the local session log.
+  const [focus, setFocus] = useState({ totalMin: 0, weekMin: 0, sessions: 0, bars: [] as number[] });
+  useEffect(() => {
+    const compute = () => {
+      const list = getSessions();
+      const byDay = new Map<string, number>();
+      for (const s of list) byDay.set(s.date, (byDay.get(s.date) ?? 0) + s.minutes);
+      const days14 = lastNDays(14);
+      const bars = days14.map((d) => byDay.get(d) ?? 0);
+      const weekMin = lastNDays(7).reduce((a, d) => a + (byDay.get(d) ?? 0), 0);
+      const totalMin = list.reduce((a, s) => a + s.minutes, 0);
+      setFocus({ totalMin, weekMin, sessions: list.length, bars });
+    };
+    compute();
+    window.addEventListener(FOCUS_EVENT, compute);
+    return () => window.removeEventListener(FOCUS_EVENT, compute);
+  }, []);
 
   if (!ready) return <DashboardSkeleton />;
 
@@ -312,6 +331,28 @@ export default function DashboardPage() {
                 <span className="text-text-muted">30-day success rate</span>
                 <span className="font-semibold text-text">{stats.avgRate}%</span>
               </div>
+            </Widget>
+          </motion.div>
+
+          {/* Focus — real time invested via the play timer */}
+          <motion.div variants={item} className="col-span-2 lg:col-span-2">
+            <Widget className="h-full">
+              <WidgetHead title="Focus" hint="this week" />
+              <p className="font-display text-[40px] font-semibold leading-none text-text">
+                {(focus.weekMin / 60).toFixed(1)}<span className="text-[18px] text-text-muted">h</span>
+              </p>
+              <p className="mt-2 text-[12.5px] text-text-muted">
+                {focus.sessions} {focus.sessions === 1 ? "session" : "sessions"} · {(focus.totalMin / 60).toFixed(1)}h all-time
+              </p>
+              <div className="mt-5 flex h-[46px] items-end gap-1.5">
+                {focus.bars.map((m, i) => {
+                  const max = Math.max(1, ...focus.bars);
+                  return <div key={i} className="flex-1 rounded-t-[3px]" style={{ height: `${6 + (m / max) * 40}px`, background: m > 0 ? "var(--accent)" : "var(--surface-2)" }} />;
+                })}
+              </div>
+              {focus.totalMin === 0 && (
+                <p className="mt-4 text-[12px] leading-relaxed text-text-muted">Tap ▶ on any habit to start a focus session — your hours land here.</p>
+              )}
             </Widget>
           </motion.div>
 
