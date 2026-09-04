@@ -7,6 +7,7 @@ import type { Habit } from "@/lib/momentum/types";
 import { useHabits } from "@/lib/momentum/store";
 import { todayISO } from "@/lib/momentum/date";
 import { DIFFICULTY_XP } from "@/lib/momentum/stats";
+import { logFocus } from "@/lib/focus/log";
 import { HabitIcon, colorValue } from "@/lib/icons";
 import { useConfetti } from "@/components/Confetti";
 import { useCelebration } from "@/components/Celebration";
@@ -45,15 +46,19 @@ export function FocusProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const finish = useCallback((markDone: boolean) => {
-    if (habit && markDone) {
-      const cx = window.innerWidth / 2;
-      const cy = window.innerHeight * 0.42;
-      const didComplete = incrementCompletion(habit.id, todayISO(), 1);
-      celebrateXP(DIFFICULTY_XP[habit.difficulty], cx, cy);
-      if (didComplete) fire(cx, cy);
+    if (habit) {
+      const mins = Math.max(1, Math.round((total - left) / 60));
+      logFocus(habit.id, mins);
+      if (markDone) {
+        const cx = window.innerWidth / 2;
+        const cy = window.innerHeight * 0.42;
+        const didComplete = incrementCompletion(habit.id, todayISO(), 1);
+        celebrateXP(DIFFICULTY_XP[habit.difficulty], cx, cy);
+        if (didComplete) fire(cx, cy);
+      }
     }
     close();
-  }, [habit, incrementCompletion, celebrateXP, fire, close]);
+  }, [habit, total, left, incrementCompletion, celebrateXP, fire, close]);
 
   // Countdown.
   useEffect(() => {
