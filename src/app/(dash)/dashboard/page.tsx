@@ -16,6 +16,7 @@ import {
 import { todayISO, prettyDate, weekdayShort, lastNDays, diffDays } from "@/lib/momentum/date";
 import { Button } from "@/components/ui/Button";
 import { Heatmap } from "@/components/app/Heatmap";
+import { ActivityClock } from "@/components/app/ActivityClock";
 import { HabitRow } from "@/components/app/HabitRow";
 import { TeamCard } from "@/components/app/TeamCard";
 import { ProgressBubble } from "@/components/progress/ProgressBubble";
@@ -353,6 +354,19 @@ export default function DashboardPage() {
               {focus.totalMin === 0 && (
                 <p className="mt-4 text-[12px] leading-relaxed text-text-muted">Tap ▶ on any habit to start a focus session — your hours land here.</p>
               )}
+            </Widget>
+          </motion.div>
+
+          {/* Activity clock — polar heatmap of focus by hour of week */}
+          <motion.div variants={item} className="col-span-2 lg:col-span-6">
+            <Widget>
+              <WidgetHead title="Activity clock" hint="focus by hour of week" />
+              <div className="flex flex-col items-center gap-6 sm:flex-row sm:justify-center sm:gap-12">
+                <ActivityClock size={230} />
+                <p className="max-w-xs text-center text-[13px] leading-relaxed text-text-secondary sm:text-left">
+                  Every ring is a weekday, every slice an hour. The brighter the wedge, the more you focused at that time — your rhythm, at a glance.
+                </p>
+              </div>
             </Widget>
           </motion.div>
 

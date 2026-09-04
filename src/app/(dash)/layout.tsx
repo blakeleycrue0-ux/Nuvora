@@ -115,7 +115,7 @@ export default function DashLayout({ children }: { children: ReactNode }) {
       </div>
 
       {/* Mobile bottom nav */}
-      <nav className="liquid-bar fixed inset-x-0 bottom-0 z-40 lg:hidden">
+      <nav className="liquid-glass fixed inset-x-0 bottom-0 z-40 lg:hidden">
         <div className="mx-auto flex max-w-md items-stretch justify-between px-3 pb-[calc(env(safe-area-inset-bottom)+8px)] pt-2.5">
           {navItems.map((item) => {
             const active = pathname === item.href;
