@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Minus, Plus } from "lucide-react";
-import type { Difficulty, Frequency, Habit, HabitColor } from "@/lib/momentum/types";
+import type { Difficulty, Frequency, Habit, HabitColor, HabitKind } from "@/lib/momentum/types";
 import { useHabits } from "@/lib/momentum/store";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
@@ -38,6 +38,10 @@ export function HabitFormModal({
   const [reminder, setReminder] = useState(editing?.reminder ?? "");
   const [tags, setTags] = useState((editing?.tags ?? []).join(", "));
   const [verify, setVerify] = useState(editing?.verify ?? false);
+  const [kind, setKind] = useState<HabitKind>(editing?.kind ?? (editing && editing.targetPerDay > 1 ? "counter" : "check"));
+  const [targetMinutes, setTargetMinutes] = useState(editing?.targetMinutes ?? 25);
+  const [goalTarget, setGoalTarget] = useState(editing?.goalTarget ?? 1000);
+  const [goalUnit, setGoalUnit] = useState(editing?.goalUnit ?? "km");
 
   const [freqType, setFreqType] = useState<FreqType>(editing?.frequency.type ?? "daily");
   const [weeklyDays, setWeeklyDays] = useState<number[]>(
@@ -65,11 +69,15 @@ export function HabitFormModal({
       category,
       notes: notes.trim() || undefined,
       frequency: buildFrequency(),
-      targetPerDay: Math.max(1, target),
+      targetPerDay: kind === "counter" ? Math.max(2, target) : Math.max(1, target),
       difficulty,
       reminder: reminder || undefined,
       tags: tags.split(",").map((t) => t.trim()).filter(Boolean),
       verify,
+      kind,
+      targetMinutes: kind === "timer" ? Math.max(5, targetMinutes) : undefined,
+      goalTarget: kind === "quantity" ? Math.max(1, goalTarget) : undefined,
+      goalUnit: kind === "quantity" ? (goalUnit.trim() || "units") : undefined,
     };
     if (editing) updateHabit(editing.id, payload);
     else addHabit(payload);
@@ -142,6 +150,50 @@ export function HabitFormModal({
           </div>
         </Field>
 
+        {/* Type */}
+        <Field label="Type">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {([
+              ["check", "Check", "Done / not done"],
+              ["counter", "Counter", "N times a day"],
+              ["timer", "Timer", "Focus X minutes"],
+              ["quantity", "Goal", "Add toward a total"],
+            ] as [HabitKind, string, string][]).map(([k, label, desc]) => (
+              <button
+                key={k}
+                onClick={() => setKind(k)}
+                className={cn(
+                  "rounded-xl border px-3 py-2.5 text-left transition-colors",
+                  kind === k ? "border-accent bg-accent-soft" : "border-border hover:border-border-strong",
+                )}
+              >
+                <p className={cn("text-[13px] font-semibold", kind === k ? "text-accent" : "text-text")}>{label}</p>
+                <p className="mt-0.5 text-[11px] text-text-muted">{desc}</p>
+              </button>
+            ))}
+          </div>
+        </Field>
+
+        {kind === "timer" && (
+          <Field label="Daily focus target (minutes)">
+            <div className="flex items-center gap-3">
+              <Stepper value={targetMinutes} onChange={(v) => setTargetMinutes(Math.max(5, Math.min(240, v)))} step={5} />
+              <span className="text-[13px] text-text-secondary">minutes / day</span>
+            </div>
+          </Field>
+        )}
+
+        {kind === "quantity" && (
+          <div className="grid grid-cols-2 gap-4">
+            <Field label="Goal total">
+              <Input type="number" inputMode="numeric" value={String(goalTarget)} onChange={(e) => setGoalTarget(Math.max(1, parseInt(e.target.value) || 0))} />
+            </Field>
+            <Field label="Unit">
+              <Input placeholder="km, pages, €…" value={goalUnit} onChange={(e) => setGoalUnit(e.target.value)} />
+            </Field>
+          </div>
+        )}
+
         {/* Frequency */}
         <Field label="Frequency">
           <div className="flex flex-wrap gap-2">
@@ -186,9 +238,11 @@ export function HabitFormModal({
         </Field>
 
         <div className="grid grid-cols-2 gap-4">
-          <Field label="Times per day">
-            <Stepper value={target} onChange={(v) => setTarget(Math.max(1, Math.min(12, v)))} />
-          </Field>
+          {kind === "counter" && (
+            <Field label="Times per day">
+              <Stepper value={Math.max(2, target)} onChange={(v) => setTarget(Math.max(2, Math.min(20, v)))} />
+            </Field>
+          )}
           <Field label="Reminder (optional)">
             <Input type="time" value={reminder} onChange={(e) => setReminder(e.target.value)} />
           </Field>
@@ -250,14 +304,14 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-function Stepper({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+function Stepper({ value, onChange, step = 1 }: { value: number; onChange: (v: number) => void; step?: number }) {
   return (
     <div className="inline-flex items-center gap-2 rounded-xl border border-border bg-surface-2 p-1">
-      <button onClick={() => onChange(value - 1)} className="flex h-8 w-8 items-center justify-center rounded-lg text-text-secondary hover:bg-surface hover:text-text">
+      <button onClick={() => onChange(value - step)} className="flex h-8 w-8 items-center justify-center rounded-lg text-text-secondary hover:bg-surface hover:text-text">
         <Minus size={15} />
       </button>
-      <span className="w-6 text-center text-[15px] font-semibold tabular-nums text-text">{value}</span>
-      <button onClick={() => onChange(value + 1)} className="flex h-8 w-8 items-center justify-center rounded-lg text-text-secondary hover:bg-surface hover:text-text">
+      <span className="w-10 text-center text-[15px] font-semibold tabular-nums text-text">{value}</span>
+      <button onClick={() => onChange(value + step)} className="flex h-8 w-8 items-center justify-center rounded-lg text-text-secondary hover:bg-surface hover:text-text">
         <Plus size={15} />
       </button>
     </div>

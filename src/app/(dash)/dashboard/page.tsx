@@ -17,6 +17,7 @@ import { todayISO, prettyDate, weekdayShort, lastNDays, diffDays } from "@/lib/m
 import { Button } from "@/components/ui/Button";
 import { Heatmap } from "@/components/app/Heatmap";
 import { ActivityClock } from "@/components/app/ActivityClock";
+import { FocusLandscape } from "@/components/app/FocusLandscape";
 import { HabitRow } from "@/components/app/HabitRow";
 import { TeamCard } from "@/components/app/TeamCard";
 import { ProgressBubble } from "@/components/progress/ProgressBubble";
@@ -367,6 +368,14 @@ export default function DashboardPage() {
                   Every ring is a weekday, every slice an hour. The brighter the wedge, the more you focused at that time — your rhythm, at a glance.
                 </p>
               </div>
+            </Widget>
+          </motion.div>
+
+          {/* Focus landscape — pseudo-3D ridgeline of focus by weekday & hour */}
+          <motion.div variants={item} className="col-span-2 lg:col-span-6">
+            <Widget>
+              <WidgetHead title="Focus landscape" hint="by weekday & hour" />
+              <FocusLandscape />
             </Widget>
           </motion.div>
 

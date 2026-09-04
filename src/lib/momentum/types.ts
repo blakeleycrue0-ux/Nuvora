@@ -16,6 +16,13 @@ export type HabitColor =
   | "c-sky"
   | "c-teal";
 
+// How a habit is completed / measured.
+//  check    — a simple done/not-done tick (default)
+//  counter  — do it N times a day (uses targetPerDay), with +/- controls
+//  timer    — focus for a target number of minutes (targetMinutes)
+//  quantity — accumulate an amount toward a long-term goal (goalTarget + goalUnit)
+export type HabitKind = "check" | "counter" | "timer" | "quantity";
+
 export interface Habit {
   id: string;
   name: string;
@@ -32,6 +39,10 @@ export interface Habit {
   archived: boolean;
   order: number;
   verify?: boolean; // require an AI photo check to complete
+  kind?: HabitKind; // completion style (default "check")
+  targetMinutes?: number; // timer: daily focus target in minutes
+  goalTarget?: number; // quantity: total goal (e.g. 5000)
+  goalUnit?: string; // quantity: unit label (e.g. "km")
 }
 
 export interface Verification {
