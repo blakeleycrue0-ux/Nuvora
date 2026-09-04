@@ -187,7 +187,7 @@ html {
 }
 
 body {
-  background: var(--bg);
+  background: transparent;
   color: var(--text);
   font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -225,6 +225,66 @@ body {
   font-family: var(--font-display), ui-sans-serif, system-ui, sans-serif;
   letter-spacing: -0.02em;
 }
+
+/* Ambient background: slow aurora blobs + fine matte grain, behind content. */
+.app-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  overflow: hidden;
+  background: var(--bg);
+}
+.app-bg::before,
+.app-bg::after {
+  content: "";
+  position: absolute;
+  width: 62vmax;
+  height: 62vmax;
+  border-radius: 50%;
+  filter: blur(110px);
+  opacity: 0.12;
+}
+.app-bg::before {
+  background: var(--accent);
+  top: -22vmax;
+  left: -12vmax;
+  animation: aurora-a 28s ease-in-out infinite alternate;
+}
+.app-bg::after {
+  background: var(--c-indigo);
+  bottom: -22vmax;
+  right: -12vmax;
+  animation: aurora-b 34s ease-in-out infinite alternate;
+}
+@keyframes aurora-a { from { transform: translate(0, 0); } to { transform: translate(12vmax, 9vmax); } }
+@keyframes aurora-b { from { transform: translate(0, 0); } to { transform: translate(-10vmax, -8vmax); } }
+
+.app-grain {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.04;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Shimmer skeleton */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: var(--surface-2);
+}
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, color-mix(in oklab, var(--text) 7%, transparent), transparent);
+  animation: skeleton-shine 1.6s infinite;
+}
+@keyframes skeleton-shine { 100% { transform: translateX(100%); } }
 
 .glass {
   background: var(--glass-bg);

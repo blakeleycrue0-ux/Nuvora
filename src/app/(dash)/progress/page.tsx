@@ -109,9 +109,9 @@ export default function ProgressPage() {
   if (!ready) {
     return (
       <div className="container-page py-10">
-        <div className="h-8 w-40 animate-pulse rounded-lg bg-surface-2" />
+        <div className="h-8 w-40 skeleton rounded-lg bg-surface-2" />
         <div className="mt-7 grid gap-5 lg:grid-cols-4">
-          {Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-28 animate-pulse rounded-2xl bg-surface-2" />)}
+          {Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-28 skeleton rounded-2xl bg-surface-2" />)}
         </div>
       </div>
     );

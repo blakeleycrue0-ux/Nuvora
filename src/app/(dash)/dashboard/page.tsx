@@ -20,6 +20,7 @@ import { HabitRow } from "@/components/app/HabitRow";
 import { TeamCard } from "@/components/app/TeamCard";
 import { ProgressBubble } from "@/components/progress/ProgressBubble";
 import { EarnPulse } from "@/components/progress/EarnPulse";
+import { CountUp } from "@/components/CountUp";
 import { FEATURE_TEAMS } from "@/lib/features";
 import { colorValue } from "@/lib/icons";
 import { cn } from "@/lib/utils";
@@ -123,6 +124,13 @@ export default function DashboardPage() {
           <h1 className="font-display mt-3 text-[38px] font-semibold leading-[0.98] text-text sm:text-[54px]">
             {greeting()},<br className="hidden sm:block" /> {user?.name?.split(" ")[0] ?? "friend"}
           </h1>
+          <p className="mt-3 text-[15px] leading-relaxed text-text-secondary">
+            {dp.total === 0
+              ? "Nothing scheduled today — enjoy the rest."
+              : dp.pct === 100
+                ? `Perfect day — all ${dp.total} done. 🔥`
+                : `${dp.completed} of ${dp.total} done today${stats.bestCurrentStreak > 0 ? ` · ${stats.bestCurrentStreak}-day streak` : ""}.`}
+          </p>
         </div>
         <div className="flex shrink-0 items-center gap-3">
           <Button href="/habits" className="hidden sm:inline-flex"><Plus size={17} /> New habit</Button>
@@ -144,7 +152,7 @@ export default function DashboardPage() {
                 <div>
                   <p className="text-[11px] font-semibold uppercase tracking-[0.2em] opacity-70">Lifetime</p>
                   <p className="font-display mt-2 text-[54px] font-semibold leading-[0.9] sm:text-[68px]">
-                    {stats.totalCompletions.toLocaleString()}
+                    <CountUp value={stats.totalCompletions} />
                   </p>
                   <p className="mt-2 text-[13px] font-medium opacity-80">
                     {active.length} {active.length === 1 ? "habit" : "habits"} · {stats.bestCurrentStreak}-day streak
@@ -378,14 +386,14 @@ function EmptyBoard() {
 function DashboardSkeleton() {
   return (
     <div className="container-page py-10 lg:py-14">
-      <div className="h-12 w-64 animate-pulse rounded-xl bg-surface-2" />
+      <div className="h-12 w-64 skeleton rounded-xl bg-surface-2" />
       <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-6">
-        <div className="col-span-2 h-44 animate-pulse rounded-[26px] bg-surface-2 lg:col-span-4" />
-        <div className="col-span-2 h-44 animate-pulse rounded-[26px] bg-surface-2 lg:col-span-2" />
-        <div className="col-span-2 h-64 animate-pulse rounded-[26px] bg-surface-2 lg:col-span-3" />
-        <div className="col-span-2 h-64 animate-pulse rounded-[26px] bg-surface-2 lg:col-span-3" />
-        <div className="col-span-2 h-52 animate-pulse rounded-[26px] bg-surface-2 lg:col-span-4" />
-        <div className="col-span-2 h-52 animate-pulse rounded-[26px] bg-surface-2 lg:col-span-2" />
+        <div className="col-span-2 h-44 skeleton rounded-[26px] bg-surface-2 lg:col-span-4" />
+        <div className="col-span-2 h-44 skeleton rounded-[26px] bg-surface-2 lg:col-span-2" />
+        <div className="col-span-2 h-64 skeleton rounded-[26px] bg-surface-2 lg:col-span-3" />
+        <div className="col-span-2 h-64 skeleton rounded-[26px] bg-surface-2 lg:col-span-3" />
+        <div className="col-span-2 h-52 skeleton rounded-[26px] bg-surface-2 lg:col-span-4" />
+        <div className="col-span-2 h-52 skeleton rounded-[26px] bg-surface-2 lg:col-span-2" />
       </div>
     </div>
   );
