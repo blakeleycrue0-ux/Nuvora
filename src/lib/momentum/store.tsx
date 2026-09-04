@@ -20,6 +20,7 @@ interface StoreValue {
   duplicateHabit: (id: string) => void;
   incrementCompletion: (habitId: string, date?: string, delta?: number) => boolean;
   setCompletion: (habitId: string, date: string, count: number) => void;
+  addAmount: (habitId: string, amount: number, date?: string) => void;
   resetAll: () => void;
   importData: (data: MomentumData) => void;
   exportData: () => MomentumData;
@@ -44,6 +45,10 @@ interface HabitRow {
   order: number;
   created_at: string;
   verify: boolean | null;
+  kind?: Habit["kind"] | null;
+  target_minutes?: number | null;
+  goal_target?: number | null;
+  goal_unit?: string | null;
 }
 
 function rowToHabit(r: HabitRow): Habit {
@@ -63,11 +68,15 @@ function rowToHabit(r: HabitRow): Habit {
     order: r.order,
     createdAt: r.created_at,
     verify: r.verify ?? false,
+    kind: r.kind ?? undefined,
+    targetMinutes: r.target_minutes ?? undefined,
+    goalTarget: r.goal_target ?? undefined,
+    goalUnit: r.goal_unit ?? undefined,
   };
 }
 
 function habitToRow(h: Habit, userId: string) {
-  return {
+  const row: Record<string, unknown> = {
     id: h.id,
     user_id: userId,
     name: h.name,
@@ -85,6 +94,15 @@ function habitToRow(h: Habit, userId: string) {
     created_at: h.createdAt,
     verify: h.verify ?? false,
   };
+  // Only send the type columns for non-default habits, so plain "check"
+  // habits keep working even before the 0014 migration adds the columns.
+  if (h.kind && h.kind !== "check") {
+    row.kind = h.kind;
+    if (h.targetMinutes != null) row.target_minutes = h.targetMinutes;
+    if (h.goalTarget != null) row.goal_target = h.goalTarget;
+    if (h.goalUnit != null) row.goal_unit = h.goalUnit;
+  }
+  return row;
 }
 
 function newId(): string {
@@ -190,6 +208,10 @@ export function HabitStoreProvider({ children }: { children: ReactNode }) {
     if (patch.archived !== undefined) row.archived = patch.archived;
     if (patch.order !== undefined) row.order = patch.order;
     if (patch.verify !== undefined) row.verify = patch.verify;
+    if (patch.kind !== undefined) row.kind = patch.kind ?? "check";
+    if (patch.targetMinutes !== undefined) row.target_minutes = patch.targetMinutes ?? null;
+    if (patch.goalTarget !== undefined) row.goal_target = patch.goalTarget ?? null;
+    if (patch.goalUnit !== undefined) row.goal_unit = patch.goalUnit ?? null;
     if (Object.keys(row).length) track(supabase.from("habits").update(row).eq("id", id));
   }, [track]);
 
@@ -272,6 +294,21 @@ export function HabitStoreProvider({ children }: { children: ReactNode }) {
     persistCompletion(habitId, date, next);
   }, [persistCompletion]);
 
+  // Quantity/goal habits: add an amount to a day's tally (no target cap).
+  // The habit's total is the sum of its daily amounts across all dates.
+  const addAmount = useCallback<StoreValue["addAmount"]>((habitId, amount, date = todayISO()) => {
+    const k = key(habitId, date);
+    const prev = completionsRef.current[k] ?? 0;
+    const next = Math.max(0, prev + amount);
+    setCompletions((c) => {
+      const nc = { ...c };
+      if (next === 0) delete nc[k];
+      else nc[k] = next;
+      return nc;
+    });
+    persistCompletion(habitId, date, next);
+  }, [persistCompletion]);
+
   const resetAll = useCallback(() => {
     const uid = userIdRef.current;
     setHabits([]);
@@ -327,11 +364,12 @@ export function HabitStoreProvider({ children }: { children: ReactNode }) {
       duplicateHabit,
       incrementCompletion,
       setCompletion,
+      addAmount,
       resetAll,
       importData,
       exportData,
     }),
-    [ready, habits, completions, xp, addHabit, updateHabit, deleteHabit, archiveHabit, duplicateHabit, incrementCompletion, setCompletion, resetAll, importData, exportData],
+    [ready, habits, completions, xp, addHabit, updateHabit, deleteHabit, archiveHabit, duplicateHabit, incrementCompletion, setCompletion, addAmount, resetAll, importData, exportData],
   );
 
   return (
