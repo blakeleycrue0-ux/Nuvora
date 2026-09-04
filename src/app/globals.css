@@ -13,26 +13,26 @@
 :root {
   color-scheme: dark;
 
-  /* Surfaces — matte black with a faint cool undertone, softly layered. */
-  --bg: #0c0d10;
-  --bg-subtle: #101116;
-  --surface: #15171d;
-  --surface-2: #101116;
-  --elevated: #1a1d24;
-  --border: #262a33;
-  --border-strong: #353a46;
+  /* Surfaces — true matte black (flat, neutral), softly layered. */
+  --bg: #0a0a0a;
+  --bg-subtle: #0f0f10;
+  --surface: #141415;
+  --surface-2: #0f0f10;
+  --elevated: #1b1b1c;
+  --border: #262627;
+  --border-strong: #363638;
 
   /* Text — soft off-white (matte, not glaring) */
-  --text: #eef0f4;
-  --text-secondary: #9a9ea8;
-  --text-muted: #64676f;
+  --text: #f0f0f0;
+  --text-secondary: #9a9a9c;
+  --text-muted: #646466;
 
-  /* Brand accent — deep matte navy blue. */
-  --accent: #3a5a94;
-  --accent-2: #40619c;
-  --accent-3: #4a6ba6;
-  --accent-soft: rgba(58, 90, 148, 0.16);
-  --accent-ring: rgba(58, 90, 148, 0.42);
+  /* Brand accent — deep, dark matte navy blue. */
+  --accent: #2b4570;
+  --accent-2: #304b78;
+  --accent-3: #365280;
+  --accent-soft: rgba(43, 69, 112, 0.20);
+  --accent-ring: rgba(43, 69, 112, 0.45);
   --accent-ink: #eef2f8; /* light ink on the deep navy fill */
 
   --success: #5f9d80;
@@ -239,11 +239,11 @@ body {
 .app-bg::after {
   content: "";
   position: absolute;
-  width: 62vmax;
-  height: 62vmax;
+  width: 60vmax;
+  height: 60vmax;
   border-radius: 50%;
-  filter: blur(110px);
-  opacity: 0.12;
+  filter: blur(130px);
+  opacity: 0.06;
 }
 .app-bg::before {
   background: var(--accent);
@@ -293,24 +293,23 @@ body {
   border: 1px solid var(--glass-border);
 }
 
-/* Apple-style "liquid glass": translucent, blurred, with a bright top edge. */
+/* Matte translucent surfaces: blurred, flat — no glossy sheen. */
 .liquid {
-  background: color-mix(in oklab, var(--surface) 55%, transparent);
-  backdrop-filter: blur(22px) saturate(180%);
-  -webkit-backdrop-filter: blur(22px) saturate(180%);
-  border: 1px solid color-mix(in oklab, var(--text) 9%, transparent);
-  box-shadow: inset 0 1px 0 0 color-mix(in oklab, #fff 14%, transparent), var(--shadow-md);
+  background: color-mix(in oklab, var(--surface) 78%, transparent);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-md);
 }
 .liquid-bar {
-  background: color-mix(in oklab, var(--bg) 60%, transparent);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  box-shadow: inset 0 -1px 0 0 color-mix(in oklab, var(--text) 6%, transparent);
+  background: color-mix(in oklab, var(--bg) 78%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: inset 0 -1px 0 0 var(--border);
 }
 .liquid-pill {
-  backdrop-filter: blur(18px) saturate(180%);
-  -webkit-backdrop-filter: blur(18px) saturate(180%);
-  box-shadow: inset 0 1px 0 0 color-mix(in oklab, #fff 16%, transparent), var(--shadow-sm);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 }
 
 .accent-gradient {

@@ -21,7 +21,6 @@ import {
   notifSupported, notifPermission, requestNotif, remindersEnabled, setReminders, showNotif,
 } from "@/lib/notifications";
 import { subscribeToPush, unsubscribeFromPush } from "@/lib/push";
-import { ACCENTS, setAccent, storedAccent, type AccentKey } from "@/lib/accent";
 import { cn } from "@/lib/utils";
 
 const SHORTCUTS = [
@@ -42,8 +41,6 @@ export default function SettingsPage() {
 
   const [name, setName] = useState(user?.name ?? "");
   const [savedName, setSavedName] = useState(false);
-  const [accent, setAccentState] = useState<AccentKey>("navy");
-  useEffect(() => { const a = storedAccent(); if (a) setAccentState(a); }, []);
   const [notif, setNotif] = useState({ streaks: true, weekly: false, achievements: true });
   const [remindersOn, setRemindersOn] = useState(false);
   const [notifState, setNotifState] = useState<string>("default");
@@ -171,22 +168,6 @@ export default function SettingsPage() {
             <button onClick={() => theme === "light" && toggle()} className={cn("flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[13px] font-medium transition-colors", theme === "dark" ? "bg-surface text-text shadow-[var(--shadow-sm)]" : "text-text-muted hover:text-text")}>
               <Moon size={15} /> Dark
             </button>
-          </div>
-        </Row>
-        <Row label="Accent color" hint="Pick the color used across the whole app.">
-          <div className="flex flex-wrap gap-2.5">
-            {(Object.keys(ACCENTS) as AccentKey[]).map((k) => (
-              <button
-                key={k}
-                onClick={() => { setAccent(k); setAccentState(k); }}
-                aria-label={ACCENTS[k].label}
-                title={ACCENTS[k].label}
-                className={cn("flex h-8 w-8 items-center justify-center rounded-full border-2 transition-transform hover:scale-110", accent === k ? "border-text" : "border-transparent")}
-                style={{ background: ACCENTS[k].swatch }}
-              >
-                {accent === k && <Check size={15} className="mix-blend-difference text-white" strokeWidth={3} />}
-              </button>
-            ))}
           </div>
         </Row>
       </Section>

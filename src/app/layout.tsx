@@ -51,17 +51,6 @@ const themeScript = `
     if (localStorage.getItem('momentum-theme') === 'light') {
       document.documentElement.classList.add('light');
     }
-    var a = localStorage.getItem('fenom-accent');
-    var M = {
-      navy:['#3a5a94','#40619c','#4a6ba6','rgba(58,90,148,0.16)','rgba(58,90,148,0.42)','#eef2f8'],
-      green:['#45c68e','#52c795','#5ec99a','rgba(69,198,142,0.14)','rgba(69,198,142,0.40)','#07130d'],
-      lime:['#d7ff28','#c9f51e','#e4ff5c','rgba(215,255,40,0.12)','rgba(215,255,40,0.40)','#0b1400'],
-      amber:['#e0a44b','#e6ad5a','#ecb86e','rgba(224,164,75,0.14)','rgba(224,164,75,0.40)','#170f00'],
-      violet:['#8f7fb0','#9a8bbb','#a897c6','rgba(143,127,176,0.16)','rgba(143,127,176,0.42)','#0d0a14'],
-      aqua:['#49c8d0','#57cfd6','#6ad7dd','rgba(73,200,208,0.14)','rgba(73,200,208,0.40)','#031316']
-    };
-    var K=['--accent','--accent-2','--accent-3','--accent-soft','--accent-ring','--accent-ink'];
-    if (a && M[a]) { for (var i=0;i<K.length;i++) document.documentElement.style.setProperty(K[i], M[a][i]); }
   } catch (e) {}
 })();
 `;
