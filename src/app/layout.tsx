@@ -10,12 +10,12 @@ const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"]
 const display = Space_Grotesk({ variable: "--font-display", subsets: ["latin"], weight: ["500", "600", "700"] });
 
 export const metadata: Metadata = {
-  title: "Fenom — Build habits that actually stick",
+  title: "Fenom — Show Up. See What You Become.",
   description:
-    "The most beautiful way to build habits. Streaks, heatmaps, analytics, XP and gorgeous dashboards — designed to make consistency feel effortless.",
+    "Fenom turns your habits, focus and goals into a visual record of the work you actually put in. Consistency over intensity.",
   metadataBase: new URL("https://fenom.app"),
   applicationName: "Fenom",
-  keywords: ["habit tracker", "habits", "streaks", "productivity", "routine", "momentum"],
+  keywords: ["habit tracker", "habits", "focus", "streaks", "consistency", "discipline", "goals", "productivity"],
   alternates: { canonical: "/" },
   appleWebApp: {
     capable: true,
@@ -23,16 +23,16 @@ export const metadata: Metadata = {
     statusBarStyle: "black-translucent",
   },
   openGraph: {
-    title: "Fenom — Build habits that actually stick",
-    description: "Streaks, heatmaps, analytics and XP in the most beautiful habit tracker ever made.",
+    title: "Fenom — Show Up. See What You Become.",
+    description: "Your habits, focus and goals — turned into a visual record of the work you actually put in.",
     type: "website",
     siteName: "Fenom",
     url: "/",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Fenom — Build habits that actually stick",
-    description: "Streaks, heatmaps, analytics and XP in the most beautiful habit tracker ever made.",
+    title: "Fenom — Show Up. See What You Become.",
+    description: "Your habits, focus and goals — turned into a visual record of the work you actually put in.",
   },
 };
 
