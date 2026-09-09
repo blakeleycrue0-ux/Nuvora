@@ -1,6 +1,7 @@
-import { redirect } from "next/navigation";
+import { Landing } from "@/components/landing/Landing";
 
-// No marketing landing — Momentum drops you straight into the app.
+// Public marketing landing at the root. The app itself lives under /dashboard
+// (auth-gated); CTAs here route to /signup and /login.
 export default function RootPage() {
-  redirect("/login");
+  return <Landing />;
 }
